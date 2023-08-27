@@ -1,2 +1,4 @@
 .idea/
 config.ini
+*.json
+__pycache__/
