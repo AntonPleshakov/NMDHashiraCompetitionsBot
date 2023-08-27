@@ -1,9 +1,7 @@
 import telebot
-import configparser
+from ConfigManager import *
 
-config = configparser.ConfigParser()
-config.read('config.ini')
-bot = telebot.TeleBot(config['Release']['TOKEN'])
+bot = telebot.TeleBot(config[MODE]['TOKEN'])
 
 tournament_commands_list = ['create_tournament', 'register', 'get_registered_users']
 rating_commands_list = ['update_attack', 'get_rating_list']
