@@ -1,12 +1,5 @@
 import pygsheets
 from ConfigManager import config, MODE
-from enum import Enum
-
-
-class Worksheets(Enum):
-    RATING = 0
-    TOURNAMENT = 1
-    ADMINS = 2
 
 
 class Singleton(type):
@@ -28,13 +21,9 @@ class DBManager(metaclass=Singleton):
 
     def __init__(self):
         client = pygsheets.authorize(service_file="nmdhashiracompetitionsbot-9ace8e5ff078.json")
-        spreadsheet = client.open(config[MODE]['GTABLE_NAME'])
 
-        self.__rating_worksheet = spreadsheet[Worksheets.RATING.value]
-        self.__tournament_worksheet = spreadsheet[Worksheets.TOURNAMENT.value]
-        self.__admins_worksheet = spreadsheet[Worksheets.ADMINS.value]
-        self.__rating = self.__get_all_values(self.__rating_worksheet)
-        self.__tournament = self.__get_all_values(self.__tournament_worksheet)
+        admins_ss = client.open(config[MODE]['ADMINS_GTABLE_NAME'])
+        self.__admins_worksheet = admins_ss[0]
         self.__admins = self.__get_all_values(self.__admins_worksheet)
 
     def add_admin(self, user_name, user_id):
