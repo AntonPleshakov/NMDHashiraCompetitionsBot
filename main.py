@@ -1,5 +1,5 @@
 import telebot
-from ConfigManager import *
+from ConfigManager import config, MODE
 
 bot = telebot.TeleBot(config[MODE]['TOKEN'])
 

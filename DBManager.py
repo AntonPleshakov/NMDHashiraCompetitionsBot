@@ -1,6 +1,5 @@
 import pygsheets
-import pandas as pd
-from ConfigManager import *
+from ConfigManager import config, MODE
 from enum import Enum
 
 
