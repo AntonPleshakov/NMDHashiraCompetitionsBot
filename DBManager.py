@@ -8,6 +8,10 @@ from pydrive2.drive import GoogleDrive
 from ConfigManager import config, MODE
 
 
+class UsernameAlreadyExistsError(Exception):
+    pass
+
+
 class Singleton(type):
     _instances = {}
 
@@ -22,7 +26,13 @@ class DBManager(metaclass=Singleton):
     def __get_all_values(worksheet):
         return worksheet.get_all_values(
             include_tailing_empty_rows=False, include_tailing_empty=False
-        )
+        )[1:]
+
+    @staticmethod
+    def add_row(worksheet, ws_values, row):
+        last_row = len(ws_values) + 1
+        worksheet.insert_rows(row=last_row, values=row)
+        ws_values.append(row)
 
     def __init__(self):
         sheets_client = pygsheets.authorize(
@@ -46,15 +56,49 @@ class DBManager(metaclass=Singleton):
         self.__admins_worksheet = admins_ss[0]
         self.__admins = self.__get_all_values(self.__admins_worksheet)
 
+        ratings_ss = sheets_client.open(config[MODE]["RATING_LIST_GTABLE_NAME"])
+        self.__ratings_worksheet = ratings_ss[0]
+        self.__ratings = self.__get_all_values(self.__ratings_worksheet)
+
     def add_admin(self, user_name, user_id):
-        last_row = len(self.__admins)
-        new_row = [user_name, user_id]
-        self.__admins_worksheet.insert_rows(row=last_row, values=new_row)
-        self.__admins.append(new_row)
+        self.add_row(self.__admins_worksheet, self.__admins, [user_name, user_id])
 
     def get_admins(self):
-        admins = self.__admins[1:]
-        return admins
+        return self.__admins
+
+    def add_user_rating(
+        self,
+        tg_username,
+        nmd_username="",
+        rating=100,
+        deviation=200,
+        attack=0,
+        arena_place=0,
+    ):
+        if any(tg_username == rating[0] for rating in self.__ratings):
+            raise UsernameAlreadyExistsError
+
+        new_row = [tg_username, nmd_username, rating, deviation, attack, arena_place]
+        self.add_row(self.__ratings_worksheet, self.__ratings, new_row)
+
+        # pygsheets decrement start indexes by 1, but not decrement end indexes
+        # 1 row must be indented for a header
+        start_range = (2, 1)
+        end_range = (len(self.__ratings) + 1, len(self.__ratings[0]))
+        sort_column_index = 2
+        self.__ratings_worksheet.sort_range(
+            start_range, end_range, sort_column_index, "DESCENDING"
+        )
+        self.__ratings.sort(key=lambda x: x[sort_column_index])
+
+    def update_all_user_ratings(self, ratings):
+        sort_column_index = 2
+        ratings.sort(key=lambda x: x[sort_column_index])
+        self.__ratings_worksheet.update_values((2, 1), ratings, extend=True)
+        self.__ratings = ratings
+
+    def get_ratings(self):
+        return self.__ratings
 
     # TODO: Will be updated to work with competitions pairing worksheets
     # def is_log_worksheet_exist(self, worksheet_name):
