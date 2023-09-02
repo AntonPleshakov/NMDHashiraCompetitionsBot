@@ -42,9 +42,7 @@ class WorksheetManager:
 
 class GSheetsManager:
     def __init__(self, spreadsheet_name):
-        self._sheets_client = pygsheets.authorize(
-            service_file="../gapi_service_file.json"
-        )
+        self._sheets_client = pygsheets.authorize(service_file="gapi_service_file.json")
 
         self._ss = self._sheets_client.open(spreadsheet_name)
         self._cache = {}

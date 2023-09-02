@@ -1,7 +1,7 @@
 from py_singleton import singleton
 
 from config.config import config, MODE
-from gsheets_manager import GSheetsManager
+from db.gsheets_manager import GSheetsManager
 
 
 class UsernameAlreadyExistsError(Exception):

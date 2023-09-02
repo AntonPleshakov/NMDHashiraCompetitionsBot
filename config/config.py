@@ -1,5 +1,5 @@
 import configparser
 
-MODE = 'Release'
+MODE = "Release"
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read("config/config.ini")
