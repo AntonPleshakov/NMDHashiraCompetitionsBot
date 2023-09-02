@@ -2,11 +2,11 @@ import os
 
 import telebot
 
-import DBManager
-from ConfigManager import config, MODE
+import db.logs
+import db.ratings
+from config.config import config, MODE
 
 bot = telebot.TeleBot(config[MODE]["TOKEN"])
-db = DBManager.DBManager()
 
 tournament_commands_list = ["create_tournament", "register", "get_registered_users"]
 rating_commands_list = ["update_attack", "get_rating_list"]
@@ -20,15 +20,17 @@ def start_mes(message):
 
 @bot.message_handler(commands=["upload_logs"])
 def upload_logs(message):
-    db.upload_log_file(os.path.abspath(os.fspath(config[MODE]["LOG_FILE_NAME"])))
+    logs_db = db.logs.Logs()
+    logs_db.upload_log_file(os.path.abspath(os.fspath(config[MODE]["LOG_FILE_NAME"])))
 
 
 @bot.message_handler(commands=["add_user_rating"])
 def add_rating(message):
     try:
-        db.add_user_rating(message.from_user.username)
+        ratings_db = db.ratings.Rating()
+        ratings_db.add_user_rating(message.from_user.username)
         bot.reply_to(message, "Поздравляю, вы успешно добавлены в рейтинг лист")
-    except DBManager.UsernameAlreadyExistsError:
+    except db.ratings.UsernameAlreadyExistsError:
         bot.reply_to(message, "Ваш никнейм уже есть в рейтинг листе")
 
 

@@ -1,6 +1,6 @@
 import logging
 
-from ConfigManager import config, MODE
+from config.config import config, MODE
 from logger.RotatingGDriveHandler import RotatingGDriveHandler
 
 logging.basicConfig(level=logging.INFO)
