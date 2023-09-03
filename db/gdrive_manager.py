@@ -73,7 +73,9 @@ class GDriveManager:
         file = self.file(gdrive_path)
         file.GetContentFile(local_path)
 
-    def upload_file(self, file_path):
-        file = self.file(os.path.basename(file_path))
+    def upload_file(self, file_path, gdrive_file_name=None):
+        file = self.file(
+            gdrive_file_name if gdrive_file_name else os.path.basename(file_path)
+        )
         file.SetContentFile(file_path)
         file.Upload()

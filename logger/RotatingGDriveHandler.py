@@ -1,6 +1,8 @@
 import os
 from logging.handlers import RotatingFileHandler
 
+import db.gdrive_manager
+
 
 class RotatingGDriveHandler(RotatingFileHandler):
     def __init__(self, filename, max_bytes=0, backup_count=0, delay=False):
@@ -10,7 +12,7 @@ class RotatingGDriveHandler(RotatingFileHandler):
 
     def doRollover(self):
         super().doRollover()
-        db = db.gdrive_manager.GDriveManager()
+        gdrive_db = db.gdrive_manager.GDriveManager()
         if self.backupCount > 0:
             for i in range(self.backupCount - 1, 0, -1):
                 old_name = os.path.basename(
@@ -19,8 +21,8 @@ class RotatingGDriveHandler(RotatingFileHandler):
                 new_name = os.path.basename(
                     self.rotation_filename("%s.%d" % (self.baseFilename, i + 1))
                 )
-                if db.is_file_exists(new_name):
-                    db.delete_file(new_name)
-                if db.is_file_exists(old_name):
-                    db.rename_file(old_name, new_name)
-            db.upload_file(self.baseFilename + ".1")
+                if gdrive_db.is_file_exists(new_name):
+                    gdrive_db.delete_file(new_name)
+                if gdrive_db.is_file_exists(old_name):
+                    gdrive_db.rename_file(old_name, new_name)
+            gdrive_db.upload_file(self.baseFilename + ".1")
