@@ -1,7 +1,7 @@
 from py_singleton import singleton
 
 from config.config import config, MODE
-from db.gsheets_manager import GSheetsManager
+from db.gapi.gsheets_managers import GSheetsManager
 
 
 class UsernameAlreadyExistsError(Exception):
@@ -14,7 +14,7 @@ class Rating:
         ss_name = config[MODE]["RATING_LIST_GTABLE_NAME"]
         ws_name = config[MODE]["RATING_LIST_PAGE_NAME"]
 
-        self._manager = GSheetsManager(ss_name).get_worksheet(ws_name)
+        self._manager = GSheetsManager().open(ss_name).get_worksheet(ws_name)
 
     def add_user_rating(
         self,

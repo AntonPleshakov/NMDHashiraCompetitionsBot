@@ -1,6 +1,3 @@
-import pygsheets
-
-
 class WorksheetManager:
     def __init__(self, worksheet):
         self._ws = worksheet
@@ -38,20 +35,3 @@ class WorksheetManager:
         self._ws.clear(start_range, self._ws.rows)
         self._ws.update_values(start_range, values, extend=True)
         self.fetch()
-
-
-class GSheetsManager:
-    def __init__(self, spreadsheet_name):
-        self._sheets_client = pygsheets.authorize(service_file="gapi_service_file.json")
-
-        self._ss = self._sheets_client.open(spreadsheet_name)
-        self._cache = {}
-
-    def cache(self, worksheet_title):
-        if worksheet_title not in self._cache:
-            self._cache[worksheet_title] = self._ss.worksheet_by_title(worksheet_title)
-        return self._cache[worksheet_title]
-
-    def get_worksheet(self, worksheet_title):
-        ws_manager = WorksheetManager(self.cache(worksheet_title))
-        return ws_manager

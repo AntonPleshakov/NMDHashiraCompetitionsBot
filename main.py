@@ -2,7 +2,7 @@ import os
 
 import telebot
 
-import db.gdrive_manager
+import db.gapi.gdrive_manager
 import db.ratings
 from config.config import config, MODE
 
@@ -17,7 +17,7 @@ def start_mes(message):
 @bot.message_handler(commands=["upload_logs"])
 def upload_logs(message):
     try:
-        logs_db = db.gdrive_manager.GDriveManager()
+        logs_db = db.gapi.gdrive_manager.GDriveManager()
         logs_db.upload_file(os.path.abspath(os.fspath(config[MODE]["LOG_FILE_NAME"])))
         bot.reply_to(message, "Готово")
     except FileNotFoundError:
@@ -36,7 +36,7 @@ def add_rating(message):
 
 @bot.message_handler(commands=["update_config"])
 def update_config(message):
-    files_db = db.gdrive_manager.GDriveManager()
+    files_db = db.gapi.gdrive_manager.GDriveManager()
     files_db.download_file("config.ini", "config/config.ini")
     config.read("config/config.ini")
     bot.reply_to(message, "Конфигурационный файл обновлен")

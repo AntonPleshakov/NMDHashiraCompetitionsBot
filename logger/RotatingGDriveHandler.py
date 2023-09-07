@@ -1,7 +1,7 @@
 import os
 from logging.handlers import RotatingFileHandler
 
-import db.gdrive_manager
+import db.gapi.gdrive_manager
 
 
 class RotatingGDriveHandler(RotatingFileHandler):
@@ -12,7 +12,7 @@ class RotatingGDriveHandler(RotatingFileHandler):
 
     def doRollover(self):
         super().doRollover()
-        gdrive_db = db.gdrive_manager.GDriveManager()
+        gdrive_db = db.gapi.gdrive_manager.GDriveManager()
         if self.backupCount > 0:
             for i in range(self.backupCount - 1, 0, -1):
                 old_name = os.path.basename(
