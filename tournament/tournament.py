@@ -15,9 +15,9 @@ class Tournament:
         pass
 
 
-def new_tournament():
+def new_tournament() -> Tournament:
     return Tournament()
 
 
-def current_tournament():
+def current_tournament() -> Tournament:
     return Tournament()

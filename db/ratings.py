@@ -1,7 +1,10 @@
+from typing import List
+
 from py_singleton import singleton
 
 from config.config import config, MODE
 from db.gapi.gsheets_managers import GSheetsManager
+from db.gapi.worksheet_manager import WorksheetManager
 
 
 class UsernameAlreadyExistsError(Exception):
@@ -14,16 +17,18 @@ class Rating:
         ss_name = config[MODE]["RATING_LIST_GTABLE_NAME"]
         ws_name = config[MODE]["RATING_LIST_PAGE_NAME"]
 
-        self._manager = GSheetsManager().open(ss_name).get_worksheet(ws_name)
+        self._manager: WorksheetManager = (
+            GSheetsManager().open(ss_name).get_worksheet(ws_name)
+        )
 
     def add_user_rating(
         self,
-        tg_username,
-        nmd_username="",
-        rating=100,
-        deviation=200,
-        attack=0,
-        arena_place=0,
+        tg_username: str,
+        nmd_username: str = "",
+        rating: int = 100,
+        deviation: int = 200,
+        attack: int = 0,
+        arena_place: int = 0,
     ):
         if any(tg_username == row[0] for row in self._manager.get_all_values()):
             raise UsernameAlreadyExistsError
@@ -32,9 +37,9 @@ class Rating:
         self._manager.add_row(new_row)
         self._manager.sort_table(2)
 
-    def update_all_user_ratings(self, ratings):
-        self._manager.update_values(ratings)
+    def update_all_user_ratings(self, ratings: List[List[str]]):
+        self._manager.update_all_values(ratings)
         self._manager.sort_table(2)
 
-    def get_ratings(self):
+    def get_ratings(self) -> List[List[str]]:
         return self._manager.get_all_values()[1:]

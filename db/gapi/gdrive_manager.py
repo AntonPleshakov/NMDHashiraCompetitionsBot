@@ -1,8 +1,10 @@
 import json
 import os
+from typing import Optional, Dict
 
 from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
+from pydrive2.files import GoogleDriveFile
 
 from config.config import config, MODE
 
@@ -19,11 +21,11 @@ class GDriveManager:
         }
         gauth = GoogleAuth(settings=gauth_settings)
         gauth.ServiceAuth()
-        self._drive = GoogleDrive(gauth)
-        self._files = {}
-        self._folder_path = config[MODE]["GDRIVE_FOLDER_PATH"]
+        self._drive: GoogleDrive = GoogleDrive(gauth)
+        self._files: Dict[str, GoogleDriveFile] = {}
+        self._folder_path: str = config[MODE]["GDRIVE_FOLDER_PATH"]
 
-    def _create_file(self, file_name):
+    def _create_file(self, file_name: str) -> GoogleDriveFile:
         file = self._drive.CreateFile(
             {"parents": [{"id": self._folder_path}], "title": file_name}
         )
@@ -31,7 +33,7 @@ class GDriveManager:
 
         return file
 
-    def _get_file(self, file_name):
+    def _get_file(self, file_name: str) -> Optional[GoogleDriveFile]:
         param = {"q": f"title='{file_name}' and '{self._folder_path}' in parents"}
         files_result = self._drive.ListFile(param).GetList()
         if not files_result:
@@ -41,7 +43,7 @@ class GDriveManager:
         self._files[file_name] = file
         return file
 
-    def file(self, file_name):
+    def file(self, file_name) -> GoogleDriveFile:
         if file_name in self._files:
             return self._files[file_name]
 
@@ -51,29 +53,29 @@ class GDriveManager:
         else:
             return self._create_file(file_name)
 
-    def rename_file(self, old_name, new_name):
+    def rename_file(self, old_name: str, new_name: str):
         file = self.file(old_name)
         file["title"] = new_name
         file.Upload()
 
         self._files[new_name] = self._files.pop(old_name)
 
-    def delete_file(self, file_name):
+    def delete_file(self, file_name: str):
         file = self.file(file_name)
         file.Delete()
 
         self._files.pop(file_name)
 
-    def is_file_exists(self, file_name):
+    def is_file_exists(self, file_name: str) -> bool:
         param = {"q": f"title='{file_name}' and '{self._folder_path}' in parents"}
         files_result = self._drive.ListFile(param).GetList()
         return len(files_result) > 0
 
-    def download_file(self, gdrive_path, local_path):
+    def download_file(self, gdrive_path: str, local_path: str):
         file = self.file(gdrive_path)
         file.GetContentFile(local_path)
 
-    def upload_file(self, file_path, gdrive_file_name=None):
+    def upload_file(self, file_path: str, gdrive_file_name: str = ""):
         file = self.file(
             gdrive_file_name if gdrive_file_name else os.path.basename(file_path)
         )
