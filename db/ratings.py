@@ -2,7 +2,7 @@ from typing import List
 
 from py_singleton import singleton
 
-from config.config import config, MODE
+from config.config import getconf
 from db.gapi.gsheets_managers import GSheetsManager
 from db.gapi.worksheet_manager import WorksheetManager
 
@@ -14,8 +14,8 @@ class UsernameAlreadyExistsError(Exception):
 @singleton
 class Rating:
     def __init__(self):
-        ss_name = config[MODE]["RATING_LIST_GTABLE_NAME"]
-        ws_name = config[MODE]["RATING_LIST_PAGE_NAME"]
+        ss_name = getconf("RATING_LIST_GTABLE_NAME")
+        ws_name = getconf("RATING_LIST_PAGE_NAME")
 
         self._manager: WorksheetManager = (
             GSheetsManager().open(ss_name).get_worksheet(ws_name)

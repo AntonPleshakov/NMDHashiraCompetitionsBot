@@ -1,5 +1,14 @@
 import configparser
+import os
 
-MODE = "Release"
-config = configparser.ConfigParser()
-config.read("config/config.ini")
+_MODE = os.getenv("MODE", "Release")
+_config = configparser.ConfigParser()
+_config.read("config/config.ini")
+
+
+def getconf(option: str) -> str:
+    return _config.get(_MODE, option)
+
+
+def reset_config(filepath: str):
+    _config.read(filepath)

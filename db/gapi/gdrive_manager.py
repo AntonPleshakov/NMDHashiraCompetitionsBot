@@ -6,7 +6,7 @@ from pydrive2.auth import GoogleAuth
 from pydrive2.drive import GoogleDrive
 from pydrive2.files import GoogleDriveFile
 
-from config.config import config, MODE
+from config.config import getconf
 
 
 class GDriveManager:
@@ -16,14 +16,14 @@ class GDriveManager:
         gauth_settings = {
             "service_config": {
                 "client_json_dict": service_dict,
-                "client_user_email": config[MODE]["GSERVICE_EMAIL"],
+                "client_user_email": getconf("GSERVICE_EMAIL"),
             }
         }
         gauth = GoogleAuth(settings=gauth_settings)
         gauth.ServiceAuth()
         self._drive: GoogleDrive = GoogleDrive(gauth)
         self._files: Dict[str, GoogleDriveFile] = {}
-        self._folder_path: str = config[MODE]["GDRIVE_FOLDER_PATH"]
+        self._folder_path: str = getconf("GDRIVE_FOLDER_PATH")
 
     def _create_file(self, file_name: str) -> GoogleDriveFile:
         file = self._drive.CreateFile(

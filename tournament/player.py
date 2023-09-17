@@ -1,4 +1,4 @@
-from config.config import config, MODE
+from config.config import getconf
 
 
 class Player:
@@ -7,7 +7,7 @@ class Player:
         tg_username: str,
         nmd_username: str = "",
         rating: int = 100,
-        deviation: int = config[MODE]["DEFAULT_K"],
+        deviation: int = getconf("DEFAULT_K"),
         attack: int = 0,
         arena_place: int = 0,
     ):

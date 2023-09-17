@@ -2,7 +2,7 @@ from datetime import datetime
 
 from py_singleton import singleton
 
-from config.config import config, MODE
+from config.config import getconf
 from db.gapi.gsheets_managers import GSheetsManager
 from db.gapi.spreadsheet_manager import SpreadsheetManager
 
@@ -15,6 +15,6 @@ class Tournament:
     @classmethod
     def create_new_tournament(cls):
         date = datetime.today().strftime("%d/%m/%Y")
-        spreadsheet_name = config[MODE]["TOURNAMENT_GTABLE_NAME"] + " " + date
+        spreadsheet_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
         manager = GSheetsManager().create(spreadsheet_name)
         return cls(manager)

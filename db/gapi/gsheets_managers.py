@@ -3,7 +3,6 @@ from typing import List
 import pygsheets
 from pygsheets.client import Client
 
-from config.config import config, MODE
 from db.gapi.spreadsheet_manager import SpreadsheetManager
 
 
@@ -18,12 +17,10 @@ class GSheetsManager:
         return SpreadsheetManager(ss)
 
     def create(self, spreadsheet_name: str) -> SpreadsheetManager:
-        ss = self._client.create(
-            spreadsheet_name, folder=config[MODE]["GDRIVE_FOLDER_PATH"]
-        )
+        ss = self._client.create(spreadsheet_name, folder=getconf("GDRIVE_FOLDER_PATH"))
         return SpreadsheetManager(ss)
 
     def get_spreadsheets(self) -> List[str]:
-        query = f'"{config[MODE]["GDRIVE_FOLDER_PATH"]}" in parents'
+        query = f'"{getconf("GDRIVE_FOLDER_PATH")}" in parents'
         spreadsheets = self._client.spreadsheet_titles(query)
         return spreadsheets
