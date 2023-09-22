@@ -3,7 +3,7 @@ from datetime import datetime
 from py_singleton import singleton
 
 from config.config import getconf
-from db.gapi.gsheets_managers import GSheetsManager
+from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.spreadsheet_manager import SpreadsheetManager
 
 

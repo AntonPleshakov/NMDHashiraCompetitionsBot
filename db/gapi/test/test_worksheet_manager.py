@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from config.config import getconf
-from db.gapi.gsheets_managers import GSheetsManager
+from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.worksheet_manager import WorksheetManager, Matrix
 
 
