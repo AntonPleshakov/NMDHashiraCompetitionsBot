@@ -25,7 +25,7 @@ class WorksheetManager:
 
     def add_row(self, row: List[str]):
         row_index = len(self.cache())
-        self._ws.insert_rows(row_index, row)
+        self._ws.insert_rows(row=row_index, values=row)
         self.cache().append(row)
 
     def sort_table(
@@ -38,10 +38,10 @@ class WorksheetManager:
         cache = self.cache()
         end_range = (len(cache), len(cache[0]))
         self._ws.sort_range(start_range, end_range, column_index, sort_order)
-        cache.sort(key=lambda x: x[column_index])
+        self.fetch()
 
     def update_all_values(self, values: Matrix, update_header: bool = False):
         start_range = (1, 1) if update_header else (2, 1)
-        self._ws.clear(start_range, self._ws.rows)
+        self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         self._ws.update_values(start_range, values, extend=True)
         self.fetch()
