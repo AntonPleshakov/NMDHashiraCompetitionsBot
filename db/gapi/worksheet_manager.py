@@ -43,5 +43,6 @@ class WorksheetManager:
     def update_all_values(self, values: Matrix, update_header: bool = False):
         start_range = (1, 1) if update_header else (2, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
+        values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)
         self.fetch()

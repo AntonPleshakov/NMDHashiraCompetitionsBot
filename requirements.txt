@@ -1,5 +1,4 @@
 pytest==7.4.2
 PyDrive2==1.17.0
 pygsheets==2.0.6
-py-singleton==1.0.0
 pyTelegramBotAPI==4.13.0

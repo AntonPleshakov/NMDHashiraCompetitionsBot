@@ -1,13 +1,8 @@
-from typing import List
-
-from py_singleton import singleton
-
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
-from db.gapi.worksheet_manager import WorksheetManager
+from db.gapi.worksheet_manager import WorksheetManager, Matrix
 
 
-@singleton
 class Admins:
     def __init__(self):
         ss_name = getconf("ADMINS_GTABLE_NAME")
@@ -20,5 +15,10 @@ class Admins:
     def add_admin(self, user_name: str, user_id: str):
         self._manager.add_row([user_name, user_id])
 
-    def get_admins(self) -> List[List[str]]:
-        return self._manager.get_all_values()
+    def get_admins(self) -> Matrix:
+        return self._manager.get_all_values()[1:]
+
+    def del_admin(self, user_id: str):
+        admins = self.get_admins()
+        new_admins = [row for row in admins if row[1] != user_id]
+        self._manager.update_all_values(new_admins)
