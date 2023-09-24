@@ -20,6 +20,17 @@ class WorksheetManager:
             self.fetch()
         return self._cache
 
+    def set_header(self, header: Matrix):
+        self._ws.frozen_rows = len(header)
+        self.update_all_values(header, True)
+        if len(header) > 0:
+            end_range = (len(header), len(header[0]))
+            start_range = (1, 1)
+            self._ws.apply_format(
+                [[start_range, end_range]], {"textFormat": {"bold": True}}
+            )
+        self.fetch()
+
     def get_all_values(self) -> Matrix:
         return self.cache()
 

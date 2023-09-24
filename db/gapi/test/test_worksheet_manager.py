@@ -23,6 +23,30 @@ def manager(manager_factory):
 
 
 @pytest.mark.parametrize(
+    "header",
+    [
+        [["First", "Second", "Third"]],
+        [["First", "Second", "Third"], ["Fourth", "Fifth", "Sixth"]],
+    ],
+)
+@pytest.mark.gdrive_access
+def test_header(manager: WorksheetManager, header: Matrix):
+    actual_values = manager.get_all_values()
+    assert actual_values != header
+    assert manager._ws.frozen_rows == 0
+
+    manager.set_header(header)
+    actual_values = manager.get_all_values()
+    assert actual_values == header
+    assert manager._ws.frozen_rows == len(header)
+
+    manager.set_header([])
+    actual_values = manager.get_all_values()
+    assert actual_values == [[]]
+    assert manager._ws.frozen_rows == 0
+
+
+@pytest.mark.parametrize(
     "values", [[["1", "2", "3"], ["4", "5", "6"]], [["9", "8"], ["7", "6"], ["5", "4"]]]
 )
 @pytest.mark.gdrive_access

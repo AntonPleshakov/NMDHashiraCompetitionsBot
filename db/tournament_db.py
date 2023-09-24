@@ -11,6 +11,13 @@ from tournament.player import Player
 class TournamentDB:
     def __init__(self, spreadsheet_manager: SpreadsheetManager):
         self._manager: SpreadsheetManager = spreadsheet_manager
+        self._registration_page = self._manager.get_worksheet(
+            getconf("TOURNAMENT_REGISTER_PAGE_NAME")
+        )
+        registration_page_header = [
+            ["ТГ Username", "NMD Username", "Рейтинг", "Отклонение"]
+        ]
+        self._registration_page.set_header(registration_page_header)
 
     @classmethod
     def create_new_tournament(cls):
