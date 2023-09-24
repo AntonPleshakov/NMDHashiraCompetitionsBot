@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from pygsheets import Worksheet
 
+from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
 from db.test.conftest import TEST_DATA_PLAYERS
 from db.tournament_db import TournamentDB
@@ -20,10 +21,10 @@ def tournament():
 @pytest.mark.gdrive_access
 def test_new_tournament(tournament: TournamentDB):
     date = datetime.today().strftime("%d.%m.%Y")
-    assert tournament._manager._ss.title == "NMD Hashira tournament " + date
+    assert tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
     worksheets = tournament._manager._ss.worksheets()
     assert len(worksheets) == 1
-    assert worksheets[0].title == "Список зарегистрировавшихся"
+    assert worksheets[0].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
 
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
@@ -71,7 +72,7 @@ def test_start_new_tour(tournament: TournamentDB):
     assert len(worksheets) == (rounds + 1)  # Additional worksheet for registration
     for i in range(rounds):
         worksheet: Worksheet = worksheets[i]
-        assert worksheet.title == ("Тур " + str(i + 1))
+        assert worksheet.title == (getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(i + 1))
         assert tournament._manager.get_worksheet(worksheet.title).get_all_values()
 
 
@@ -106,5 +107,5 @@ def test_finish_tournament(tournament: TournamentDB):
 
     worksheets = tournament._manager._ss.worksheets()
     assert len(worksheets) == (worksheets_number + 1)
-    ws = tournament._manager.get_worksheet("Турнирная таблица")
+    ws = tournament._manager.get_worksheet(getconf("TOURNAMENT_RESULTS_PAGE_NAME"))
     assert ws.get_all_values()

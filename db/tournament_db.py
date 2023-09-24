@@ -17,6 +17,7 @@ class TournamentDB:
         date = datetime.today().strftime("%d.%m.%Y")
         spreadsheet_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
         manager = GSheetsManager().create(spreadsheet_name)
+        manager.rename_worksheet(getconf("TOURNAMENT_REGISTER_PAGE_NAME"))
         return cls(manager)
 
     def register_player(self, player: Player):
