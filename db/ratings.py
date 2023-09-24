@@ -1,3 +1,5 @@
+from tournament_db.player import Player
+
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.worksheet_manager import WorksheetManager, Matrix
@@ -16,19 +18,18 @@ class Rating:
             GSheetsManager().open(ss_name).get_worksheet(ws_name)
         )
 
-    def add_user_rating(
-        self,
-        tg_username: str,
-        nmd_username: str = "",
-        rating: int = 100,
-        deviation: int = 200,
-        attack: int = 0,
-        arena_place: int = 0,
-    ):
-        if any(tg_username == row[0] for row in self._manager.get_all_values()):
+    def add_user_rating(self, user: Player):
+        if any(user.tg_username == row[0] for row in self._manager.get_all_values()):
             raise UsernameAlreadyExistsError
 
-        new_row = [tg_username, nmd_username, rating, deviation, attack, arena_place]
+        new_row = [
+            user.tg_username,
+            user.nmd_username,
+            user.rating,
+            user.deviation,
+            user.attack,
+            user.arena_place,
+        ]
         self._manager.add_row(new_row)
         self._manager.sort_table(2)
 
