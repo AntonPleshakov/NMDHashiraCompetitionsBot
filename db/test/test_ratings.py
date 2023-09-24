@@ -21,7 +21,7 @@ def test_add_rating(db: Rating, player: Player):
     db.add_user_rating(player)
     ratings = db.get_ratings()
     assert len(ratings) > 0
-    assert ratings[0][0] == player.tg_username  # List must be sorted by rating
+    assert ratings[0] == player  # List must be sorted by rating
 
 
 @pytest.mark.gdrive_access
@@ -37,12 +37,11 @@ def test_add_existing_rating(db: Rating):
 @pytest.mark.gdrive_access
 def test_update_rating(db: Rating, player: Player):
     ratings = db.get_ratings()
-    assert (
-        ratings[-1][0] == player.tg_username
-    )  # Each next user must be the last by rating
+    assert ratings[-1] == player  # Each next user must be the last by rating
 
-    ratings[-1][2] = str(int(ratings[0][2]) + 1)
+    player.rating = ratings[0].rating + 1
+    ratings[-1] = player
     db.update_all_user_ratings(ratings)
     ratings = db.get_ratings()
     # With the new rating the user must be the first
-    assert ratings[0][0] == player.tg_username
+    assert ratings[0] == player

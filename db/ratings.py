@@ -1,6 +1,8 @@
+from typing import List
+
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
-from db.gapi.worksheet_manager import WorksheetManager, Matrix
+from db.gapi.worksheet_manager import WorksheetManager
 from tournament.player import Player
 
 
@@ -21,20 +23,19 @@ class Rating:
         if any(user.tg_username == row[0] for row in self._manager.get_all_values()):
             raise UsernameAlreadyExistsError
 
-        new_row = [
-            user.tg_username,
-            user.nmd_username,
-            user.rating,
-            user.deviation,
-            user.attack,
-            user.arena_place,
-        ]
-        self._manager.add_row(new_row)
+        self._manager.add_row(user.to_list())
         self._manager.sort_table(2)
 
-    def update_all_user_ratings(self, ratings: Matrix):
-        self._manager.update_all_values(ratings)
+    def update_all_user_ratings(self, ratings: List[Player]):
+        rows = []
+        for player in ratings:
+            rows.append(player.to_list())
+        self._manager.update_all_values(rows)
         self._manager.sort_table(2)
 
-    def get_ratings(self) -> Matrix:
-        return self._manager.get_all_values()[1:]
+    def get_ratings(self) -> List[Player]:
+        rows = self._manager.get_all_values()[1:]
+        ratings = []
+        for row in rows:
+            ratings.append(Player.from_list(row))
+        return ratings
