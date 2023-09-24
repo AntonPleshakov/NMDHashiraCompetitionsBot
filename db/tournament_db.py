@@ -14,7 +14,7 @@ class TournamentDB:
 
     @classmethod
     def create_new_tournament(cls):
-        date = datetime.today().strftime("%d/%m/%Y")
+        date = datetime.today().strftime("%d.%m.%Y")
         spreadsheet_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
         manager = GSheetsManager().create(spreadsheet_name)
         return cls(manager)

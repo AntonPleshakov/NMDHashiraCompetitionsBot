@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from pygsheets import Worksheet
 
@@ -17,6 +19,8 @@ def tournament():
 
 @pytest.mark.gdrive_access
 def test_new_tournament(tournament: TournamentDB):
+    date = datetime.today().strftime("%d.%m.%Y")
+    assert tournament._manager._ss.title == "NMD Hashira tournament " + date
     worksheets = tournament._manager._ss.worksheets()
     assert len(worksheets) == 1
     assert worksheets[0].title == "Список зарегистрировавшихся"

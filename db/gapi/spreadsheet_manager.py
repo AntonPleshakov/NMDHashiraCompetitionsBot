@@ -5,6 +5,8 @@ from pygsheets.worksheet import Worksheet
 
 from db.gapi.worksheet_manager import WorksheetManager
 
+DEFAULT_WORKSHEET_NAME = "Sheet1"
+
 
 class SpreadsheetManager:
     def __init__(self, spreadsheet: Spreadsheet):
@@ -32,3 +34,10 @@ class SpreadsheetManager:
     def delete_worksheet(self, worksheet_title: str):
         ws = self._ss.worksheet_by_title(worksheet_title)
         self._ss.del_worksheet(ws)
+        self._cache.pop(worksheet_title)
+
+    def rename_worksheet(self, new_name: str, old_name: str = DEFAULT_WORKSHEET_NAME):
+        ws = self._get_cached_ws(old_name)
+        ws.title = new_name
+        self._cache.pop(old_name)
+        self._cache[new_name] = ws

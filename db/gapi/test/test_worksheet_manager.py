@@ -84,6 +84,7 @@ ADA_HEADER = HEADER + ADA_MATRIX
     ],
 )
 @pytest.mark.gdrive_access
+@pytest.mark.slow
 def test_sort_values(
     manager: WorksheetManager,
     input_values: Matrix,
@@ -115,6 +116,7 @@ for i in range(3):
     [["1"], ["1", "2"], ["2", "1"], []],
 )
 @pytest.mark.gdrive_access
+@pytest.mark.slow
 def test_add_row(manager: WorksheetManager, row: List[str]):
     init_values = MAT_3V3
     manager.update_all_values(init_values, True)

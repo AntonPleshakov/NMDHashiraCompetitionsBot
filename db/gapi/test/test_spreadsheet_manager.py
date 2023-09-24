@@ -4,7 +4,7 @@ import pytest
 
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
-from db.gapi.spreadsheet_manager import SpreadsheetManager
+from db.gapi.spreadsheet_manager import SpreadsheetManager, DEFAULT_WORKSHEET_NAME
 
 
 @pytest.fixture
@@ -17,14 +17,14 @@ def manager_factory():
 
 @pytest.fixture
 def manager(manager_factory):
-    ss_name = getconf("RATING_LIST_GTABLE_NAME")
+    ss_name = getconf("TEST_GTABLE_NAME")
     return manager_factory(ss_name)
 
 
 @pytest.mark.gdrive_access
 @pytest.mark.parametrize(
     "worksheet_name, is_exist",
-    [(getconf("RATING_LIST_PAGE_NAME"), True), ("test", False)],
+    [(getconf("TEST_PAGE_NAME"), True), ("test", False)],
 )
 def test_worksheet_existence(
     manager: SpreadsheetManager, worksheet_name: str, is_exist: bool
@@ -53,8 +53,30 @@ def test_ws_creation(manager: SpreadsheetManager):
 
 @pytest.mark.gdrive_access
 def test_ws_open(manager: SpreadsheetManager):
-    ws_name = getconf("RATING_LIST_PAGE_NAME")
+    ws_name = getconf("TEST_PAGE_NAME")
     ws = manager.get_worksheet(ws_name)
-    values = ws.get_all_values()
-    assert "NMD Username" in values[0]
-    assert "Test" not in values[0]
+    assert ws._ws.title == ws_name
+
+
+@pytest.mark.parametrize(
+    "new_name, old_name",
+    [
+        ("Test", getconf("TEST_PAGE_NAME")),
+        (DEFAULT_WORKSHEET_NAME, "Test"),
+        ("Test2", ""),
+        (getconf("TEST_PAGE_NAME"), "Test2"),
+    ],
+)
+@pytest.mark.gdrive_access
+def test_ws_rename(manager: SpreadsheetManager, new_name: str, old_name: str):
+    assert not manager.is_worksheet_exist(new_name)
+
+    if old_name:
+        assert manager.is_worksheet_exist(old_name)
+        manager.rename_worksheet(new_name, old_name)
+    else:
+        assert manager.is_worksheet_exist(DEFAULT_WORKSHEET_NAME)
+        manager.rename_worksheet(new_name)
+
+    assert manager.is_worksheet_exist(new_name)
+    assert not manager.is_worksheet_exist(old_name)
