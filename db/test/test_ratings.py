@@ -1,6 +1,7 @@
 import pytest
 
-from db.ratings import Rating
+from db.ratings import Rating, UsernameAlreadyExistsError
+from db.test.conftest import TEST_DATA_PLAYERS
 from tournament.player import Player
 
 
@@ -11,22 +12,9 @@ def db() -> Rating:
     res._manager.update_all_values([[]])
 
 
-# Each next user should be placed first after sort by rating
-TEST_DATA_USERS = [
-    Player("Anton", "NMD_Anton", 100, 100, 100, 1),
-    Player("Ivan", "NMD_Ivan", 200, 100, 100, 2),
-    Player("Max", "NMD_Max", 300, 100, 100, 3),
-    Player("Sam", "NMD_Sam", 400, 100, 100, 4),
-    Player("Nikita", "NMD_Nikita", 500, 100, 100, 5),
-    Player("Sergey", "NMD_Sergey", 600, 100, 100, 6),
-    Player("Kirill", "NMD_Kirill", 700, 100, 100, 7),
-    Player("Georgiy", "NMD_Georgiy", 800, 100, 100, 8),
-]
-
-
-@pytest.mark.parametrize("player", TEST_DATA_USERS)
+@pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
-def test_add_rating(db: Rating, player):
+def test_add_rating(db: Rating, player: Player):
     ratings = db.get_ratings()
     assert player not in ratings
 
@@ -36,9 +24,18 @@ def test_add_rating(db: Rating, player):
     assert ratings[0][0] == player.tg_username  # List must be sorted by rating
 
 
-@pytest.mark.parametrize("player", TEST_DATA_USERS)
 @pytest.mark.gdrive_access
-def test_update_rating(db: Rating, player):
+def test_add_existing_rating(db: Rating):
+    player = TEST_DATA_PLAYERS[0]
+    assert player in db.get_ratings()
+
+    with pytest.raises(UsernameAlreadyExistsError):
+        db.add_user_rating(player)
+
+
+@pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
+@pytest.mark.gdrive_access
+def test_update_rating(db: Rating, player: Player):
     ratings = db.get_ratings()
     assert (
         ratings[-1][0] == player.tg_username

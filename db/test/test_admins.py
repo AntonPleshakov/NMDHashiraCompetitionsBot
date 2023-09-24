@@ -1,6 +1,7 @@
 import pytest
 
 from db.admins import Admins
+from db.test.conftest import TEST_DATA_ADMINS
 
 
 @pytest.fixture(scope="module")
@@ -8,18 +9,6 @@ def db() -> Admins:
     res = Admins()
     yield res
     res._manager.update_all_values([[]])
-
-
-TEST_DATA_ADMINS = [
-    ("Anton", "1"),
-    ("Ivan", "2"),
-    ("Max", "3"),
-    ("Sam", "4"),
-    ("Nikita", "5"),
-    ("Sergey", "6"),
-    ("Kirill", "7"),
-    ("Georgiy", "8"),
-]
 
 
 @pytest.mark.parametrize("user_name, user_id", TEST_DATA_ADMINS)

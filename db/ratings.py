@@ -1,8 +1,7 @@
-from tournament_db.player import Player
-
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.worksheet_manager import WorksheetManager, Matrix
+from tournament.player import Player
 
 
 class UsernameAlreadyExistsError(Exception):
