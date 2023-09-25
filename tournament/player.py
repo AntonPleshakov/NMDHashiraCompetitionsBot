@@ -12,6 +12,8 @@ class ColumnIndexes(Enum):
 
 
 class Player:
+    PLAYER_FIELDS = ["ТГ Username", "NMD Username", "Рейтинг", "Отклонение"]
+
     def __init__(
         self,
         tg_username: str,

@@ -14,10 +14,7 @@ class TournamentDB:
         self._registration_page = self._manager.get_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
         )
-        registration_page_header = [
-            ["ТГ Username", "NMD Username", "Рейтинг", "Отклонение"]
-        ]
-        self._registration_page.set_header(registration_page_header)
+        self._registration_page.set_header([Player.PLAYER_FIELDS])
 
     @classmethod
     def create_new_tournament(cls):
