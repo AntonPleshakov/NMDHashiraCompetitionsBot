@@ -9,6 +9,7 @@ class WorksheetManager:
     def __init__(self, worksheet: Worksheet):
         self._ws: Worksheet = worksheet
         self._cache: Optional[Matrix] = None
+        self._header_range = ()
 
     def fetch(self):
         self._cache = self._ws.get_all_values(
@@ -20,15 +21,20 @@ class WorksheetManager:
             self.fetch()
         return self._cache
 
+    def bold_cells(self, end_range: tuple, to_bold: bool = True):
+        start_range = (1, 1)
+        self._ws.apply_format(
+            [[start_range, end_range]], {"textFormat": {"bold": to_bold}}
+        )
+
     def set_header(self, header: Matrix):
+        if self._header_range:
+            self.bold_cells(self._header_range, False)
         self._ws.frozen_rows = len(header)
         self.update_all_values(header, True)
         if len(header) > 0:
-            end_range = (len(header), len(header[0]))
-            start_range = (1, 1)
-            self._ws.apply_format(
-                [[start_range, end_range]], {"textFormat": {"bold": True}}
-            )
+            self._header_range = (len(header), len(header[0]))
+            self.bold_cells(self._header_range)
         self.fetch()
 
     def get_all_values(self) -> Matrix:
