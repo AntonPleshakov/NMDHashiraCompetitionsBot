@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from typing import List, Optional
 
 from config.config import getconf
@@ -22,11 +22,26 @@ class TournamentDB:
 
     @classmethod
     def create_new_tournament(cls):
-        date = datetime.today().strftime("%d.%m.%Y")
-        spreadsheet_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
+        spreadsheet_name = (
+            getconf("TOURNAMENT_GTABLE_NAME") + " " + date.today().strftime("%d.%m.%Y")
+        )
         manager = GSheetsManager().create(spreadsheet_name)
         manager.rename_worksheet(getconf("TOURNAMENT_REGISTER_PAGE_NAME"))
         return cls(manager)
+
+    @classmethod
+    def get_latest_tournament(cls):
+        conf_ss_name = getconf("TOURNAMENT_GTABLE_NAME")
+        manager = GSheetsManager()
+        tournaments_ss = [ss for ss in manager.get_spreadsheets() if conf_ss_name in ss]
+        dates_lists = [ss.split()[-1].split(".") for ss in tournaments_ss]
+        dates = [
+            date(int(date_list[2]), int(date_list[1]), int(date_list[0]))
+            for date_list in dates_lists
+        ]
+        latest_date = max(dates)
+        ss = manager.open(conf_ss_name + " " + latest_date.strftime("%d.%m.%Y"))
+        return TournamentDB(ss)
 
     def register_player(self, player: Player):
         self._registration_page.add_row(player.to_list())

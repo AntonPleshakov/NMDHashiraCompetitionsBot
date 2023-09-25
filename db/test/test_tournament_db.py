@@ -29,6 +29,35 @@ def test_new_tournament(tournament: TournamentDB):
     assert worksheets[0].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
 
 
+@pytest.fixture
+def spreadsheets():
+    manager = GSheetsManager()
+
+    def create_ss(date: str):
+        table_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
+        ss_manager = manager.create(table_name)
+        ss_manager.rename_worksheet(getconf("TOURNAMENT_REGISTER_PAGE_NAME"))
+        return ss_manager
+
+    spreadsheets = [
+        create_ss("10.05.2000"),
+        create_ss("10.10.1999"),
+        create_ss("10.01.2001"),
+        create_ss("01.05.2000"),
+        create_ss("20.05.2000"),
+        create_ss("01.01.2000"),
+    ]
+    yield
+    for ss in spreadsheets:
+        manager.delete(ss._ss.title)
+
+
+@pytest.mark.gdrive_access
+def test_latest_tournament(spreadsheets):
+    latest = TournamentDB.get_latest_tournament()
+    assert latest._manager._ss.title.split()[-1] == "10.01.2001"
+
+
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
 def test_registration(tournament: TournamentDB, player: Player):
