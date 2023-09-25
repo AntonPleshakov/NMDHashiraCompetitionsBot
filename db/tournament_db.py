@@ -97,3 +97,6 @@ class TournamentDB:
         matrix = [player.to_list() for player in tournament_table]
         results_page.update_values(matrix)
         self._results_page = results_page
+
+    def is_finished(self) -> bool:
+        return self._results_page is not None
