@@ -21,4 +21,4 @@ class Admins:
     def del_admin(self, user_id: str):
         admins = self.get_admins()
         new_admins = [row for row in admins if row[1] != user_id]
-        self._manager.update_all_values(new_admins)
+        self._manager.update_values(new_admins)

@@ -3,11 +3,8 @@ from typing import List
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.worksheet_manager import WorksheetManager
+from nmd_exceptions import UsernameAlreadyExistsError
 from tournament.player import Player
-
-
-class UsernameAlreadyExistsError(Exception):
-    pass
 
 
 class Rating:
@@ -30,7 +27,7 @@ class Rating:
         rows = []
         for player in ratings:
             rows.append(player.to_list())
-        self._manager.update_all_values(rows)
+        self._manager.update_values(rows)
         self._manager.sort_table(2)
 
     def get_ratings(self) -> List[Player]:

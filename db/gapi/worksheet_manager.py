@@ -31,7 +31,7 @@ class WorksheetManager:
         if self._header_range:
             self.bold_cells(self._header_range, False)
         self._ws.frozen_rows = len(header)
-        self.update_all_values(header, True)
+        self.update_values(header, True)
         if len(header) > 0:
             self._header_range = (len(header), len(header[0]))
             self.bold_cells(self._header_range)
@@ -57,8 +57,14 @@ class WorksheetManager:
         self._ws.sort_range(start_range, end_range, column_index, sort_order)
         self.fetch()
 
-    def update_all_values(self, values: Matrix, update_header: bool = False):
-        start_range = (1, 1) if update_header else (2, 1)
+    def update_values(
+        self,
+        values: Matrix,
+        update_header: bool = False,
+        start_range: Optional[tuple] = None,
+    ):
+        if not start_range:
+            start_range = (1, 1) if update_header else (2, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)

@@ -21,7 +21,9 @@ def tournament():
 @pytest.mark.gdrive_access
 def test_new_tournament(tournament: TournamentDB):
     date = datetime.today().strftime("%d.%m.%Y")
-    assert tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
+    assert (
+        tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
+    )
     worksheets = tournament._manager._ss.worksheets()
     assert len(worksheets) == 1
     assert worksheets[0].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
@@ -71,8 +73,10 @@ def test_start_new_tour(tournament: TournamentDB):
     worksheets = tournament._manager._ss.worksheets()
     assert len(worksheets) == (rounds + 1)  # Additional worksheet for registration
     for i in range(rounds):
-        worksheet: Worksheet = worksheets[i]
-        assert worksheet.title == (getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(i + 1))
+        worksheet: Worksheet = worksheets[i + 1]
+        assert worksheet.title == (
+            getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(i + 1)
+        )
         assert tournament._manager.get_worksheet(worksheet.title).get_all_values()
 
 

@@ -9,7 +9,7 @@ from tournament.player import Player
 def db() -> Rating:
     res = Rating()
     yield res
-    res._manager.update_all_values([[]])
+    res._manager.update_values([[]])
 
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)

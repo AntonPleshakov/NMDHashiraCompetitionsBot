@@ -4,7 +4,7 @@ from typing import List
 from config.config import getconf
 
 
-class ColumnIndexes(Enum):
+class PlayerColumnIndexes(Enum):
     TG_USERNAME = 0
     NMD_USERNAME = 1
     RATING = 2
@@ -34,17 +34,17 @@ class Player:
         return tg and nmd and rating and dev
 
     def to_list(self) -> List[str]:
-        row = [""] * len(ColumnIndexes)
-        row[ColumnIndexes.TG_USERNAME.value] = self.tg_username
-        row[ColumnIndexes.NMD_USERNAME.value] = self.nmd_username
-        row[ColumnIndexes.RATING.value] = str(self.rating)
-        row[ColumnIndexes.DEVIATION.value] = str(self.deviation)
+        row = [""] * len(PlayerColumnIndexes)
+        row[PlayerColumnIndexes.TG_USERNAME.value] = self.tg_username
+        row[PlayerColumnIndexes.NMD_USERNAME.value] = self.nmd_username
+        row[PlayerColumnIndexes.RATING.value] = str(self.rating)
+        row[PlayerColumnIndexes.DEVIATION.value] = str(self.deviation)
         return row
 
     @classmethod
     def from_list(cls, values: List[str]):
-        tg_username = values[ColumnIndexes.TG_USERNAME.value]
-        nmd_username = values[ColumnIndexes.NMD_USERNAME.value]
-        rating = int(values[ColumnIndexes.RATING.value])
-        deviation = int(values[ColumnIndexes.DEVIATION.value])
+        tg_username = values[PlayerColumnIndexes.TG_USERNAME.value]
+        nmd_username = values[PlayerColumnIndexes.NMD_USERNAME.value]
+        rating = int(values[PlayerColumnIndexes.RATING.value])
+        deviation = int(values[PlayerColumnIndexes.DEVIATION.value])
         return cls(tg_username, nmd_username, rating, deviation)

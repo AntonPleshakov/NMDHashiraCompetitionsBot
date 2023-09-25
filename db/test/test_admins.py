@@ -8,7 +8,7 @@ from db.test.conftest import TEST_DATA_ADMINS
 def db() -> Admins:
     res = Admins()
     yield res
-    res._manager.update_all_values([[]])
+    res._manager.update_values([[]])
 
 
 @pytest.mark.parametrize("user_name, user_id", TEST_DATA_ADMINS)
