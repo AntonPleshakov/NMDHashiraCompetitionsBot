@@ -3,7 +3,7 @@ from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.worksheet_manager import WorksheetManager, Matrix
 
 
-class Admins:
+class AdminsDB:
     def __init__(self):
         ss_name = getconf("ADMINS_GTABLE_NAME")
         ws_name = getconf("ADMINS_PAGE_NAME")

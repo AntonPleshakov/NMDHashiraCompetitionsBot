@@ -3,7 +3,7 @@ import os
 import telebot
 
 import db.gapi.gdrive_manager
-import db.ratings
+import db.ratings_db
 from config.config import getconf, reset_config
 
 bot = telebot.TeleBot(getconf("TOKEN"))
@@ -27,7 +27,7 @@ def upload_logs(message):
 @bot.message_handler(commands=["add_user_rating"])
 def add_rating(message):
     try:
-        ratings_db = db.ratings.Rating()
+        ratings_db = db.ratings.RatingsDB()
         ratings_db.add_user_rating(message.from_user.username)
         bot.reply_to(message, "Поздравляю, вы успешно добавлены в рейтинг лист")
     except db.ratings.UsernameAlreadyExistsError:

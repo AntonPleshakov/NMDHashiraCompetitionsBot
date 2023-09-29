@@ -1,20 +1,20 @@
 import pytest
 
-from db.ratings import Rating, UsernameAlreadyExistsError
+from db.ratings_db import RatingsDB, UsernameAlreadyExistsError
 from db.test.conftest import TEST_DATA_PLAYERS
 from tournament.player import Player
 
 
 @pytest.fixture(scope="module")
-def db() -> Rating:
-    res = Rating()
+def db() -> RatingsDB:
+    res = RatingsDB()
     yield res
     res._manager.update_values([[]])
 
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
-def test_add_rating(db: Rating, player: Player):
+def test_add_rating(db: RatingsDB, player: Player):
     ratings = db.get_ratings()
     assert player not in ratings
 
@@ -25,7 +25,7 @@ def test_add_rating(db: Rating, player: Player):
 
 
 @pytest.mark.gdrive_access
-def test_add_existing_rating(db: Rating):
+def test_add_existing_rating(db: RatingsDB):
     player = TEST_DATA_PLAYERS[0]
     assert player in db.get_ratings()
 
@@ -35,7 +35,7 @@ def test_add_existing_rating(db: Rating):
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
-def test_update_rating(db: Rating, player: Player):
+def test_update_rating(db: RatingsDB, player: Player):
     ratings = db.get_ratings()
     assert ratings[-1] == player  # Each next user must be the last by rating
 

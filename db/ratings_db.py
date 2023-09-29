@@ -7,7 +7,7 @@ from nmd_exceptions import UsernameAlreadyExistsError
 from tournament.player import Player
 
 
-class Rating:
+class RatingsDB:
     def __init__(self):
         ss_name = getconf("RATING_LIST_GTABLE_NAME")
         ws_name = getconf("RATING_LIST_PAGE_NAME")
