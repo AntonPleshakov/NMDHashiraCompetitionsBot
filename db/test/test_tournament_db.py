@@ -58,6 +58,12 @@ def test_latest_tournament(spreadsheets):
     assert latest._manager._ss.title.split()[-1] == "10.01.2001"
 
 
+@pytest.mark.gdrive_access
+def test_empty_latest_tournament():
+    latest = TournamentDB.get_latest_tournament()
+    assert latest is None
+
+
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
 def test_registration(tournament: TournamentDB, player: Player):

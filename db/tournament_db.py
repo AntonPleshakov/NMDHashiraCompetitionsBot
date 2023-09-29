@@ -34,6 +34,8 @@ class TournamentDB:
         conf_ss_name = getconf("TOURNAMENT_GTABLE_NAME")
         manager = GSheetsManager()
         tournaments_ss = [ss for ss in manager.get_spreadsheets() if conf_ss_name in ss]
+        if not tournaments_ss:
+            return None
         dates_lists = [ss.split()[-1].split(".") for ss in tournaments_ss]
         dates = [
             date(int(date_list[2]), int(date_list[1]), int(date_list[0]))
