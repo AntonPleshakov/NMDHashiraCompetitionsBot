@@ -5,7 +5,7 @@ from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
 from db.gapi.spreadsheet_manager import SpreadsheetManager
 from db.gapi.worksheet_manager import WorksheetManager
-from nmd_exceptions import PlayerNotFoundError
+from nmd_exceptions import PlayerNotFoundError, TournamentNotStartedError
 from tournament.match import Match, MatchResult, MATCH_RESULT_TO_STR, MatchColumnIndexes
 from tournament.player import Player, PlayerColumnIndexes
 
@@ -77,18 +77,21 @@ class TournamentDB:
 
     def register_result(self, pair_index: int, result: MatchResult):
         if not self._tours:
-            return
+            raise TournamentNotStartedError
         tour = self._tours[-1]
         start_range = (pair_index + 2, MatchColumnIndexes.RESULT.value + 1)
         tour.update_values([[MATCH_RESULT_TO_STR[result]]], start_range=start_range)
 
-    def get_results(self) -> List[Match]:
+    def get_results(self, tour_idx: int = -1) -> List[Match]:
         if not self._tours:
-            return []
-        tour = self._tours[-1]
+            raise TournamentNotStartedError
+        tour = self._tours[tour_idx]
         matrix = tour.get_all_values()[1:]
         results = [Match.from_list(row) for row in matrix]
         return results
+
+    def get_tours_number(self) -> int:
+        return len(self._tours)
 
     def finish_tournament(self, tournament_table: List[Player]):
         results_title = getconf("TOURNAMENT_RESULTS_PAGE_NAME")
