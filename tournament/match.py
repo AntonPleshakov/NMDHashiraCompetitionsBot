@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional
 
 from tournament.player import Player
 
@@ -29,9 +29,9 @@ class MatchColumnIndexes(Enum):
 class Match:
     MATCH_FIELDS = ["Первый игрок", "Второй игрок", "Результат"]
 
-    def __init__(self, first_player: Player, second_player: Player):
+    def __init__(self, first_player: Player, second_player: Optional[Player]):
         self.first_player: Player = first_player
-        self.second_player: Player = second_player
+        self.second_player: Optional[Player] = second_player
         self.result: MatchResult = MatchResult.NotPlayed
 
     def to_list(self) -> List[str]:

@@ -25,6 +25,10 @@ class Player:
         self.nmd_username: str = nmd_username
         self.rating: int = rating
         self.deviation: int = deviation
+        self.opponents: List[str] = []
+        self.mm: float = 1
+        self.sos: float = 0
+        self.sodos: float = 0
 
     def __eq__(self, other):
         tg = self.tg_username == other.tg_username
