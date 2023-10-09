@@ -15,20 +15,11 @@ class TournamentState(Enum):
 
 
 class Tournament:
-    @classmethod
-    def new_tournament(cls):
-        db = TournamentDB.create_new_tournament()
-        return cls(db)
-
-    @classmethod
-    def current_tournament(cls):
-        db = TournamentDB.get_latest_tournament()
-        if db.is_finished():
-            return None
-        return cls(db)
-
-    def __init__(self, db: TournamentDB):
-        self._db: TournamentDB = db
+    def __init__(self):
+        tournament_db = TournamentDB.get_latest_tournament()
+        if not tournament_db or tournament_db.is_finished():
+            tournament_db = TournamentDB.create_new_tournament()
+        self._db: TournamentDB = tournament_db
         self._state: TournamentState = (
             TournamentState.IN_PROGRESS
             if self._db.get_tours_number() > 0
