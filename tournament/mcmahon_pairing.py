@@ -65,7 +65,7 @@ class McMahonPairing:
 
     def gen_pairs(self) -> List[Match]:
         players = list(self._players.values())
-        players.sort(key=lambda x: (x.mm, x.sos, x.sodos), reverse=True)
+        players.sort(key=lambda x: (x.mm, x.sos, x.sodos, x.rating), reverse=True)
         result = []
         while len(players) > 0:
             player = players.pop(0)
