@@ -1,6 +1,6 @@
 import pytest
 
-from db.admins_db import AdminsDB
+from db.admins_db import AdminsDB, Admin
 from db.test.conftest import TEST_DATA_ADMINS
 
 
@@ -18,7 +18,7 @@ def test_add_admin(db: AdminsDB, user_name: str, user_id: str):
     if len(admins) > 0:
         assert admins[-1] != [user_name, user_id]
 
-    db.add_admin(user_name, user_id)
+    db.add_admin(Admin(user_name, int(user_id)))
     admins = db.get_admins()
     assert admins[-1] == [user_name, user_id]
 
@@ -27,8 +27,8 @@ def test_add_admin(db: AdminsDB, user_name: str, user_id: str):
 @pytest.mark.gdrive_access
 def test_del_admin(db: AdminsDB, user_name: str, user_id: str):
     admins = db.get_admins()
-    assert [user_name, user_id] in admins
+    assert Admin(user_name, int(user_id)) in admins
 
     db.del_admin(user_id)
     admins = db.get_admins()
-    assert [user_name, user_id] not in admins
+    assert Admin(user_name, int(user_id)) not in admins
