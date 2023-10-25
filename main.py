@@ -27,10 +27,10 @@ def upload_logs(message):
 @bot.message_handler(commands=["add_user_rating"])
 def add_rating(message):
     try:
-        ratings_db = db.ratings.RatingsDB()
+        ratings_db = db.ratings_db.RatingsDB()
         ratings_db.add_user_rating(message.from_user.username)
         bot.reply_to(message, "Поздравляю, вы успешно добавлены в рейтинг лист")
-    except db.ratings.UsernameAlreadyExistsError:
+    except db.ratings_db.UsernameAlreadyExistsError:
         bot.reply_to(message, "Ваш никнейм уже есть в рейтинг листе")
 
 
