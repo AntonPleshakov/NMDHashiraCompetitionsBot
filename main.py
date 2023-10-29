@@ -1,46 +1,47 @@
-import os
+import logging
 
 import telebot
 
-import db.gapi.gdrive_manager
-import db.ratings_db
-from config.config import getconf, reset_config
+from config.config import getconf
+from db.admins_db import admins_db
+from tg.tg_manager import process_command, get_permissions_denied_message
+from tg.tg_utils import BTN_TEXT
 
-bot = telebot.TeleBot(getconf("TOKEN"))
-
-
-@bot.message_handler(commands=["start", "help"])
-def start_mes(message):
-    bot.send_message(message.chat.id, f"Hi, {message.from_user.first_name}")
+bot = telebot.TeleBot(getconf("TOKEN"), parse_mode="MarkdownV2")
+telebot.logger.setLevel(logging.INFO)
 
 
-@bot.message_handler(commands=["upload_logs"])
-def upload_logs(message):
-    try:
-        logs_db = db.gapi.gdrive_manager.GDriveManager()
-        logs_db.upload_file(os.path.abspath(os.fspath(getconf("LOG_FILE_NAME"))))
-        bot.reply_to(message, "Готово")
-    except FileNotFoundError:
-        bot.reply_to(message, "Лог файл еще не создан")
+@bot.message_handler(chat_types=["private"], content_types=["text"])
+def start_mes(message: telebot.types.Message):
+    if not admins_db.is_admin(message.from_user.id):
+        bot.reply_to(message, text=get_permissions_denied_message())
+        return
+    keyboard = process_command()
+    bot.send_message(
+        chat_id=message.chat.id,
+        text="Выберите раздел управления",
+        reply_markup=keyboard,
+    )
 
 
-@bot.message_handler(commands=["add_user_rating"])
-def add_rating(message):
-    try:
-        ratings_db = db.ratings_db.RatingsDB()
-        ratings_db.add_user_rating(message.from_user.username)
-        bot.reply_to(message, "Поздравляю, вы успешно добавлены в рейтинг лист")
-    except db.ratings_db.UsernameAlreadyExistsError:
-        bot.reply_to(message, "Ваш никнейм уже есть в рейтинг листе")
+@bot.message_handler(chat_types=["private"], content_types=["user_shared"])
+def add_admin(message: telebot.types.Message):
+    pass
 
 
-@bot.message_handler(commands=["update_config"])
-def update_config(message):
-    files_db = db.gapi.gdrive_manager.GDriveManager()
-    files_db.download_file("config.ini", "config/config.ini")
-    reset_config("config/config.ini")
-    bot.reply_to(message, "Конфигурационный файл обновлен")
+@bot.callback_query_handler(func=lambda callback_query: True)
+def echo_message(callback_query: telebot.types.CallbackQuery):
+    keyboard = process_command(callback_query.data)
+    btn_data = callback_query.data.split("/")[-1]
+    if btn_data == "home_button":
+        btn_data = "root"
+    bot.edit_message_text(
+        text=BTN_TEXT[btn_data],
+        chat_id=callback_query.message.chat.id,
+        message_id=callback_query.message.id,
+        reply_markup=keyboard,
+    )
 
 
 if __name__ == "__main__":
-    bot.polling()
+    bot.infinity_polling()
