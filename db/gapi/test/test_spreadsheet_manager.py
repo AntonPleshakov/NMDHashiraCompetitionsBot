@@ -17,7 +17,7 @@ def manager_factory():
 
 @pytest.fixture
 def manager(manager_factory):
-    ss_name = getconf("TEST_GTABLE_NAME")
+    ss_name = getconf("TEST_GTABLE_KEY")
     return manager_factory(ss_name)
 
 

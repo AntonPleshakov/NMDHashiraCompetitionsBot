@@ -13,8 +13,8 @@ class GSheetsManager:
             service_file="gapi_service_file.json"
         )
 
-    def open(self, spreadsheet_name: str) -> SpreadsheetManager:
-        ss = self._client.open(spreadsheet_name)
+    def open(self, spreadsheet_key: str) -> SpreadsheetManager:
+        ss = self._client.open_by_key(spreadsheet_key)
         return SpreadsheetManager(ss)
 
     def create(self, spreadsheet_name: str) -> SpreadsheetManager:

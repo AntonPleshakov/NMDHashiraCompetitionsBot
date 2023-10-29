@@ -32,7 +32,7 @@ def test_sheet_creation(manager: GSheetsManager):
 
 @pytest.mark.gdrive_access
 def test_sheet_open(manager: GSheetsManager):
-    ss_name = getconf("TEST_GTABLE_NAME")
+    ss_name = getconf("TEST_GTABLE_KEY")
     ws_name = getconf("TEST_PAGE_NAME")
 
     ss = manager.open(ss_name)

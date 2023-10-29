@@ -21,14 +21,14 @@ class Admin:
 
 class AdminsDB:
     def __init__(self):
-        ss_name = getconf("ADMINS_GTABLE_NAME")
+        ss_name = getconf("ADMINS_GTABLE_KEY")
         ws_name = getconf("ADMINS_PAGE_NAME")
 
         self._manager: WorksheetManager = (
             GSheetsManager().open(ss_name).get_worksheet(ws_name)
         )
         admins_matrix = self._manager.get_all_values()[1:]
-        self._admins_id_set: Set[int] = {row[1] for row in admins_matrix}
+        self._admins_id_set: Set[int] = {int(row[1]) for row in admins_matrix}
         self._admins: List[Admin] = [
             Admin(row[0], int(row[1])) for row in admins_matrix
         ]

@@ -9,7 +9,7 @@ from tournament.player import Player
 
 class RatingsDB:
     def __init__(self):
-        ss_name = getconf("RATING_LIST_GTABLE_NAME")
+        ss_name = getconf("RATING_LIST_GTABLE_KEY")
         ws_name = getconf("RATING_LIST_PAGE_NAME")
 
         self._manager: WorksheetManager = (
