@@ -4,6 +4,7 @@ import telebot
 BTN_TEXT = {
     "admins_button": "Администраторы",
     "add_admin": "Добавить администратора",
+    "del_admin": "Удалить администратора",
     "ratings_button": "Рейтинги",
     "add_rating": "Добавить рейтинг",
     "tournament_button": "Турнир",

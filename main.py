@@ -28,7 +28,7 @@ def add_admin(message: telebot.types.Message):
 
 
 @bot.callback_query_handler(func=lambda callback_query: True)
-def echo_message(callback_query: telebot.types.CallbackQuery):
+def process_menu_buttons(callback_query: telebot.types.CallbackQuery):
     process_command(bot, callback_query)
 
 
