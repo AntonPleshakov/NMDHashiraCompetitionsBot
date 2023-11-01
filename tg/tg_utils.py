@@ -1,28 +1,32 @@
-import telebot
+from telebot.types import InlineKeyboardButton, KeyboardButton
+
+from db.admins_db import admins_db
 
 
-BTN_TEXT = {
-    "admins_button": "Администраторы",
-    "add_admin": "Добавить администратора",
-    "del_admin": "Удалить администратора",
-    "ratings_button": "Рейтинги",
-    "add_rating": "Добавить рейтинг",
-    "tournament_button": "Турнир",
-    "dev_button": "Служебное",
-    "upload_logs": "Загрузить логи",
-    "update_config": "Обновить файл конфигурации",
-    "home_button": "В начало",
-}
-
-
-def button(btn_data: str, path: str = ""):
-    if path:
-        callback_data = path + "/" + btn_data
-    else:
-        callback_data = btn_data
-    return telebot.types.InlineKeyboardButton(
-        text=BTN_TEXT[btn_data], callback_data=callback_data
+def get_permissions_denied_message():
+    admins_list = [
+        f"[{admin.username}](tg://user?id={admin.user_id})"
+        for admin in admins_db.get_admins()
+    ]
+    return (
+        "Вы не являетесь администратором\.\n"
+        + "Взаимодествие с турниром доступно только в специально выделенных чатах\.\n"
+        + "Для доступа к административной части обратитесь к одному из администраторов: "
+        + "\, ".join(admins_list)
     )
 
 
-HOME_BTN = button("home_button")
+class Button:
+    def __init__(self, descr: str, data: str = ""):
+        self.data = data
+        self.descr = descr
+
+    def inline(self):
+        return InlineKeyboardButton(text=self.descr, callback_data=self.data)
+
+    def reply(self):
+        return KeyboardButton(text=self.descr)
+
+
+def empty_filter(_):
+    return True
