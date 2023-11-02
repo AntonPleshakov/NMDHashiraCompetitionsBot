@@ -8,7 +8,6 @@ from telebot.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
     Message,
-    ReplyKeyboardRemove,
 )
 
 from db.admins_db import admins_db, Admin
@@ -19,6 +18,7 @@ def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Добавить администратора", "admins/add_admin").inline())
     keyboard.add(Button("Удалить администратора", "admins/del_admin").inline())
+    keyboard.add(Button("Список администраторов", "admins/admins_list").inline())
     keyboard.add(Button("Назад в меню", "home").inline())
 
     bot.edit_message_text(
@@ -44,11 +44,11 @@ def send_user_request_message(bot: TeleBot, chat_id: int):
     )
 
     bot.send_message(
-        chat_id,
+        chat_id=chat_id,
         text=formatting.escape_markdown(share_userdata_msg),
         reply_markup=keyboard,
     )
-    bot.register_next_step_handler_by_chat_id(chat_id, get_user_info_cmd, bot)
+    bot.register_next_step_handler_by_chat_id(chat_id, get_user_info_cmd, bot, None)
 
 
 def check_user_info_str(text: str) -> bool:
@@ -58,13 +58,37 @@ def check_user_info_str(text: str) -> bool:
     return user_info[1].isdigit()
 
 
+def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
+    keyboard = InlineKeyboardMarkup()
+    keyboard.row(
+        Button(
+            "Да", f"admins/add_admin/approved/{new_admin.username}/{new_admin.user_id}"
+        ).inline()
+    )
+    keyboard.row(Button("Нет", "home").inline())
+
+    bot.send_message(
+        chat_id=message.chat.id,
+        reply_to_message_id=message.id,
+        text="Вы уверены что хотите добавить "
+        + f"[{new_admin.username}](tg://user?id={new_admin.user_id})"
+        + " в качестве администратора\?\n"
+        + "*Обратите внимание:*\n"
+        + "Если имя пользователя в данном сообщении не является ссылкой на профиль, "
+        + "то пользователь еще не взаимодействовал с ботом",
+        reply_markup=keyboard,
+    )
+
+
 def get_user_info_cmd(message: Message, bot: TeleBot, user_id: Optional[int]):
     if message.user_shared:
         user_id = message.user_shared.user_id
+        keyboard = InlineKeyboardMarkup(row_width=1)
+        keyboard.add(Button("Отмена", "admins").inline())
         bot.send_message(
             message.chat.id,
             text=f"ID пользователя\: {user_id}\nВведите имя пользователя",
-            reply_markup=ReplyKeyboardRemove(),
+            reply_markup=keyboard,
         )
         bot.register_next_step_handler(message, get_user_info_cmd, bot, user_id)
         return
@@ -79,39 +103,95 @@ def get_user_info_cmd(message: Message, bot: TeleBot, user_id: Optional[int]):
         bot.reply_to(message, text="Неверный формат данных пользователя")
         send_user_request_message(bot, message.chat.id)
         return
-    keyboard = InlineKeyboardMarkup()
-    keyboard.row(Button("Да", "admins/add_admin/yes").inline())
-    keyboard.row(Button("Нет", "admins/add_admin/no").inline())
-
-    bot.send_message(
-        chat_id=message.chat.id,
-        reply_to_message_id=message.id,
-        text="Вы уверены что хотите добавить "
-        + formatting.mlink(content=username, url=f"tg://user?id={user_id}")
-        + " в качестве администратора\?\n"
-        + "*Обратите внимание:*\n"
-        + "Если имя пользователя в данном сообщении не является ссылкой на профиль, "
-        + "то пользователь еще не взаимодействовал с ботом",
-        reply_markup=keyboard,
-    )
-    bot.register_next_step_handler(
-        message, confirmation_cmd, bot, Admin(username=username, user_id=user_id)
-    )
+    add_admin_confirmation(message, bot, Admin(username, user_id))
 
 
 def add_admin_cmd(cb_query: CallbackQuery, bot: TeleBot):
     send_user_request_message(bot, cb_query.message.chat.id)
-    bot.register_next_step_handler(cb_query.message, get_user_info_cmd, bot)
 
 
-def del_admin_cmd(cb_query: CallbackQuery, bot: TeleBot):
-    admin_name = cb_query.message.text
-    admins_db.add_admin(Admin(admin_name, 0))
-    return True
+def add_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
+    user_id = cb_query.data.split("/")[-1]
+    username = cb_query.data.split("/")[-2]
+    admins_db.add_admin(Admin(username, int(user_id)))
+    bot.send_message(
+        chat_id=cb_query.message.chat.id,
+        text=f"Пользователь [{username}](tg://user?id={user_id}) добавлен в качестве администратора",
+    )
+    bot.send_message(
+        chat_id=user_id,
+        text="Поздравляю\! Вам только что выдали права администратора\, можете начать с команды \/start",
+    )
 
 
-def confirmation_cmd(message: Message, bot: TeleBot, admin: Admin):
-    print(message.text)
+def del_admin_options_cmd(cb_query: CallbackQuery, bot: TeleBot):
+    current_admins = admins_db.get_admins()[1:]  # filter main admin
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    for admin in current_admins:
+        button = Button(f"{admin.username}", f"admins/del_admin/{admin.user_id}")
+        keyboard.add(button.inline())
+    keyboard.add(Button("Назад в Администраторы", "admins").inline())
+
+    bot.edit_message_text(
+        text="Выберите пользователя для лишения администраторских прав",
+        chat_id=cb_query.message.chat.id,
+        message_id=cb_query.message.id,
+        reply_markup=keyboard,
+    )
+
+
+def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
+    admin_id = int(cb_query.data.split("/")[-1])
+    admin_name = [
+        admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
+    ][0]
+
+    keyboard = InlineKeyboardMarkup()
+    keyboard.row(Button("Да", f"admins/del_admin/approved/{admin_id}").inline())
+    keyboard.row(Button("Нет", "home").inline())
+
+    bot.edit_message_text(
+        text="Вы уверены что хотите лишить пользователя "
+        + f"[{admin_name}](tg://user?id={admin_id})"
+        + " администраторских прав\?",
+        chat_id=cb_query.message.chat.id,
+        message_id=cb_query.message.id,
+        reply_markup=keyboard,
+    )
+
+
+def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
+    admin_id = int(cb_query.data.split("/")[-1])
+    admin_name = [
+        admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
+    ][0]
+    admins_db.del_admin(admin_id)
+
+    bot.send_message(
+        chat_id=cb_query.message.chat.id,
+        text=f"Пользователь [{admin_name}](tg://user?id={admin_id}) лишен администраторских прав",
+    )
+    bot.send_message(
+        chat_id=admin_id,
+        text="Сожалею\, но вы только что были лишены администраторских прав",
+    )
+
+
+def admins_list_cmd(cb_query: CallbackQuery, bot: TeleBot):
+    current_admins = admins_db.get_admins()
+    text = "Список администраторов:\n"
+    for admin in current_admins:
+        text = text + f"[{admin.username}](tg://user?id={admin.user_id})\n"
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(Button("Назад в Администраторы", "admins").inline())
+
+    bot.edit_message_text(
+        text=text,
+        chat_id=cb_query.message.chat.id,
+        message_id=cb_query.message.id,
+        reply_markup=keyboard,
+    )
 
 
 def register_handlers(bot: TeleBot):
@@ -130,9 +210,37 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        del_admin_cmd,
+        add_admin_approved_cmd,
+        func=empty_filter,
+        button="admins/add_admin/approved/\w+/\d+",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        del_admin_options_cmd,
         func=empty_filter,
         button="admins/del_admin",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        del_admin_confirmation_cmd,
+        func=empty_filter,
+        button="admins/del_admin/\d+",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        del_admin_approved_cmd,
+        func=empty_filter,
+        button="admins/del_admin/approved/\d+",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        admins_list_cmd,
+        func=empty_filter,
+        button="admins/admins_list",
         is_private=True,
         pass_bot=True,
     )

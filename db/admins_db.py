@@ -48,6 +48,8 @@ class AdminsDB:
         admins = self.get_admins()
         new_admins = [admin.to_list() for admin in admins if admin.user_id != user_id]
         self._manager.update_values(new_admins)
+        self._admins = [admin for admin in admins if admin.user_id != user_id]
+        self._admins_id_set = {admin.user_id for admin in self._admins}
 
 
 admins_db = AdminsDB()

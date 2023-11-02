@@ -1,3 +1,5 @@
+import re
+
 from telebot import TeleBot
 from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter
 from telebot.types import CallbackQuery
@@ -23,7 +25,8 @@ class PressedButtonFilter(AdvancedCustomFilter):
     key = "button"
 
     def check(self, callback_query: CallbackQuery, value: str):
-        return callback_query.data == value
+        value = re.sub(r"([/])", r"\/", value)
+        return re.fullmatch(value, callback_query.data) is not None
 
 
 def add_custom_filters(bot: TeleBot):

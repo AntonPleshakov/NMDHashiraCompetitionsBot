@@ -3,7 +3,7 @@ from telebot.types import InlineKeyboardButton, KeyboardButton
 from db.admins_db import admins_db
 
 
-def get_permissions_denied_message():
+def get_permissions_denied_message(user_id: int):
     admins_list = [
         f"[{admin.username}](tg://user?id={admin.user_id})"
         for admin in admins_db.get_admins()
@@ -11,7 +11,9 @@ def get_permissions_denied_message():
     return (
         "Вы не являетесь администратором\.\n"
         + "Взаимодествие с турниром доступно только в специально выделенных чатах\.\n"
-        + "Для доступа к административной части обратитесь к одному из администраторов: "
+        + "Для доступа к административной части обратитесь к одному из администраторов с вашим идентификатором\.\n"
+        + f"Ваш ID\: {user_id}\n"
+        + "Список администраторов\: "
         + "\, ".join(admins_list)
     )
 
