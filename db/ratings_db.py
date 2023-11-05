@@ -37,6 +37,12 @@ class RatingsDB:
             ratings.append(Player.from_list(row))
         return ratings
 
+    def delete_rating(self, tg_username: str):
+        new_ratings = [
+            player for player in self.get_ratings() if player.tg_username != tg_username
+        ]
+        self.update_all_user_ratings(new_ratings)
+
     def fetch_ratings(self):
         self._manager.fetch()
 

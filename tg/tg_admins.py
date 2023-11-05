@@ -65,7 +65,7 @@ def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
             "Да", f"admins/add_admin/approved/{new_admin.username}/{new_admin.user_id}"
         ).inline()
     )
-    keyboard.row(Button("Нет", "home").inline())
+    keyboard.row(Button("Нет", "admins").inline())
 
     bot.send_message(
         chat_id=message.chat.id,
@@ -148,7 +148,7 @@ def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
 
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"admins/del_admin/approved/{admin_id}").inline())
-    keyboard.row(Button("Нет", "home").inline())
+    keyboard.row(Button("Нет", "admins").inline())
 
     bot.edit_message_text(
         text="Вы уверены что хотите лишить пользователя "
