@@ -37,5 +37,8 @@ class RatingsDB:
             ratings.append(Player.from_list(row))
         return ratings
 
+    def fetch_ratings(self):
+        self._manager.fetch()
+
 
 ratings_db = RatingsDB()

@@ -5,6 +5,8 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 import db.gapi.gdrive_manager
 from config.config import getconf, reset_config
+from db.admins_db import admins_db
+from db.ratings_db import ratings_db
 from tg.tg_utils import empty_filter, Button
 
 
@@ -12,6 +14,8 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Загрузить логи", "dev/upload_logs").inline())
     keyboard.add(Button("Обновить файл конфигураций", "dev/update_config").inline())
+    keyboard.add(Button("Обновить администраторов", "dev/fetch_admins").inline())
+    keyboard.add(Button("Обновить рейтинг лист", "dev/fetch_ratings").inline())
     keyboard.add(Button("Назад в меню", "home").inline())
 
     bot.edit_message_text(
@@ -38,6 +42,16 @@ def update_config(cb_query: CallbackQuery, bot: TeleBot):
     bot.reply_to(cb_query.message, "Конфигурационный файл обновлен")
 
 
+def fetch_admins(cb_query: CallbackQuery, bot: TeleBot):
+    admins_db.fetch_admins()
+    bot.send_message(cb_query.message.chat.id, "Администраторы обновлены")
+
+
+def fetch_ratings(cb_query: CallbackQuery, bot: TeleBot):
+    ratings_db.fetch_ratings()
+    bot.send_message(cb_query.message.chat.id, "Рейтинг лист обновлен")
+
+
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         dev_main_menu,
@@ -57,6 +71,20 @@ def register_handlers(bot: TeleBot):
         update_config,
         func=empty_filter,
         button="dev/update_config",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        fetch_admins,
+        func=empty_filter,
+        button="dev/fetch_admins",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        fetch_ratings,
+        func=empty_filter,
+        button="dev/fetch_ratings",
         is_private=True,
         pass_bot=True,
     )

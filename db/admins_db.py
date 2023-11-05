@@ -51,5 +51,13 @@ class AdminsDB:
         self._admins = [admin for admin in admins if admin.user_id != user_id]
         self._admins_id_set = {admin.user_id for admin in self._admins}
 
+    def fetch_admins(self):
+        self._manager.fetch()
+        admins_matrix = self._manager.get_all_values()[1:]
+        self._admins_id_set: Set[int] = {int(row[1]) for row in admins_matrix}
+        self._admins: List[Admin] = [
+            Admin(row[0], int(row[1])) for row in admins_matrix
+        ]
+
 
 admins_db = AdminsDB()
