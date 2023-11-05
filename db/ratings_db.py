@@ -36,3 +36,6 @@ class RatingsDB:
         for row in rows:
             ratings.append(Player.from_list(row))
         return ratings
+
+
+ratings_db = RatingsDB()

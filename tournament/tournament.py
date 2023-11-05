@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Dict
 
-from db.ratings_db import RatingsDB
+from db.ratings_db import ratings_db
 from db.tournament_db import TournamentDB
 from match import MatchResult
 from mcmahon_pairing import McMahonPairing
@@ -21,7 +21,7 @@ class Tournament:
         if not tournament_db or tournament_db.is_finished():
             tournament_db = TournamentDB.create_new_tournament()
         self._tournament_db: TournamentDB = tournament_db
-        ratings = RatingsDB().get_ratings()
+        ratings = ratings_db.get_ratings()
         self._players: Dict[str, Player] = {
             player.tg_username: player for player in ratings
         }
@@ -52,7 +52,7 @@ class Tournament:
             raise TournamentStartedError
         if player_tg_username not in self._players:
             new_player = Player(player_tg_username)
-            RatingsDB().add_user_rating(new_player)
+            ratings_db.add_user_rating(new_player)
             self._players[player_tg_username] = new_player
         player = self._players[player_tg_username]
         self._tournament_db.register_player(player)
