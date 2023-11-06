@@ -6,6 +6,22 @@ class PlayerNotFoundError(Exception):
     pass
 
 
+class WrongNumberOfPlayers(Exception):
+    pass
+
+
+class WrongPlayersInMatch(Exception):
+    pass
+
+
+class MatchWithPlayersNotFound(Exception):
+    pass
+
+
+class MatchResultWasAlreadyRegistered(Exception):
+    pass
+
+
 class TournamentNotStartedError(Exception):
     pass
 

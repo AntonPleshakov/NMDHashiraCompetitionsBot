@@ -5,7 +5,14 @@ from db.ratings_db import ratings_db
 from db.tournament_db import TournamentDB
 from match import MatchResult
 from mcmahon_pairing import McMahonPairing
-from nmd_exceptions import TournamentStartedError, TournamentFinishedError
+from nmd_exceptions import (
+    TournamentStartedError,
+    TournamentFinishedError,
+    WrongNumberOfPlayers,
+    WrongPlayersInMatch,
+    MatchWithPlayersNotFound,
+    MatchResultWasAlreadyRegistered,
+)
 from player import Player
 
 
@@ -55,26 +62,37 @@ class Tournament:
         self.db.register_player(player)
         self._pairing.add_player(player)
 
-    def add_result(self, players_tg_name: List[str], result: MatchResult):
+    def add_result(
+        self,
+        players_tg_name: List[str],
+        result: MatchResult,
+        force_update: bool = False,
+    ):
         if len(players_tg_name) != 2:
-            raise KeyError("Error: only 2 players in pair accepted")
-        pairs = self._tournament_db.get_results()
-        for i, match in enumerate(pairs):
+            raise WrongNumberOfPlayers
+        match_index = None
+        for i, match in enumerate(self.db.get_results()):
             if match.first_player.tg_username in players_tg_name:
                 if match.second_player.tg_username not in players_tg_name:
-                    raise KeyError("Error: wrong pair")
-                # swap result in case of players swapped
-                if match.first_player.tg_username == players_tg_name[1] and result in [
-                    MatchResult.FirstWon,
-                    MatchResult.SecondWon,
-                ]:
-                    result = (
-                        MatchResult.FirstWon
-                        if result == MatchResult.SecondWon
-                        else MatchResult.SecondWon
-                    )
-                self._tournament_db.register_result(i, result)
-                return
+                    raise WrongPlayersInMatch
+                match_index = i
+                break
+        if not match_index:
+            raise MatchWithPlayersNotFound
+        match = self.db.get_results()[match_index]
+        if match.result != MatchResult.NotPlayed and not force_update:
+            raise MatchResultWasAlreadyRegistered
+        # swap result in case of players swapped
+        if match.first_player.tg_username == players_tg_name[1] and result in [
+            MatchResult.FirstWon,
+            MatchResult.SecondWon,
+        ]:
+            result = (
+                MatchResult.FirstWon
+                if result == MatchResult.SecondWon
+                else MatchResult.SecondWon
+            )
+        self.db.register_result(match_index, result)
 
     def finish_tournament(self):
         self._pairing.update_coefficients(
