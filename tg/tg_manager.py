@@ -7,7 +7,7 @@ from telebot.types import (
     CallbackQuery,
 )
 
-from tg import tg_admins, tg_dev
+from tg import tg_admins, tg_dev, tg_ratings
 from tg.tg_utils import empty_filter, Button
 
 
@@ -49,3 +49,4 @@ def register_handlers(bot: TeleBot):
 
     tg_admins.register_handlers(bot)
     tg_dev.register_handlers(bot)
+    tg_ratings.register_handlers(bot)
