@@ -1,20 +1,9 @@
-import datetime
 import threading
 from typing import Optional
 
 from db.tournament_db import TournamentDB
 from tournament.tournament import Tournament
-
-
-class TournamentSettings:
-    rounds_number = 5
-    round_duration_hours = 24
-    nightmare_matches = 0
-    dangerous_matches = 2
-    element_effect_map_disabled = True
-
-    def round_duration_seconds(self) -> int:
-        return datetime.timedelta(hours=self.round_duration_hours).seconds
+from tournament.tournament_settings import TournamentSettings
 
 
 class TournamentManager:
@@ -40,3 +29,6 @@ class TournamentManager:
         else:
             self.tournament.finish_tournament()
             self.tournament = None
+
+
+tournament_manager = TournamentManager()
