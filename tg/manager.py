@@ -7,8 +7,8 @@ from telebot.types import (
     CallbackQuery,
 )
 
-from tg import tg_admins, tg_dev, tg_ratings, tg_tournament
-from tg.tg_utils import empty_filter, Button
+from . import admins, dev, ratings, tournament
+from .utils import empty_filter, Button
 
 
 def main_menu_keyboard():
@@ -47,7 +47,7 @@ def register_handlers(bot: TeleBot):
         home_command, func=empty_filter, button="home", is_private=True, pass_bot=True
     )
 
-    tg_admins.register_handlers(bot)
-    tg_dev.register_handlers(bot)
-    tg_ratings.register_handlers(bot)
-    tg_tournament.register_handlers(bot)
+    admins.register_handlers(bot)
+    dev.register_handlers(bot)
+    ratings.register_handlers(bot)
+    tournament.register_handlers(bot)

@@ -4,7 +4,7 @@ import pygsheets
 from pygsheets.client import Client
 
 from config.config import getconf
-from db.gapi.spreadsheet_manager import SpreadsheetManager
+from .spreadsheet_manager import SpreadsheetManager
 
 
 class GSheetsManager:

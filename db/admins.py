@@ -1,8 +1,8 @@
 from typing import Set, List
 
 from config.config import getconf
-from db.gapi.gsheets_manager import GSheetsManager
-from db.gapi.worksheet_manager import WorksheetManager
+from .gapi.gsheets_manager import GSheetsManager
+from .gapi.worksheet_manager import WorksheetManager
 
 
 class Admin:

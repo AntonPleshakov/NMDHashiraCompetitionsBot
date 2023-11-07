@@ -5,10 +5,10 @@ from pygsheets import Worksheet
 
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
-from db.test.conftest import TEST_DATA_PLAYERS
-from db.tournament_db import TournamentDB
+from db.tournament import TournamentDB
 from tournament.match import Match, MatchResult
 from tournament.player import Player
+from .conftest import TEST_DATA_PLAYERS
 
 
 @pytest.fixture(scope="module")

@@ -1,7 +1,7 @@
 import pytest
 
-from db.admins_db import AdminsDB, Admin
-from db.test.conftest import TEST_DATA_ADMINS
+from db.admins import AdminsDB, Admin
+from .conftest import TEST_DATA_ADMINS
 
 
 @pytest.fixture(scope="module")

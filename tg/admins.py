@@ -10,8 +10,8 @@ from telebot.types import (
     Message,
 )
 
-from db.admins_db import admins_db, Admin
-from tg.tg_utils import empty_filter, Button
+from db.admins import admins_db, Admin
+from .utils import empty_filter, Button
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):

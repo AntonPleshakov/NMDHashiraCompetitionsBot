@@ -2,12 +2,12 @@ from datetime import date
 from typing import List, Optional
 
 from config.config import getconf
-from db.gapi.gsheets_manager import GSheetsManager
-from db.gapi.spreadsheet_manager import SpreadsheetManager
-from db.gapi.worksheet_manager import WorksheetManager
 from nmd_exceptions import PlayerNotFoundError, TournamentNotStartedError
 from tournament.match import Match, MatchResult, MATCH_RESULT_TO_STR, MatchColumnIndexes
 from tournament.player import Player, PlayerColumnIndexes
+from .gapi.gsheets_manager import GSheetsManager
+from .gapi.spreadsheet_manager import SpreadsheetManager
+from .gapi.worksheet_manager import WorksheetManager
 
 
 class TournamentDB:

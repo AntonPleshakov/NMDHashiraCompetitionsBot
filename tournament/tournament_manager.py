@@ -1,9 +1,9 @@
 import threading
 from typing import Optional
 
-from db.tournament_db import TournamentDB
-from tournament.tournament import Tournament
-from tournament.tournament_settings import TournamentSettings
+from db.tournament import TournamentDB
+from .tournament import Tournament
+from .tournament_settings import TournamentSettings
 
 
 class TournamentManager:

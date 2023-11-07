@@ -1,9 +1,9 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
-from db.ratings_db import ratings_db
-from tg.tg_utils import Button, empty_filter
+from db.ratings import ratings_db
 from tournament.player import Player
+from .utils import Button, empty_filter
 
 
 def ratings_main_menu(cb_query: CallbackQuery, bot: TeleBot):

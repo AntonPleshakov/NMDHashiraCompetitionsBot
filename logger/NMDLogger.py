@@ -1,7 +1,7 @@
 import logging
 
 from config.config import getconf
-from logger.RotatingGDriveHandler import RotatingGDriveHandler
+from .RotatingGDriveHandler import RotatingGDriveHandler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("NMDHashiraBot")

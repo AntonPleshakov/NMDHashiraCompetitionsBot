@@ -1,7 +1,7 @@
 from typing import List, Dict
 
-from tournament.match import Match, MatchResult
-from tournament.player import Player
+from .match import Match, MatchResult
+from .player import Player
 
 
 class McMahonPairing:

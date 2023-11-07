@@ -5,9 +5,9 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 import db.gapi.gdrive_manager
 from config.config import getconf, reset_config
-from db.admins_db import admins_db
-from db.ratings_db import ratings_db
-from tg.tg_utils import empty_filter, Button
+from db.admins import admins_db
+from db.ratings import ratings_db
+from .utils import empty_filter, Button
 
 
 def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):

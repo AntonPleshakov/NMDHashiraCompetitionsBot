@@ -4,10 +4,10 @@ from telebot import TeleBot, logger
 from telebot.handler_backends import BaseMiddleware
 from telebot.types import Message, CallbackQuery
 
+import tg.manager
 from config.config import getconf
-from tg import tg_manager
-from tg.tg_filters import add_custom_filters
-from tg.tg_utils import (
+from tg.filters import add_custom_filters
+from tg.utils import (
     get_permissions_denied_message,
 )
 
@@ -45,6 +45,6 @@ def permission_denied_callback(callback_query: CallbackQuery):
 
 if __name__ == "__main__":
     add_custom_filters(bot)
-    tg_manager.register_handlers(bot)
+    tg.manager.register_handlers(bot)
     bot.setup_middleware(AlwaysAnswerCallbackQueryMiddleware())
     bot.infinity_polling()

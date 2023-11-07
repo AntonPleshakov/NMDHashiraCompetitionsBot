@@ -1,6 +1,6 @@
 from telebot.types import InlineKeyboardButton, KeyboardButton
 
-from db.admins_db import admins_db
+from db.admins import admins_db
 
 
 def get_permissions_denied_message(user_id: int):

@@ -1,10 +1,10 @@
 from typing import List
 
 from config.config import getconf
-from db.gapi.gsheets_manager import GSheetsManager
-from db.gapi.worksheet_manager import WorksheetManager
 from nmd_exceptions import UsernameAlreadyExistsError
 from tournament.player import Player
+from .gapi.gsheets_manager import GSheetsManager
+from .gapi.worksheet_manager import WorksheetManager
 
 
 class RatingsDB:

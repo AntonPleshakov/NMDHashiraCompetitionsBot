@@ -3,7 +3,7 @@ from typing import Dict
 from pygsheets.spreadsheet import Spreadsheet
 from pygsheets.worksheet import Worksheet
 
-from db.gapi.worksheet_manager import WorksheetManager
+from .worksheet_manager import WorksheetManager
 
 DEFAULT_WORKSHEET_NAME = "Sheet1"
 

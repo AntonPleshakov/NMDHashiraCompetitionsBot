@@ -4,10 +4,10 @@ from telebot import TeleBot
 from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from config.config import getconf
-from tg.tg_utils import Button, empty_filter
 from tournament.match import MATCH_RESULT_TO_STR, MatchResult, Match
 from tournament.tournament_manager import tournament_manager
 from tournament.tournament_settings import TournamentSettings
+from .utils import Button, empty_filter
 
 
 def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):

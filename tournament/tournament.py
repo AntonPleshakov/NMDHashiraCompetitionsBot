@@ -1,10 +1,8 @@
 from enum import Enum
 from typing import List, Dict
 
-from db.ratings_db import ratings_db
-from db.tournament_db import TournamentDB
-from match import MatchResult
-from mcmahon_pairing import McMahonPairing
+from db.ratings import ratings_db
+from db.tournament import TournamentDB
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
@@ -13,7 +11,9 @@ from nmd_exceptions import (
     MatchWithPlayersNotFound,
     MatchResultWasAlreadyRegistered,
 )
-from player import Player
+from .match import MatchResult
+from .mcmahon_pairing import McMahonPairing
+from .player import Player
 
 
 class TournamentState(Enum):

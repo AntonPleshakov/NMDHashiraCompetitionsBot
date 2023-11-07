@@ -1,8 +1,8 @@
 import pytest
 
-from db.ratings_db import RatingsDB, UsernameAlreadyExistsError
-from db.test.conftest import TEST_DATA_PLAYERS
+from db.ratings import RatingsDB, UsernameAlreadyExistsError
 from tournament.player import Player
+from .conftest import TEST_DATA_PLAYERS
 
 
 @pytest.fixture(scope="module")

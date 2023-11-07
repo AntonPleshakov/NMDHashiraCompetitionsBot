@@ -4,7 +4,7 @@ from telebot import TeleBot
 from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter
 from telebot.types import CallbackQuery
 
-from db.admins_db import admins_db
+from db.admins import admins_db
 
 
 class IsAdminFilter(SimpleCustomFilter):

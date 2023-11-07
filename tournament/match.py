@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
-from tournament.player import Player
+from .player import Player
 
 
 class MatchResult(Enum):
