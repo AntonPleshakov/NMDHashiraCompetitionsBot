@@ -13,22 +13,24 @@ def db() -> AdminsDB:
 
 @pytest.mark.parametrize("user_name, user_id", TEST_DATA_ADMINS)
 @pytest.mark.gdrive_access
-def test_add_admin(db: AdminsDB, user_name: str, user_id: str):
+def test_add_admin(db: AdminsDB, user_name: str, user_id: int):
+    test_admin = Admin(user_name, user_id)
     admins = db.get_admins()
     if len(admins) > 0:
-        assert admins[-1] != [user_name, user_id]
+        assert admins[-1] != test_admin
 
-    db.add_admin(Admin(user_name, int(user_id)))
+    db.add_admin(test_admin)
     admins = db.get_admins()
-    assert admins[-1] == [user_name, user_id]
+    assert admins[-1] == test_admin
 
 
 @pytest.mark.parametrize("user_name, user_id", TEST_DATA_ADMINS)
 @pytest.mark.gdrive_access
-def test_del_admin(db: AdminsDB, user_name: str, user_id: str):
+def test_del_admin(db: AdminsDB, user_name: str, user_id: int):
+    test_admin = Admin(user_name, user_id)
     admins = db.get_admins()
-    assert Admin(user_name, int(user_id)) in admins
+    assert test_admin in admins
 
     db.del_admin(user_id)
     admins = db.get_admins()
-    assert Admin(user_name, int(user_id)) not in admins
+    assert test_admin not in admins

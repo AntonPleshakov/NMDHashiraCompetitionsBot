@@ -2,14 +2,14 @@ from tournament.player import Player
 
 
 TEST_DATA_ADMINS = [
-    ("Anton", "1"),
-    ("Ivan", "2"),
-    ("Max", "3"),
-    ("Sam", "4"),
-    ("Nikita", "5"),
-    ("Sergey", "6"),
-    ("Kirill", "7"),
-    ("Georgiy", "8"),
+    ("Anton", 1),
+    ("Ivan", 2),
+    ("Max", 3),
+    ("Sam", 4),
+    ("Nikita", 5),
+    ("Sergey", 6),
+    ("Kirill", 7),
+    ("Georgiy", 8),
 ]
 
 # Each next user should be placed first after sort by rating

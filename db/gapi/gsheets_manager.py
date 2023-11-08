@@ -7,6 +7,12 @@ from config.config import getconf
 from .spreadsheet_manager import SpreadsheetManager
 
 
+class SpreadsheetData:
+    def __init__(self, name: str, id: str):
+        self.name: str = name
+        self.id: str = id
+
+
 class GSheetsManager:
     def __init__(self):
         self._client: Client = pygsheets.authorize(
@@ -30,7 +36,10 @@ class GSheetsManager:
             ss = spreadsheets[0]
             self._client.drive.delete(ss["id"])
 
-    def get_spreadsheets(self) -> List[str]:
+    def get_spreadsheets(self) -> List[SpreadsheetData]:
         query = f'"{getconf("GDRIVE_FOLDER_PATH")}" in parents'
-        spreadsheets = self._client.spreadsheet_titles(query)
+        spreadsheets = [
+            SpreadsheetData(x["name"], x["id"])
+            for x in self._client.drive.spreadsheet_metadata(query)
+        ]
         return spreadsheets

@@ -15,19 +15,22 @@ def manager():
 @pytest.mark.slow
 def test_sheet_creation(manager: GSheetsManager):
     new_ss = "test"
-    assert new_ss not in manager.get_spreadsheets()
+    assert not any(new_ss == ss.name for ss in manager.get_spreadsheets())
 
     # Create a spreadsheet
     manager.create(new_ss)
     cnt = 0
-    while (new_ss not in manager.get_spreadsheets()) and (cnt < 20):
+    while not any(new_ss == ss.name for ss in manager.get_spreadsheets()) and (
+        cnt < 20
+    ):
         time.sleep(0.1)
         cnt += 1
     assert cnt < 20
+    assert any(new_ss == ss.name for ss in manager.get_spreadsheets())
 
     # Delete the spreadsheet
     manager.delete(new_ss)
-    assert new_ss not in manager.get_spreadsheets()
+    assert not any(new_ss == ss.name for ss in manager.get_spreadsheets())
 
 
 @pytest.mark.gdrive_access

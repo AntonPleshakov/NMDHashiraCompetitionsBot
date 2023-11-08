@@ -44,7 +44,7 @@ class AdminsDB:
     def is_admin(self, user_id: int):
         return user_id in self._admins_id_set
 
-    def del_admin(self, user_id: str):
+    def del_admin(self, user_id: int):
         admins = self.get_admins()
         new_admins = [admin.to_list() for admin in admins if admin.user_id != user_id]
         self._manager.update_values(new_admins)

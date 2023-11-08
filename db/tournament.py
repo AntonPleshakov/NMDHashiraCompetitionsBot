@@ -33,16 +33,20 @@ class TournamentDB:
     def get_latest_tournament(cls):
         conf_ss_name = getconf("TOURNAMENT_GTABLE_NAME")
         manager = GSheetsManager()
-        tournaments_ss = [ss for ss in manager.get_spreadsheets() if conf_ss_name in ss]
+        tournaments_ss = [
+            ss for ss in manager.get_spreadsheets() if conf_ss_name in ss.name
+        ]
         if not tournaments_ss:
             return None
-        dates_lists = [ss.split()[-1].split(".") for ss in tournaments_ss]
+        dates_lists = [ss.name.split()[-1].split(".") for ss in tournaments_ss]
         dates = [
             date(int(date_list[2]), int(date_list[1]), int(date_list[0]))
             for date_list in dates_lists
         ]
         latest_date = max(dates)
-        ss = manager.open(conf_ss_name + " " + latest_date.strftime("%d.%m.%Y"))
+        latest_ss_name = conf_ss_name + " " + latest_date.strftime("%d.%m.%Y")
+        latest_ss_id = [ss.id for ss in tournaments_ss if ss.name == latest_ss_name][0]
+        ss = manager.open(latest_ss_id)
         return TournamentDB(ss)
 
     def register_player(self, player: Player):

@@ -11,24 +11,6 @@ from tournament.player import Player
 from .conftest import TEST_DATA_PLAYERS
 
 
-@pytest.fixture(scope="module")
-def tournament():
-    result = TournamentDB.create_new_tournament()
-    yield result
-    GSheetsManager().delete(result._manager._ss.title)
-
-
-@pytest.mark.gdrive_access
-def test_new_tournament(tournament: TournamentDB):
-    date = datetime.today().strftime("%d.%m.%Y")
-    assert (
-        tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
-    )
-    worksheets = tournament._manager._ss.worksheets()
-    assert len(worksheets) == 1
-    assert worksheets[0].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
-
-
 @pytest.fixture
 def spreadsheets():
     manager = GSheetsManager()
@@ -62,6 +44,24 @@ def test_latest_tournament(spreadsheets):
 def test_empty_latest_tournament():
     latest = TournamentDB.get_latest_tournament()
     assert latest is None
+
+
+@pytest.fixture(scope="module")
+def tournament():
+    result = TournamentDB.create_new_tournament()
+    yield result
+    GSheetsManager().delete(result._manager._ss.title)
+
+
+@pytest.mark.gdrive_access
+def test_new_tournament(tournament: TournamentDB):
+    date = datetime.today().strftime("%d.%m.%Y")
+    assert (
+        tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
+    )
+    worksheets = tournament._manager._ss.worksheets()
+    assert len(worksheets) == 1
+    assert worksheets[0].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
 
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
