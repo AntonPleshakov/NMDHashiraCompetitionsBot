@@ -11,7 +11,7 @@ from telebot.types import (
 )
 
 from db.admins import admins_db, Admin
-from .utils import empty_filter, Button
+from tg.utils import empty_filter, Button
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):

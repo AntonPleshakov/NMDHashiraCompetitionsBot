@@ -7,7 +7,7 @@ import db.gapi.gdrive_manager
 from config.config import getconf, reset_config
 from db.admins import admins_db
 from db.ratings import ratings_db
-from .utils import empty_filter, Button
+from tg.utils import empty_filter, Button
 
 
 def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
