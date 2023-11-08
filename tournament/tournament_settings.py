@@ -4,11 +4,12 @@ from config.config import getconf
 
 
 class TournamentSettings:
-    rounds_number: int = 5
-    round_duration_hours: int = 24
-    nightmare_matches: int = 0
-    dangerous_matches: int = 2
-    element_effect_map_disabled: bool = True
+    def __init__(self):
+        self.rounds_number: int = 5
+        self.round_duration_hours: int = 24
+        self.nightmare_matches: int = 0
+        self.dangerous_matches: int = 2
+        self.element_effect_map_disabled: bool = True
 
     def round_duration_seconds(self) -> int:
         return datetime.timedelta(hours=self.round_duration_hours).seconds
@@ -25,6 +26,7 @@ class TournamentSettings:
         settings.nightmare_matches = int(values[2])
         settings.dangerous_matches = int(values[3])
         settings.element_effect_map_disabled = values[4] == "True"
+        return settings
 
     @staticmethod
     def data_regexp_repr():
@@ -35,10 +37,10 @@ class TournamentSettings:
             "Отключены" if self.element_effect_map_disabled else "Включены"
         )
         text = (
-            f"Количество раундов: {self.rounds_number}"
-            + f"Длительность раунда в часах: {self.round_duration_hours}"
-            + f"Количество Nightmare матчей: {self.nightmare_matches}"
-            + f"Количество Dangerous матчей: {self.dangerous_matches}"
+            f"Количество раундов: {self.rounds_number}\n"
+            + f"Длительность раунда в часах: {self.round_duration_hours}\n"
+            + f"Количество Nightmare матчей: {self.nightmare_matches}\n"
+            + f"Количество Dangerous матчей: {self.dangerous_matches}\n"
             + f"Элементные слабости на поле: {element_effect_str}"
         )
         return text

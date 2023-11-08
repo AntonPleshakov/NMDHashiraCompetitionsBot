@@ -16,7 +16,7 @@ def main_menu_keyboard():
     keyboard.add(Button("Администраторы", "admins").inline())
     keyboard.add(Button("Рейтинги", "ratings").inline())
     keyboard.add(Button("Турнир", "tournament").inline())
-    keyboard.add(Button("Служебное", "dev").inline())
+    keyboard.add(Button("Служебные", "dev").inline())
     return keyboard
 
 

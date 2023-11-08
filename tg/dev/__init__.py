@@ -19,7 +19,7 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Назад в меню", "home").inline())
 
     bot.edit_message_text(
-        text="Служебные функцие",
+        text="Служебные функции",
         chat_id=cb_query.message.chat.id,
         message_id=cb_query.message.id,
         reply_markup=keyboard,
@@ -30,16 +30,16 @@ def upload_logs(cb_query: CallbackQuery, bot: TeleBot):
     try:
         logs_db = db.gapi.gdrive_manager.GDriveManager()
         logs_db.upload_file(os.path.abspath(os.fspath(getconf("LOG_FILE_NAME"))))
-        bot.reply_to(cb_query.message, "Логи успешно загружены")
+        bot.send_message(cb_query.message.chat.id, "Логи успешно загружены")
     except FileNotFoundError:
-        bot.reply_to(cb_query.message, "Лог файл отсутствует")
+        bot.send_message(cb_query.message.chat.id, "Лог файл отсутствует")
 
 
 def update_config(cb_query: CallbackQuery, bot: TeleBot):
     files_db = db.gapi.gdrive_manager.GDriveManager()
     files_db.download_file("config.ini", "config/config.ini")
     reset_config("config/config.ini")
-    bot.reply_to(cb_query.message, "Конфигурационный файл обновлен")
+    bot.send_message(cb_query.message.chat.id, "Конфигурационный файл обновлен")
 
 
 def fetch_admins(cb_query: CallbackQuery, bot: TeleBot):
