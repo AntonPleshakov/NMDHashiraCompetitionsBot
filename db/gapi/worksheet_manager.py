@@ -64,7 +64,10 @@ class WorksheetManager:
         start_range: Optional[tuple] = None,
     ):
         if not start_range:
-            start_range = (1, 1) if update_header else (2, 1)
+            if not update_header and self._header_range:
+                start_range = (len(self._header_range[0] + 1), 1)
+            else:
+                start_range = (1, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)

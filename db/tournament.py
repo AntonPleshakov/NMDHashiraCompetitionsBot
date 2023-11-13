@@ -5,6 +5,7 @@ from config.config import getconf
 from nmd_exceptions import PlayerNotFoundError, TournamentNotStartedError
 from tournament.match import Match, MatchResult, MATCH_RESULT_TO_STR, MatchColumnIndexes
 from tournament.player import Player, PlayerColumnIndexes
+from tournament.tournament_settings import TournamentSettings
 from .gapi.gsheets_manager import GSheetsManager
 from .gapi.spreadsheet_manager import SpreadsheetManager
 from .gapi.worksheet_manager import WorksheetManager
@@ -13,20 +14,31 @@ from .gapi.worksheet_manager import WorksheetManager
 class TournamentDB:
     def __init__(self, spreadsheet_manager: SpreadsheetManager):
         self._manager: SpreadsheetManager = spreadsheet_manager
+        settings_page_name = getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
+        settings_page = self._manager.get_worksheet(settings_page_name)
+        self._settings: TournamentSettings = TournamentSettings.from_matrix(
+            settings_page.get_all_values()
+        )
         self._registration_page: WorksheetManager = self._manager.get_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
         )
-        self._registration_page.set_header([Player.PLAYER_FIELDS])
         self._tours: List[WorksheetManager] = []
         self._results_page: Optional[WorksheetManager] = None
 
     @classmethod
-    def create_new_tournament(cls):
+    def create_new_tournament(cls, settings: TournamentSettings):
         spreadsheet_name = (
             getconf("TOURNAMENT_GTABLE_NAME") + " " + date.today().strftime("%d.%m.%Y")
         )
         manager = GSheetsManager().create(spreadsheet_name)
-        manager.rename_worksheet(getconf("TOURNAMENT_REGISTER_PAGE_NAME"))
+        settings_page = manager.rename_worksheet(
+            getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
+        )
+        settings_page.update_values(settings.to_matrix())
+        registration_page = manager.add_worksheet(
+            getconf("TOURNAMENT_REGISTER_PAGE_NAME")
+        )
+        registration_page.set_header([Player.PLAYER_FIELDS])
         return cls(manager)
 
     @classmethod

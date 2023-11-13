@@ -15,16 +15,16 @@ class TournamentManager:
         self._settings: TournamentSettings = TournamentSettings()
 
     def start_tournament(self, settings: TournamentSettings):
-        self.tournament = Tournament(TournamentDB.create_new_tournament())
+        self.tournament = Tournament(TournamentDB.create_new_tournament(settings))
         self._settings = settings
         threading.Timer(
-            settings.round_duration_seconds(), TournamentManager.next_tour, [self]
+            settings.round_duration_seconds, TournamentManager.next_tour, [self]
         ).start()
 
     def next_tour(self):
         if self.tournament.db.get_tours_number() < self._settings.rounds_number:
             self.tournament.new_round()
-            round_duration = self._settings.round_duration_seconds()
+            round_duration = self._settings.round_duration_seconds
             threading.Timer(round_duration, TournamentManager.next_tour, [self]).start()
         else:
             self.tournament.finish_tournament()

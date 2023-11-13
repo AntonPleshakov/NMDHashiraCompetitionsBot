@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Dict
 
+from db.gapi.worksheet_manager import Matrix
+
 
 class Param(ABC):
     def __init__(self, name: str, view: str):
@@ -41,6 +43,19 @@ class Parameters:
         values = data.split("/")
         for attr, value in zip(settings.params(), values):
             settings.set_value(attr, value)
+        return settings
+
+    def to_matrix(self) -> Matrix:
+        result: Matrix = []
+        for param in self.params().values():
+            result.append([param.view, param.value_repr()])
+        return result
+
+    @classmethod
+    def from_matrix(cls, matrix: Matrix):
+        settings = cls()
+        for attr, row in zip(settings.params(), matrix):
+            settings.set_value(attr, row[1])
         return settings
 
     def data_regexp_repr(self):

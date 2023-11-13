@@ -36,8 +36,11 @@ class SpreadsheetManager:
         self._ss.del_worksheet(ws)
         self._cache.pop(worksheet_title)
 
-    def rename_worksheet(self, new_name: str, old_name: str = DEFAULT_WORKSHEET_NAME):
+    def rename_worksheet(
+        self, new_name: str, old_name: str = DEFAULT_WORKSHEET_NAME
+    ) -> WorksheetManager:
         ws = self._get_cached_ws(old_name)
         ws.title = new_name
         self._cache.pop(old_name)
         self._cache[new_name] = ws
+        return WorksheetManager(ws)
