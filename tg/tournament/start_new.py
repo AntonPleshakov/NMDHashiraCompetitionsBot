@@ -4,6 +4,8 @@ from telebot import TeleBot, formatting
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
 
 from config.config import getconf
+from parameters import Param
+from parameters.bool_param import BoolParam
 from tg.utils import Button, empty_filter
 from tournament.tournament_manager import tournament_manager
 from tournament.tournament_settings import TournamentSettings
@@ -16,44 +18,21 @@ def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMar
             "Запустить с выбранными настройками", "tournament/start_new/confirmed"
         ).inline()
     )
-    keyboard.add(
-        Button(
-            "Изменить количество раундов",
-            f"tournament/start_new/edit_rounds_number/{settings.to_data()}",
-        ).inline()
-    )
-    keyboard.add(
-        Button(
-            "Изменить длительность раунда",
-            f"tournament/start_new/edit_round_duration/{settings.to_data()}",
-        ).inline()
-    )
-    keyboard.add(
-        Button(
-            "Изменить количество Nightmare матчей",
-            f"tournament/start_new/edit_nightmare_matches/{settings.to_data()}",
-        ).inline()
-    )
-    keyboard.add(
-        Button(
-            "Изменить количество Dangerous матчей",
-            f"tournament/start_new/edit_dangerous_matches/{settings.to_data()}",
-        ).inline()
-    )
-    keyboard.add(
-        Button(
-            "Изменить элементные слабости на поле",
-            f"tournament/start_new/edit_element_effect_map/{settings.to_data()}",
-        ).inline()
-    )
+    for attr_name, param in settings.params().items():
+        keyboard.add(
+            Button(
+                f"Изменить {param.view}",
+                f"tournament/start_new/edit_{attr_name.lower()}/{settings.to_data()}",
+            ).inline()
+        )
     keyboard.add(Button("Отмена", "tournament").inline())
     return keyboard
 
 
 def offer_to_start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
-    settings = TournamentSettings.get_default_tournament_settings()
+    settings = TournamentSettings()
     bot.edit_message_text(
-        text="*Настройки турнира:*\n" + str(settings),
+        text="*Настройки турнира:*\n" + settings.view(),
         chat_id=cb_query.message.chat.id,
         message_id=cb_query.message.id,
         reply_markup=tournament_start_keyboard(settings),
@@ -83,13 +62,14 @@ def start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
     )
 
 
-def edit_element_effect_map(cb_query: CallbackQuery, bot: TeleBot):
+def edit_bool_tournament_param(cb_query: CallbackQuery, bot: TeleBot):
     data = cb_query.data.split("/")
+    attr_name = data[2][len("edit_") :]
     value = data[3]
     settings = TournamentSettings.from_data("/".join(data[4:]))
-    settings.element_effect_map_disabled = value == "off"
+    settings.set_value(attr_name, value == "on")
     bot.edit_message_text(
-        text="*Настройки турнира:*\n" + str(settings),
+        text="*Настройки турнира:*\n" + settings.view(),
         chat_id=cb_query.message.chat.id,
         message_id=cb_query.message.id,
         reply_markup=tournament_start_keyboard(settings),
@@ -97,7 +77,7 @@ def edit_element_effect_map(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def edit_tournament_param(
-    message: Message, bot: TeleBot, param_to_update: str, settings: TournamentSettings
+    message: Message, bot: TeleBot, attr_name: str, settings: TournamentSettings
 ):
     if not message.text.isdigit():
         keyboard = InlineKeyboardMarkup(row_width=1)
@@ -110,41 +90,34 @@ def edit_tournament_param(
             reply_markup=keyboard,
         )
         bot.register_next_step_handler(
-            message, edit_tournament_param, bot, param_to_update, settings
+            message, edit_tournament_param, bot, attr_name, settings
         )
-    new_value = int(message.text)
-    if param_to_update == "rounds_number":
-        settings.rounds_number = new_value
-    elif param_to_update == "round_duration_hours":
-        settings.round_duration_hours = new_value
-    elif param_to_update == "nightmare_matches":
-        settings.nightmare_matches = new_value
-    elif param_to_update == "dangerous_matches":
-        settings.dangerous_matches = new_value
+    settings.params()[attr_name].set_value(message.text)
 
     bot.send_message(
         chat_id=message.chat.id,
-        text="*Настройки турнира:*\n" + str(settings),
+        text="*Настройки турнира:*\n" + settings.view(),
         reply_markup=tournament_start_keyboard(settings),
     )
 
 
 def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
     data = cb_query.data.split("/")
-    param_to_update = data[2][len("edit_") :]
     settings = TournamentSettings.from_data("/".join(data[3:]))
-    if param_to_update == "element_effect_map":
+    attr_name = data[2][len("edit_") :]
+    param: Param = settings.params()[attr_name]
+    if isinstance(param, BoolParam):
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(
             Button(
                 "Включить",
-                f"tournament/start_new/edit_element_effect_map/on/{settings.to_data()}",
+                f"tournament/start_new/edit_{attr_name}/on/{settings.to_data()}",
             ).inline()
         )
         keyboard.add(
             Button(
                 "Выключить",
-                f"tournament/start_new/edit_element_effect_map/off/{settings.to_data()}",
+                f"tournament/start_new/edit_{attr_name}/off/{settings.to_data()}",
             ).inline()
         )
         keyboard.add(
@@ -152,7 +125,7 @@ def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
         )
         bot.send_message(
             chat_id=cb_query.message.chat.id,
-            text=f"Введите новое значение для {formatting.escape_markdown(param_to_update)}",
+            text=f"Введите новое значение для {formatting.escape_markdown(param.value_repr())}",
             reply_markup=keyboard,
         )
     else:
@@ -162,11 +135,15 @@ def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
         )
         bot.send_message(
             chat_id=cb_query.message.chat.id,
-            text=f"Введите новое значение для {formatting.escape_markdown(param_to_update)}",
+            text=f"Введите новое значение для {formatting.escape_markdown(param.value_repr())}",
             reply_markup=keyboard,
         )
         bot.register_next_step_handler(
-            cb_query.message, edit_tournament_param, bot, param_to_update, settings
+            cb_query.message,
+            edit_tournament_param,
+            bot,
+            attr_name,
+            settings,
         )
 
 
@@ -181,21 +158,21 @@ def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         start_new_tournament,
         func=empty_filter,
-        button=f"tournament/start_new/confirmed/{TournamentSettings.data_regexp_repr()}",
+        button=f"tournament/start_new/confirmed/{TournamentSettings().data_regexp_repr()}",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        edit_element_effect_map,
+        edit_bool_tournament_param,
         func=empty_filter,
-        button=f"tournament/start_new/edit_element_effect_map/(on|off)/{TournamentSettings.data_regexp_repr()}",
+        button=f"tournament/start_new/edit_\w+/(on|off)/{TournamentSettings().data_regexp_repr()}",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
         edit_tournament_settings,
         func=empty_filter,
-        button=f"tournament/start_new/edit_\w+/{TournamentSettings.data_regexp_repr()}",
+        button=f"tournament/start_new/edit_\w+/{TournamentSettings().data_regexp_repr()}",
         is_private=True,
         pass_bot=True,
     )
