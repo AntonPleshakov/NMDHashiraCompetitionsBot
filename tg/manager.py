@@ -24,19 +24,22 @@ def home_command(message: Union[Message, CallbackQuery], bot: TeleBot):
     keyboard = main_menu_keyboard()
     text = "Выберите раздел управления"
     if isinstance(message, CallbackQuery):
+        chat_id = message.message.chat.id
         bot.edit_message_text(
             text=text,
-            chat_id=message.message.chat.id,
+            chat_id=chat_id,
             message_id=message.message.id,
             reply_markup=keyboard,
         )
     else:
+        chat_id = message.chat.id
         bot.send_message(
-            chat_id=message.chat.id,
+            chat_id=chat_id,
             text=text,
             reply_markup=keyboard,
         )
-    return True
+    user_id = message.from_user.id
+    bot.reset_data(user_id, chat_id)
 
 
 def register_handlers(bot: TeleBot):

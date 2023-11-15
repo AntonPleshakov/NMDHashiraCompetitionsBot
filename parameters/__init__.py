@@ -10,10 +10,6 @@ class Param(ABC):
         self.view: str = view
 
     @abstractmethod
-    def data_regexp_repr(self) -> str:
-        pass
-
-    @abstractmethod
     def data(self) -> str:
         pass
 
@@ -34,17 +30,6 @@ class Parameters:
                 result[name] = value
         return result
 
-    def to_data(self):
-        return "/".join([v.data() for v in self.params().values()])
-
-    @classmethod
-    def from_data(cls, data: str):
-        settings = cls()
-        values = data.split("/")
-        for attr, value in zip(settings.params(), values):
-            settings.set_value(attr, value)
-        return settings
-
     def to_matrix(self) -> Matrix:
         result: Matrix = []
         for param in self.params().values():
@@ -57,15 +42,6 @@ class Parameters:
         for attr, row in zip(settings.params(), matrix):
             settings.set_value(attr, row[1])
         return settings
-
-    def data_regexp_repr(self):
-        result = ""
-        for param in self.params().values():
-            if len(result) > 0:
-                result += "/"
-            result += param.data_regexp_repr()
-
-        return result
 
     def view(self):
         text = ""

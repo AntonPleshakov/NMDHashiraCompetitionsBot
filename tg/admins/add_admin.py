@@ -45,12 +45,9 @@ def check_user_info_str(text: str) -> bool:
 
 def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
     keyboard = InlineKeyboardMarkup()
-    keyboard.row(
-        Button(
-            "Да", f"admins/add_admin/approved/{new_admin.username}/{new_admin.user_id}"
-        ).inline()
-    )
+    keyboard.row(Button("Да", f"admins/add_admin/approved").inline())
     keyboard.row(Button("Нет", "admins").inline())
+    bot.add_data(message.from_user.id, message.chat.id, new_admin=new_admin)
 
     bot.send_message(
         chat_id=message.chat.id,
@@ -96,12 +93,14 @@ def add_admin_cmd(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def add_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
-    user_id = cb_query.data.split("/")[-1]
-    username = cb_query.data.split("/")[-2]
-    admins_db.add_admin(Admin(username, int(user_id)))
+    with bot.retrieve_data(cb_query.from_user.id, cb_query.message.chat.id) as data:
+        new_admin = data.pop("new_admin")
+    admins_db.add_admin(new_admin)
+    user_id = new_admin.user_id
+    username = new_admin.username
     bot.send_message(
         chat_id=cb_query.message.chat.id,
-        text=f"Пользователь [{username}](tg://user?id={user_id}) добавлен в качестве администратора",
+        text=f"Пользователь [{username}](tg://user?id={str(user_id)}) добавлен в качестве администратора",
     )
     bot.send_message(
         chat_id=user_id,
@@ -120,7 +119,7 @@ def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         add_admin_approved_cmd,
         func=empty_filter,
-        button="admins/add_admin/approved/\w+/\d+",
+        button="admins/add_admin/approved",
         is_private=True,
         pass_bot=True,
     )

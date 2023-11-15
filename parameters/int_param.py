@@ -7,9 +7,6 @@ class IntParam(Param):
         super().__init__(name, view)
         self.value: int = int(getconf(self.name))
 
-    def data_regexp_repr(self):
-        return "\d+"
-
     def __int__(self):
         return self.value
 

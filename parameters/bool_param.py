@@ -7,9 +7,6 @@ class BoolParam(Param):
         super().__init__(name, view)
         self.value: bool = getconf(self.name) == "true"
 
-    def data_regexp_repr(self):
-        return "\w+"
-
     def __bool__(self):
         return self.value
 

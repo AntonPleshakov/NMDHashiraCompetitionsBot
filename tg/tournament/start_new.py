@@ -22,7 +22,7 @@ def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMar
         keyboard.add(
             Button(
                 f"Изменить {param.view}",
-                f"tournament/start_new/edit_{attr_name.lower()}/{settings.to_data()}",
+                f"tournament/start_new/edit_{attr_name.lower()}",
             ).inline()
         )
     keyboard.add(Button("Отмена", "tournament").inline())
@@ -31,6 +31,7 @@ def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMar
 
 def offer_to_start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
     settings = TournamentSettings()
+    bot.add_data(cb_query.from_user.id, cb_query.message.chat.id, settings=settings)
     bot.edit_message_text(
         text="*Настройки турнира:*\n" + settings.view(),
         chat_id=cb_query.message.chat.id,
@@ -52,8 +53,8 @@ def get_tournament_welcome_message(settings: TournamentSettings) -> str:
 
 
 def start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
-    settings_data = cb_query.data[len("tournament/start_new/confirmed/") :]
-    settings = TournamentSettings.from_data(settings_data)
+    with bot.retrieve_data(cb_query.from_user.id, cb_query.message.chat.id) as data:
+        settings = data.pop("settings")
     tournament_manager.start_tournament(settings)
     bot.send_message(
         chat_id=int(getconf("CHAT_ID")),
@@ -66,8 +67,10 @@ def edit_bool_tournament_param(cb_query: CallbackQuery, bot: TeleBot):
     data = cb_query.data.split("/")
     attr_name = data[2][len("edit_") :]
     value = data[3]
-    settings = TournamentSettings.from_data("/".join(data[4:]))
-    settings.set_value(attr_name, value == "on")
+    with bot.retrieve_data(cb_query.from_user.id, cb_query.message.chat.id) as data:
+        settings = data["settings"]
+        settings.set_value(attr_name, value == "on")
+        data["settings"] = settings
     bot.edit_message_text(
         text="*Настройки турнира:*\n" + settings.view(),
         chat_id=cb_query.message.chat.id,
@@ -93,6 +96,8 @@ def edit_tournament_param(
             message, edit_tournament_param, bot, attr_name, settings
         )
     settings.params()[attr_name].set_value(message.text)
+    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+        data["settings"] = settings
 
     bot.send_message(
         chat_id=message.chat.id,
@@ -102,8 +107,9 @@ def edit_tournament_param(
 
 
 def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
+    with bot.retrieve_data(cb_query.from_user.id, cb_query.message.chat.id) as data:
+        settings = data["settings"]
     data = cb_query.data.split("/")
-    settings = TournamentSettings.from_data("/".join(data[3:]))
     attr_name = data[2][len("edit_") :]
     param: Param = settings.params()[attr_name]
     if isinstance(param, BoolParam):
@@ -111,13 +117,13 @@ def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
         keyboard.add(
             Button(
                 "Включить",
-                f"tournament/start_new/edit_{attr_name}/on/{settings.to_data()}",
+                f"tournament/start_new/edit_{attr_name}/on",
             ).inline()
         )
         keyboard.add(
             Button(
                 "Выключить",
-                f"tournament/start_new/edit_{attr_name}/off/{settings.to_data()}",
+                f"tournament/start_new/edit_{attr_name}/off",
             ).inline()
         )
         keyboard.add(
@@ -158,21 +164,21 @@ def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         start_new_tournament,
         func=empty_filter,
-        button=f"tournament/start_new/confirmed/{TournamentSettings().data_regexp_repr()}",
+        button=f"tournament/start_new/confirmed",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
         edit_bool_tournament_param,
         func=empty_filter,
-        button=f"tournament/start_new/edit_\w+/(on|off)/{TournamentSettings().data_regexp_repr()}",
+        button=f"tournament/start_new/edit_\w+/(on|off)",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
         edit_tournament_settings,
         func=empty_filter,
-        button=f"tournament/start_new/edit_\w+/{TournamentSettings().data_regexp_repr()}",
+        button=f"tournament/start_new/edit_\w+",
         is_private=True,
         pass_bot=True,
     )
