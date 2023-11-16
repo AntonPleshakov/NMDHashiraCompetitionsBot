@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pygsheets.worksheet import Worksheet
 
@@ -9,7 +9,7 @@ class WorksheetManager:
     def __init__(self, worksheet: Worksheet):
         self._ws: Worksheet = worksheet
         self._cache: Optional[Matrix] = None
-        self._header_range = ()
+        self._header_range: Tuple[int, int] = (self._ws.frozen_rows, 0)
 
     def fetch(self):
         self._cache = self._ws.get_all_values(
@@ -30,6 +30,7 @@ class WorksheetManager:
     def set_header(self, header: Matrix):
         if self._header_range:
             self.bold_cells(self._header_range, False)
+            self._header_range = ()
         self._ws.frozen_rows = len(header)
         self.update_values(header, True)
         if len(header) > 0:
@@ -65,7 +66,7 @@ class WorksheetManager:
     ):
         if not start_range:
             if not update_header and self._header_range:
-                start_range = (len(self._header_range[0] + 1), 1)
+                start_range = (self._header_range[0] + 1, 1)
             else:
                 start_range = (1, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))

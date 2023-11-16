@@ -39,7 +39,7 @@ def home_command(message: Union[Message, CallbackQuery], bot: TeleBot):
             reply_markup=keyboard,
         )
     user_id = message.from_user.id
-    bot.reset_data(user_id, chat_id)
+    bot.delete_state(user_id, chat_id)
 
 
 def register_handlers(bot: TeleBot):

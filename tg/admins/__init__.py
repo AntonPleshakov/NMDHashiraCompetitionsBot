@@ -10,6 +10,8 @@ from tg.utils import empty_filter, Button
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
+    bot.delete_state(cb_query.from_user.id, cb_query.message.chat.id)
+
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Добавить администратора", "admins/add_admin").inline())
     keyboard.add(Button("Удалить администратора", "admins/del_admin").inline())

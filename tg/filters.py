@@ -1,7 +1,7 @@
 import re
 
 from telebot import TeleBot
-from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter
+from telebot.custom_filters import SimpleCustomFilter, AdvancedCustomFilter, StateFilter
 from telebot.types import CallbackQuery
 
 from db.admins import admins_db
@@ -33,3 +33,4 @@ def add_custom_filters(bot: TeleBot):
     bot.add_custom_filter(IsAdminFilter())
     bot.add_custom_filter(IsCallbackQueryPrivateChatFilter())
     bot.add_custom_filter(PressedButtonFilter())
+    bot.add_custom_filter(StateFilter(bot))
