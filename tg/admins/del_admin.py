@@ -1,15 +1,21 @@
 from telebot import TeleBot
+from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.admins import admins_db
 from tg.utils import Button, empty_filter
 
 
+class DelAdminStates(StatesGroup):
+    admin_id = State()
+    confirmed = State()
+
+
 def del_admin_options_cmd(cb_query: CallbackQuery, bot: TeleBot):
     current_admins = admins_db.get_admins()[1:]  # filter main admin
     keyboard = InlineKeyboardMarkup(row_width=1)
     for admin in current_admins:
-        button = Button(f"{admin.username}", f"admins/del_admin/{admin.user_id}")
+        button = Button(f"{admin.username}", f"{admin.user_id}")
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Администраторы", "admins").inline())
 
@@ -19,16 +25,19 @@ def del_admin_options_cmd(cb_query: CallbackQuery, bot: TeleBot):
         message_id=cb_query.message.id,
         reply_markup=keyboard,
     )
+    bot.set_state(
+        cb_query.from_user.id, DelAdminStates.admin_id, cb_query.message.chat.id
+    )
 
 
 def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
-    admin_id = int(cb_query.data.split("/")[-1])
+    admin_id = int(cb_query.data)
     admin_name = [
         admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
     ][0]
 
     keyboard = InlineKeyboardMarkup()
-    keyboard.row(Button("Да", f"admins/del_admin/approved/{admin_id}").inline())
+    keyboard.row(Button("Да", f"approved/{admin_id}").inline())
     keyboard.row(Button("Нет", "admins").inline())
 
     bot.edit_message_text(
@@ -39,6 +48,9 @@ def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
         message_id=cb_query.message.id,
         reply_markup=keyboard,
     )
+    bot.set_state(
+        cb_query.from_user.id, DelAdminStates.confirmed, cb_query.message.chat.id
+    )
 
 
 def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
@@ -47,6 +59,7 @@ def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
         admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
     ][0]
     admins_db.del_admin(admin_id)
+    bot.delete_state(cb_query.from_user.id, cb_query.message.chat.id)
 
     bot.send_message(
         chat_id=cb_query.message.chat.id,
@@ -69,14 +82,16 @@ def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         del_admin_confirmation_cmd,
         func=empty_filter,
-        button="admins/del_admin/\d+",
+        state=DelAdminStates.admin_id,
+        button="\d+",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
         del_admin_approved_cmd,
         func=empty_filter,
-        button="admins/del_admin/approved/\d+",
+        state=DelAdminStates.confirmed,
+        button="approved/\d+",
         is_private=True,
         pass_bot=True,
     )
