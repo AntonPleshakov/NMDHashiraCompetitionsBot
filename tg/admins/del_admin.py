@@ -25,9 +25,7 @@ def del_admin_options_cmd(cb_query: CallbackQuery, bot: TeleBot):
         message_id=cb_query.message.id,
         reply_markup=keyboard,
     )
-    bot.set_state(
-        cb_query.from_user.id, DelAdminStates.admin_id, cb_query.message.chat.id
-    )
+    bot.set_state(cb_query.from_user.id, DelAdminStates.admin_id)
 
 
 def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
@@ -48,9 +46,7 @@ def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
         message_id=cb_query.message.id,
         reply_markup=keyboard,
     )
-    bot.set_state(
-        cb_query.from_user.id, DelAdminStates.confirmed, cb_query.message.chat.id
-    )
+    bot.set_state(cb_query.from_user.id, DelAdminStates.confirmed)
 
 
 def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
@@ -59,7 +55,7 @@ def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
         admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
     ][0]
     admins_db.del_admin(admin_id)
-    bot.delete_state(cb_query.from_user.id, cb_query.message.chat.id)
+    bot.delete_state(cb_query.from_user.id)
 
     bot.send_message(
         chat_id=cb_query.message.chat.id,

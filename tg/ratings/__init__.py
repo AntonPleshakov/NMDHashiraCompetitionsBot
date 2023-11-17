@@ -6,7 +6,7 @@ from tg.utils import Button, empty_filter
 
 
 def ratings_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    bot.delete_state(cb_query.from_user.id, cb_query.message.chat.id)
+    bot.delete_state(cb_query.from_user.id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Изменить рейтинг", "ratings/update_rating").inline())

@@ -20,9 +20,7 @@ def delete_rating_options(cb_query: CallbackQuery, bot: TeleBot):
         )
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
-    bot.set_state(
-        cb_query.from_user.id, DelRatingStates.player_data, cb_query.message.chat.id
-    )
+    bot.set_state(cb_query.from_user.id, DelRatingStates.player_data)
 
     bot.edit_message_text(
         text="Выберите игрока для удаления из списка рейтингов",
@@ -39,9 +37,7 @@ def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"approved/{tg_username}").inline())
     keyboard.row(Button("Нет", "ratings").inline())
-    bot.set_state(
-        cb_query.from_user.id, DelRatingStates.confirmed, cb_query.message.chat.id
-    )
+    bot.set_state(cb_query.from_user.id, DelRatingStates.confirmed)
 
     bot.edit_message_text(
         text="Вы уверены что хотите удалить игрока "
@@ -56,7 +52,7 @@ def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
 def delete_rating_approved(cb_query: CallbackQuery, bot: TeleBot):
     tg_username = int(cb_query.data.split("/")[-1])
     ratings_db.delete_rating(tg_username)
-    bot.delete_state(cb_query.from_user.id, cb_query.message.chat.id)
+    bot.delete_state(cb_query.from_user.id)
 
     bot.send_message(
         chat_id=cb_query.message.chat.id,

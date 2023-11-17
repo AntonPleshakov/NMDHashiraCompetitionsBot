@@ -38,7 +38,7 @@ def send_user_request_message(bot: TeleBot, chat_id: int, user_id: int):
         text=formatting.escape_markdown(share_userdata_msg),
         reply_markup=keyboard,
     )
-    bot.set_state(user_id, AddAdminStates.user_data, chat_id)
+    bot.set_state(user_id, AddAdminStates.user_data)
 
 
 def add_admin_cmd(cb_query: CallbackQuery, bot: TeleBot):
@@ -49,8 +49,8 @@ def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"approved").inline())
     keyboard.row(Button("Нет", "admins").inline())
-    bot.set_state(message.from_user.id, AddAdminStates.confirmed, message.chat.id)
-    bot.add_data(message.from_user.id, message.chat.id, new_admin=new_admin)
+    bot.set_state(message.from_user.id, AddAdminStates.confirmed)
+    bot.add_data(message.from_user.id, new_admin=new_admin)
 
     bot.send_message(
         chat_id=message.chat.id,
@@ -79,7 +79,7 @@ def get_user_data(message: Message, bot: TeleBot):
 
 def get_user_id(message: Message, bot: TeleBot):
     user_id = message.user_shared.user_id
-    bot.add_data(message.from_user.id, message.chat.id, admin_id=user_id)
+    bot.add_data(message.from_user.id, admin_id=user_id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Отмена", "admins").inline())
@@ -88,11 +88,11 @@ def get_user_id(message: Message, bot: TeleBot):
         text=f"ID пользователя\: {user_id}\nВведите имя пользователя",
         reply_markup=keyboard,
     )
-    bot.set_state(message.from_user.id, AddAdminStates.username, message.chat.id)
+    bot.set_state(message.from_user.id, AddAdminStates.username)
 
 
 def get_username(message: Message, bot: TeleBot):
-    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+    with bot.retrieve_data(message.from_user.id) as data:
         user_id = data.pop("admin_id")
     username = message.text
     add_admin_confirmation(message, bot, Admin(username, user_id))
@@ -101,9 +101,9 @@ def get_username(message: Message, bot: TeleBot):
 def add_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
     user_id = cb_query.from_user.id
     chat_id = cb_query.message.chat.id
-    with bot.retrieve_data(user_id, chat_id) as data:
+    with bot.retrieve_data(user_id) as data:
         new_admin = data.pop("new_admin")
-    bot.delete_state(user_id, chat_id)
+    bot.delete_state(user_id)
     admins_db.add_admin(new_admin)
     admin_id = new_admin.user_id
     admin_username = new_admin.username
