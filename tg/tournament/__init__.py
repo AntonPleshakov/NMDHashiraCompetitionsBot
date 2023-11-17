@@ -6,6 +6,8 @@ from tg.utils import Button, empty_filter
 
 
 def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
+    bot.delete_state(cb_query.from_user.id)
+
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Начать турнир", "tournament/start_new").inline())
     keyboard.add(

@@ -1,6 +1,9 @@
+from textwrap import dedent
+
 from telebot.types import InlineKeyboardButton, KeyboardButton
 
 from db.admins import admins_db
+from tournament.tournament_settings import TournamentSettings
 
 
 def get_permissions_denied_message(user_id: int):
@@ -15,6 +18,18 @@ def get_permissions_denied_message(user_id: int):
         + f"Ваш ID\: {user_id}\n"
         + "Список администраторов\: "
         + "\, ".join(admins_list)
+    )
+
+
+def get_tournament_welcome_message(settings: TournamentSettings) -> str:
+    return dedent(
+        """
+        *Здравствуйте\! Здравствуйте\! Здравствуйте\!*
+
+
+        Счастливых вам голодных игр\.
+        И пусть удача всегда будет с вами\.
+        """
     )
 
 
