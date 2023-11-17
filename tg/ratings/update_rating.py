@@ -1,4 +1,5 @@
 from telebot import TeleBot
+from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from db.ratings import ratings_db
@@ -6,15 +7,22 @@ from tg.utils import Button, empty_filter
 from tournament.player import Player
 
 
+class UpdateRatingStates(StatesGroup):
+    player = State()
+    parameter = State()
+    new_value = State()
+
+
 def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     for player in ratings_db.get_ratings():
         button = Button(
             f"{player.tg_username}: {player.nmd_username}",
-            f"ratings/update_rating/{player.tg_username}",
+            f"{player.tg_username}",
         )
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
+    bot.set_state(cb_query.from_user.id, UpdateRatingStates.player)
 
     bot.edit_message_text(
         text="Выберите игрока для редактирования рейтинга",
@@ -25,21 +33,16 @@ def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
-    tg_username = cb_query.data.split("/")[-1]
+    tg_username = cb_query.data
     player = ratings_db.get_rating(tg_username)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(
-        Button(
-            f"Рейтинг", f"ratings/update_rating/rating/{player.tg_username}"
-        ).inline()
-    )
-    keyboard.add(
-        Button(
-            f"Отклонение", f"ratings/update_rating/deviation/{player.tg_username}"
-        ).inline()
-    )
+    keyboard.add(Button(f"Рейтинг", f"rating").inline())
+    keyboard.add(Button(f"Отклонение", f"deviation").inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
+
+    bot.add_data(cb_query.from_user.id, tg_username=tg_username)
+    bot.set_state(cb_query.from_user.id, UpdateRatingStates.parameter)
 
     text = f"Выбран игрок {player.tg_username} \({player.nmd_username}\):\n"
     for field, value in zip(player.PLAYER_FIELDS, player.to_list()):
@@ -53,9 +56,23 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
     )
 
 
-def update_player_parameter(
-    message: Message, tg_username: str, param_to_update: str, bot: TeleBot
-):
+def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
+    param_to_update = cb_query.data
+
+    bot.send_message(
+        chat_id=cb_query.message.chat.id,
+        text=f"Введите новое значение для параметра '{param_to_update}'",
+    )
+    bot.add_data(cb_query.from_user.id, param_to_update=param_to_update)
+    bot.set_state(cb_query.from_user.id, UpdateRatingStates.new_value)
+
+
+def update_player_parameter(message: Message, bot: TeleBot):
+    with bot.retrieve_data(message.from_user.id) as data:
+        tg_username = data["tg_username"]
+        param_to_update = data["param_to_update"]
+    bot.delete_state(message.from_user.id)
+
     new_value = message.text
     player = ratings_db.get_rating(tg_username)
     ratings = ratings_db.get_ratings()
@@ -69,23 +86,6 @@ def update_player_parameter(
     bot.reply_to(message, "Параметр успешно обновлен")
 
 
-def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
-    tg_username = cb_query.data.split("/")[-1]
-    param_to_update = cb_query.data.split("/")[-1]
-
-    bot.send_message(
-        chat_id=cb_query.message.chat.id,
-        text=f"Введите новое значение для параметра '{param_to_update}'",
-    )
-    bot.register_next_step_handler_by_chat_id(
-        cb_query.message.chat.id,
-        update_player_parameter,
-        tg_username,
-        param_to_update,
-        bot,
-    )
-
-
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         update_rating_chose_player,
@@ -97,14 +97,22 @@ def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         update_rating_parameters,
         func=empty_filter,
-        button="ratings/update_rating/\w+",
+        state=UpdateRatingStates.player,
+        button="\w+",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
         update_rating_enter_value,
         func=empty_filter,
-        button="ratings/update_rating/\w+/\w+",
+        state=UpdateRatingStates.parameter,
+        button="\w+",
         is_private=True,
         pass_bot=True,
+    )
+    bot.register_message_handler(
+        update_player_parameter,
+        chat_types=["private"],
+        pass_bot=True,
+        state=UpdateRatingStates.new_value,
     )
