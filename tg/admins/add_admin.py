@@ -41,7 +41,7 @@ def send_user_request_message(bot: TeleBot, chat_id: int, user_id: int):
     bot.set_state(user_id, AddAdminStates.user_data)
 
 
-def add_admin_cmd(cb_query: CallbackQuery, bot: TeleBot):
+def add_admin(cb_query: CallbackQuery, bot: TeleBot):
     send_user_request_message(bot, cb_query.message.chat.id, cb_query.from_user.id)
 
 
@@ -98,7 +98,7 @@ def get_username(message: Message, bot: TeleBot):
     add_admin_confirmation(message, bot, Admin(username, user_id))
 
 
-def add_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
+def add_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
     user_id = cb_query.from_user.id
     chat_id = cb_query.message.chat.id
     with bot.retrieve_data(user_id) as data:
@@ -119,7 +119,7 @@ def add_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
 
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
-        add_admin_cmd,
+        add_admin,
         func=empty_filter,
         button="admins/add_admin",
         is_private=True,
@@ -146,7 +146,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        add_admin_approved_cmd,
+        add_admin_approved,
         func=empty_filter,
         button="approved",
         state=AddAdminStates.confirmed,

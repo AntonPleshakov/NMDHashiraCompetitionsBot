@@ -26,7 +26,7 @@ def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     )
 
 
-def admins_list_cmd(cb_query: CallbackQuery, bot: TeleBot):
+def admins_list(cb_query: CallbackQuery, bot: TeleBot):
     current_admins = admins_db.get_admins()
     text = "Список администраторов:\n"
     for admin in current_admins:
@@ -52,7 +52,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        admins_list_cmd,
+        admins_list,
         func=empty_filter,
         button="admins/admins_list",
         is_private=True,

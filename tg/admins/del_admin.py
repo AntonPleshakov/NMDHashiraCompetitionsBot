@@ -11,7 +11,7 @@ class DelAdminStates(StatesGroup):
     confirmed = State()
 
 
-def del_admin_options_cmd(cb_query: CallbackQuery, bot: TeleBot):
+def del_admin_options(cb_query: CallbackQuery, bot: TeleBot):
     current_admins = admins_db.get_admins()[1:]  # filter main admin
     keyboard = InlineKeyboardMarkup(row_width=1)
     for admin in current_admins:
@@ -28,7 +28,7 @@ def del_admin_options_cmd(cb_query: CallbackQuery, bot: TeleBot):
     bot.set_state(cb_query.from_user.id, DelAdminStates.admin_id)
 
 
-def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
+def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     admin_id = int(cb_query.data)
     admin_name = [
         admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
@@ -49,7 +49,7 @@ def del_admin_confirmation_cmd(cb_query: CallbackQuery, bot: TeleBot):
     bot.set_state(cb_query.from_user.id, DelAdminStates.confirmed)
 
 
-def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
+def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
     admin_id = int(cb_query.data.split("/")[-1])
     admin_name = [
         admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
@@ -69,14 +69,14 @@ def del_admin_approved_cmd(cb_query: CallbackQuery, bot: TeleBot):
 
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
-        del_admin_options_cmd,
+        del_admin_options,
         func=empty_filter,
         button="admins/del_admin",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        del_admin_confirmation_cmd,
+        del_admin_confirmation,
         func=empty_filter,
         state=DelAdminStates.admin_id,
         button="\d+",
@@ -84,7 +84,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        del_admin_approved_cmd,
+        del_admin_approved,
         func=empty_filter,
         state=DelAdminStates.confirmed,
         button="approved/\d+",
