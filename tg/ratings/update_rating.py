@@ -26,11 +26,7 @@ def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
 
 def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
     tg_username = cb_query.data.split("/")[-1]
-    player = [
-        player
-        for player in ratings_db.get_ratings()
-        if player.tg_username == tg_username
-    ][0]
+    player = ratings_db.get_rating(tg_username)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(
@@ -61,14 +57,10 @@ def update_player_parameter(
     message: Message, tg_username: str, param_to_update: str, bot: TeleBot
 ):
     new_value = message.text
+    player = ratings_db.get_rating(tg_username)
     ratings = ratings_db.get_ratings()
-    player_index = -1
-    for i, player in enumerate(ratings):
-        if player.tg_username == tg_username:
-            player_index = i
-            break
+    player_index = ratings.index(player)
     param_index = Player.PLAYER_FIELDS.index(param_to_update)
-    player = ratings[player_index]
     raw_player = player.to_list()
     raw_player[param_index] = new_value
     new_player = Player.from_list(raw_player)

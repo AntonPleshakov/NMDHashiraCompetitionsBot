@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from config.config import getconf
 from nmd_exceptions import UsernameAlreadyExistsError
@@ -36,6 +36,13 @@ class RatingsDB:
         for row in rows:
             ratings.append(Player.from_list(row))
         return ratings
+
+    def get_rating(self, tg_username: str) -> Optional[Player]:
+        players = self.get_ratings()
+        for player in players:
+            if player.tg_username == tg_username:
+                return player
+        return None
 
     def delete_rating(self, tg_username: str):
         new_ratings = [
