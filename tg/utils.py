@@ -1,6 +1,7 @@
 from textwrap import dedent
+from typing import Union, Tuple
 
-from telebot.types import InlineKeyboardButton, KeyboardButton
+from telebot.types import InlineKeyboardButton, KeyboardButton, Message, CallbackQuery
 
 from db.admins import admins_db
 from tournament.tournament_settings import TournamentSettings
@@ -31,6 +32,15 @@ def get_tournament_welcome_message(settings: TournamentSettings) -> str:
         И пусть удача всегда будет с вами\.
         """
     )
+
+
+def get_ids(message: Union[Message, CallbackQuery]) -> Tuple[int, int, int]:
+    if isinstance(message, CallbackQuery):
+        message = message.message
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    message_id = message.id
+    return user_id, chat_id, message_id
 
 
 class Button:

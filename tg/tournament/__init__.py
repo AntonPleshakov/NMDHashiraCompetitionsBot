@@ -2,11 +2,12 @@ from telebot import TeleBot
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from tg.tournament import start_new, update_match_result
-from tg.utils import Button, empty_filter
+from tg.utils import Button, empty_filter, get_ids
 
 
 def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    bot.delete_state(cb_query.from_user.id)
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.delete_state(user_id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Начать турнир", "tournament/start_new").inline())
@@ -17,8 +18,8 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
     bot.edit_message_text(
         text="Управление администраторами",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 

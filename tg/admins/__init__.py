@@ -6,11 +6,12 @@ from telebot.types import (
 
 from db.admins import admins_db
 from tg.admins import add_admin, del_admin
-from tg.utils import empty_filter, Button
+from tg.utils import empty_filter, Button, get_ids
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    bot.delete_state(cb_query.from_user.id)
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.delete_state(user_id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Добавить администратора", "admins/add_admin").inline())
@@ -20,8 +21,8 @@ def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
     bot.edit_message_text(
         text="Управление администраторами",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 
@@ -35,10 +36,11 @@ def admins_list(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Назад в Администраторы", "admins").inline())
 
+    _, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text=text,
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 

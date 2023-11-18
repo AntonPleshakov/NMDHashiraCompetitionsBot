@@ -2,7 +2,7 @@ from telebot import TeleBot
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
-from tg.utils import Button, empty_filter
+from tg.utils import Button, empty_filter, get_ids
 from tournament.match import Match, MatchResult, MATCH_RESULT_TO_STR
 from tournament.tournament_manager import tournament_manager
 
@@ -31,18 +31,21 @@ def chose_match_to_update(cb_query: CallbackQuery, bot: TeleBot):
         text = match_to_string(match)
         keyboard.add(Button(text, f"{i}").inline())
     keyboard.add(Button("Назад в Турнир", "tournament").inline())
+
+    user_id, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text="Выберите матч для редактирования результата",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
-    bot.set_state(cb_query.from_user.id, UpdateMatchStates.match_to_update)
+    bot.set_state(user_id, UpdateMatchStates.match_to_update)
 
 
 def chose_result_to_update_match(cb_query: CallbackQuery, bot: TeleBot):
     match_index = int(cb_query.data)
-    bot.add_data(cb_query.from_user.id, match_index=match_index)
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.add_data(user_id, match_index=match_index)
 
     match = tournament_manager.tournament.db.get_results()[match_index]
     current_result = match.result
@@ -55,20 +58,21 @@ def chose_result_to_update_match(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Назад в Турнир", "tournament").inline())
     bot.edit_message_text(
         text="Выберите новый результат",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
-    bot.set_state(cb_query.from_user.id, UpdateMatchStates.new_result)
+    bot.set_state(user_id, UpdateMatchStates.new_result)
 
 
 def update_result(cb_query: CallbackQuery, bot: TeleBot):
-    with bot.retrieve_data(cb_query.from_user.id) as data:
+    user_id, chat_id, _ = get_ids(cb_query)
+    with bot.retrieve_data(user_id) as data:
         match_index = data["match_index"]
     new_result = MatchResult[cb_query.data]
     tournament_manager.tournament.db.register_result(match_index, new_result)
-    bot.send_message(chat_id=cb_query.message.chat.id, text="Результат успешно изменен")
-    bot.delete_state(cb_query.from_user.id)
+    bot.send_message(chat_id=chat_id, text="Результат успешно изменен")
+    bot.delete_state(user_id)
 
 
 def register_handlers(bot: TeleBot):

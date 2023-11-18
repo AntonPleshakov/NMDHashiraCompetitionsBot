@@ -7,7 +7,7 @@ import db.gapi.gdrive_manager
 from config.config import getconf, reset_config
 from db.admins import admins_db
 from db.ratings import ratings_db
-from tg.utils import empty_filter, Button
+from tg.utils import empty_filter, Button, get_ids
 
 
 def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
@@ -18,21 +18,23 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Обновить рейтинг лист", "dev/fetch_ratings").inline())
     keyboard.add(Button("Назад в меню", "home").inline())
 
+    user_id, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text="Служебные функции",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 
 
 def upload_logs(cb_query: CallbackQuery, bot: TeleBot):
+    chat_id = cb_query.message.chat.id
     try:
         logs_db = db.gapi.gdrive_manager.GDriveManager()
         logs_db.upload_file(os.path.abspath(os.fspath(getconf("LOG_FILE_NAME"))))
-        bot.send_message(cb_query.message.chat.id, "Логи успешно загружены")
+        bot.send_message(chat_id, "Логи успешно загружены")
     except FileNotFoundError:
-        bot.send_message(cb_query.message.chat.id, "Лог файл отсутствует")
+        bot.send_message(chat_id, "Лог файл отсутствует")
 
 
 def update_config(cb_query: CallbackQuery, bot: TeleBot):

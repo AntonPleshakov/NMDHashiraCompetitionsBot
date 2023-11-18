@@ -3,7 +3,7 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.admins import admins_db
-from tg.utils import Button, empty_filter
+from tg.utils import Button, empty_filter, get_ids
 
 
 class DelAdminStates(StatesGroup):
@@ -19,13 +19,14 @@ def del_admin_options(cb_query: CallbackQuery, bot: TeleBot):
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Администраторы", "admins").inline())
 
+    user_id, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text="Выберите пользователя для лишения администраторских прав",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
-    bot.set_state(cb_query.from_user.id, DelAdminStates.admin_id)
+    bot.set_state(user_id, DelAdminStates.admin_id)
 
 
 def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
@@ -38,15 +39,16 @@ def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.row(Button("Да", f"approved/{admin_id}").inline())
     keyboard.row(Button("Нет", "admins").inline())
 
+    user_id, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text="Вы уверены что хотите лишить пользователя "
         + f"[{admin_name}](tg://user?id={admin_id})"
         + " администраторских прав\?",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
-    bot.set_state(cb_query.from_user.id, DelAdminStates.confirmed)
+    bot.set_state(user_id, DelAdminStates.confirmed)
 
 
 def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
@@ -55,10 +57,11 @@ def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
         admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
     ][0]
     admins_db.del_admin(admin_id)
-    bot.delete_state(cb_query.from_user.id)
 
+    user_id, chat_id, _ = get_ids(cb_query)
+    bot.delete_state(user_id)
     bot.send_message(
-        chat_id=cb_query.message.chat.id,
+        chat_id=chat_id,
         text=f"Пользователь [{admin_name}](tg://user?id={admin_id}) лишен администраторских прав",
     )
     bot.send_message(

@@ -3,7 +3,7 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from db.ratings import ratings_db
-from tg.utils import Button, empty_filter
+from tg.utils import Button, empty_filter, get_ids
 from tournament.player import Player
 
 
@@ -22,12 +22,13 @@ def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
         )
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
-    bot.set_state(cb_query.from_user.id, UpdateRatingStates.player)
 
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.set_state(user_id, UpdateRatingStates.player)
     bot.edit_message_text(
         text="Выберите игрока для редактирования рейтинга",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 
@@ -41,8 +42,9 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button(f"Отклонение", f"deviation").inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
 
-    bot.add_data(cb_query.from_user.id, tg_username=tg_username)
-    bot.set_state(cb_query.from_user.id, UpdateRatingStates.parameter)
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.add_data(user_id, tg_username=tg_username)
+    bot.set_state(user_id, UpdateRatingStates.parameter)
 
     text = f"Выбран игрок {player.tg_username} \({player.nmd_username}\):\n"
     for field, value in zip(player.PLAYER_FIELDS, player.to_list()):
@@ -50,8 +52,8 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
 
     bot.edit_message_text(
         text=text,
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 
@@ -59,19 +61,21 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
 def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
     param_to_update = cb_query.data
 
+    user_id, chat_id, _ = get_ids(cb_query)
     bot.send_message(
-        chat_id=cb_query.message.chat.id,
+        chat_id=chat_id,
         text=f"Введите новое значение для параметра '{param_to_update}'",
     )
-    bot.add_data(cb_query.from_user.id, param_to_update=param_to_update)
-    bot.set_state(cb_query.from_user.id, UpdateRatingStates.new_value)
+    bot.add_data(user_id, param_to_update=param_to_update)
+    bot.set_state(user_id, UpdateRatingStates.new_value)
 
 
 def update_player_parameter(message: Message, bot: TeleBot):
-    with bot.retrieve_data(message.from_user.id) as data:
+    user_id = message.from_user.id
+    with bot.retrieve_data(user_id) as data:
         tg_username = data["tg_username"]
         param_to_update = data["param_to_update"]
-    bot.delete_state(message.from_user.id)
+    bot.delete_state(user_id)
 
     new_value = message.text
     player = ratings_db.get_rating(tg_username)

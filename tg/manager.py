@@ -8,7 +8,7 @@ from telebot.types import (
 )
 
 from . import admins, dev, ratings, tournament
-from .utils import empty_filter, Button
+from .utils import empty_filter, Button, get_ids
 
 
 def main_menu_keyboard():
@@ -23,22 +23,20 @@ def main_menu_keyboard():
 def home_command(message: Union[Message, CallbackQuery], bot: TeleBot):
     keyboard = main_menu_keyboard()
     text = "Выберите раздел управления"
+    user_id, chat_id, message_id = get_ids(message)
     if isinstance(message, CallbackQuery):
-        chat_id = message.message.chat.id
         bot.edit_message_text(
             text=text,
             chat_id=chat_id,
-            message_id=message.message.id,
+            message_id=message_id,
             reply_markup=keyboard,
         )
     else:
-        chat_id = message.chat.id
         bot.send_message(
             chat_id=chat_id,
             text=text,
             reply_markup=keyboard,
         )
-    user_id = message.from_user.id
     bot.delete_state(user_id)
 
 

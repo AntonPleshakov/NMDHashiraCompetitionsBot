@@ -10,7 +10,7 @@ from telebot.types import (
 )
 
 from db.admins import Admin, admins_db
-from tg.utils import Button, empty_filter
+from tg.utils import Button, empty_filter, get_ids
 
 
 class AddAdminStates(StatesGroup):
@@ -42,19 +42,22 @@ def send_user_request_message(bot: TeleBot, chat_id: int, user_id: int):
 
 
 def add_admin(cb_query: CallbackQuery, bot: TeleBot):
-    send_user_request_message(bot, cb_query.message.chat.id, cb_query.from_user.id)
+    user_id, chat_id, _ = get_ids(cb_query)
+    send_user_request_message(bot, chat_id, user_id)
 
 
 def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"approved").inline())
     keyboard.row(Button("Нет", "admins").inline())
-    bot.set_state(message.from_user.id, AddAdminStates.confirmed)
-    bot.add_data(message.from_user.id, new_admin=new_admin)
+
+    user_id, chat_id, message_id = get_ids(message)
+    bot.set_state(user_id, AddAdminStates.confirmed)
+    bot.add_data(user_id, new_admin=new_admin)
 
     bot.send_message(
-        chat_id=message.chat.id,
-        reply_to_message_id=message.id,
+        chat_id=chat_id,
+        reply_to_message_id=message_id,
         text="Вы уверены что хотите добавить "
         + f"[{new_admin.username}](tg://user?id={new_admin.user_id})"
         + " в качестве администратора\?\n"
@@ -69,26 +72,28 @@ def get_user_data(message: Message, bot: TeleBot):
     user_info = message.text.split(" ")
     if len(user_info) != 2 or not user_info[1].isdigit():
         bot.reply_to(message, text="Неверный формат данных пользователя")
-        send_user_request_message(bot, message.chat.id, message.from_user.id)
+        user_id, chat_id, _ = get_ids(message)
+        send_user_request_message(bot, chat_id, user_id)
         return
 
     username = user_info[0]
-    user_id = int(user_info[1])
-    add_admin_confirmation(message, bot, Admin(username, user_id))
+    new_admin_id = int(user_info[1])
+    add_admin_confirmation(message, bot, Admin(username, new_admin_id))
 
 
 def get_user_id(message: Message, bot: TeleBot):
-    user_id = message.user_shared.user_id
-    bot.add_data(message.from_user.id, admin_id=user_id)
+    user_id, chat_id, message_id = get_ids(message)
+    new_admin_id = message.user_shared.user_id
+    bot.add_data(user_id, admin_id=new_admin_id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Отмена", "admins").inline())
     bot.send_message(
-        message.chat.id,
-        text=f"ID пользователя\: {user_id}\nВведите имя пользователя",
+        chat_id,
+        text=f"ID пользователя\: {new_admin_id}\nВведите имя пользователя",
         reply_markup=keyboard,
     )
-    bot.set_state(message.from_user.id, AddAdminStates.username)
+    bot.set_state(user_id, AddAdminStates.username)
 
 
 def get_username(message: Message, bot: TeleBot):
@@ -99,8 +104,7 @@ def get_username(message: Message, bot: TeleBot):
 
 
 def add_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
-    user_id = cb_query.from_user.id
-    chat_id = cb_query.message.chat.id
+    user_id, chat_id, _ = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
         new_admin = data.pop("new_admin")
     bot.delete_state(user_id)

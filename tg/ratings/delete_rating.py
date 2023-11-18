@@ -3,7 +3,7 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.ratings import ratings_db
-from tg.utils import Button, empty_filter
+from tg.utils import Button, empty_filter, get_ids
 
 
 class DelRatingStates(StatesGroup):
@@ -20,12 +20,13 @@ def delete_rating_options(cb_query: CallbackQuery, bot: TeleBot):
         )
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
-    bot.set_state(cb_query.from_user.id, DelRatingStates.player_data)
 
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.set_state(user_id, DelRatingStates.player_data)
     bot.edit_message_text(
         text="Выберите игрока для удаления из списка рейтингов",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 
@@ -37,14 +38,15 @@ def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"approved/{tg_username}").inline())
     keyboard.row(Button("Нет", "ratings").inline())
-    bot.set_state(cb_query.from_user.id, DelRatingStates.confirmed)
 
+    user_id, chat_id, message_id = get_ids(cb_query)
+    bot.set_state(user_id, DelRatingStates.confirmed)
     bot.edit_message_text(
         text="Вы уверены что хотите удалить игрока "
         + f"{tg_username} \({nmd_username}\)"
         + " из списка рейтингов\?",
-        chat_id=cb_query.message.chat.id,
-        message_id=cb_query.message.id,
+        chat_id=chat_id,
+        message_id=message_id,
         reply_markup=keyboard,
     )
 
@@ -52,10 +54,11 @@ def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
 def delete_rating_approved(cb_query: CallbackQuery, bot: TeleBot):
     tg_username = int(cb_query.data.split("/")[-1])
     ratings_db.delete_rating(tg_username)
-    bot.delete_state(cb_query.from_user.id)
 
+    user_id, chat_id, _ = get_ids(cb_query)
+    bot.delete_state(user_id)
     bot.send_message(
-        chat_id=cb_query.message.chat.id,
+        chat_id=chat_id,
         text=f"Игрок {tg_username} удален из списка рейтингов",
     )
 
