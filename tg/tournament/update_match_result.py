@@ -2,6 +2,7 @@ from telebot import TeleBot
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
+from nmd_exceptions import TournamentNotStartedError
 from tg.utils import Button, empty_filter, get_ids
 from tournament.match import Match, MatchResult, MATCH_RESULT_TO_STR
 from tournament.tournament_manager import tournament_manager
@@ -25,21 +26,33 @@ def match_to_string(match: Match):
 
 
 def chose_match_to_update(cb_query: CallbackQuery, bot: TeleBot):
-    matches = tournament_manager.tournament.db.get_results()
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    for i, match in enumerate(matches):
-        text = match_to_string(match)
-        keyboard.add(Button(text, f"{i}").inline())
-    keyboard.add(Button("Назад в Турнир", "tournament").inline())
+    try:
+        matches = tournament_manager.tournament.db.get_results()
+        keyboard = InlineKeyboardMarkup(row_width=1)
+        for i, match in enumerate(matches):
+            text = match_to_string(match)
+            keyboard.add(Button(text, f"{i}").inline())
+        keyboard.add(Button("Назад в Турнир", "tournament").inline())
 
-    user_id, chat_id, message_id = get_ids(cb_query)
-    bot.edit_message_text(
-        text="Выберите матч для редактирования результата",
-        chat_id=chat_id,
-        message_id=message_id,
-        reply_markup=keyboard,
-    )
-    bot.set_state(user_id, UpdateMatchStates.match_to_update)
+        user_id, chat_id, message_id = get_ids(cb_query)
+        bot.edit_message_text(
+            text="Выберите матч для редактирования результата",
+            chat_id=chat_id,
+            message_id=message_id,
+            reply_markup=keyboard,
+        )
+        bot.set_state(user_id, UpdateMatchStates.match_to_update)
+    except TournamentNotStartedError:
+        keyboard = InlineKeyboardMarkup(row_width=1)
+        keyboard.add(Button("Назад в Турнир", "tournament").inline())
+
+        _, chat_id, message_id = get_ids(cb_query)
+        bot.edit_message_text(
+            text="Турнир еще не начался",
+            chat_id=chat_id,
+            message_id=message_id,
+            reply_markup=keyboard,
+        )
 
 
 def chose_result_to_update_match(cb_query: CallbackQuery, bot: TeleBot):
