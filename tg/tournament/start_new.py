@@ -33,7 +33,7 @@ def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMar
 
 def offer_to_start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(cb_query)
-    settings = TournamentSettings()
+    settings = TournamentSettings.default_settings()
     bot.set_state(user_id, TournamentStartStates.edit_param)
     bot.add_data(user_id, settings=settings)
     bot.edit_message_text(
@@ -60,7 +60,7 @@ def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(CANCEL_BTN)
     bot.send_message(
         chat_id=chat_id,
-        text=f"Введите новое значение для {formatting.escape_markdown(param.value_repr())}",
+        text=f"Введите новое значение для '{formatting.escape_markdown(param.view)}'",
         reply_markup=keyboard,
     )
 

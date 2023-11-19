@@ -35,9 +35,9 @@ def get_tournament_welcome_message(settings: TournamentSettings) -> str:
 
 
 def get_ids(message: Union[Message, CallbackQuery]) -> Tuple[int, int, int]:
+    user_id = message.from_user.id
     if isinstance(message, CallbackQuery):
         message = message.message
-    user_id = message.from_user.id
     chat_id = message.chat.id
     message_id = message.id
     return user_id, chat_id, message_id

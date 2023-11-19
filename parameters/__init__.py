@@ -5,15 +5,9 @@ from db.gapi.worksheet_manager import Matrix
 
 
 class Param(ABC):
-    def __init__(self, name: str, view: str):
-        self.name: str = name
+    def __init__(self, view: str):
         self.view: str = view
 
-    @abstractmethod
-    def data(self) -> str:
-        pass
-
-    @abstractmethod
     def value_repr(self) -> str:
         pass
 
