@@ -2,9 +2,20 @@ from typing import List, Optional
 
 from config.config import getconf
 from nmd_exceptions import UsernameAlreadyExistsError
-from tournament.player import Player
+from parameters import Parameters
+from parameters.int_param import IntParam
+from parameters.str_param import StrParam
 from .gapi.gsheets_manager import GSheetsManager
 from .gapi.worksheet_manager import WorksheetManager
+
+
+class Rating(Parameters):
+    def __init__(self):
+        self.tg_username: StrParam = StrParam("ТГ Username")
+        self.tg_id: IntParam = IntParam("ТГ ID")
+        self.nmd_username: StrParam = StrParam("NMD Username")
+        self.rating: IntParam = IntParam("Рейтинг")
+        self.deviation: IntParam = IntParam("Отклонение")
 
 
 class RatingsDB:
@@ -16,37 +27,48 @@ class RatingsDB:
             GSheetsManager().open(ss_name).get_worksheet(ws_name)
         )
 
-    def add_user_rating(self, user: Player):
-        if any(user.tg_username == row[0] for row in self._manager.get_all_values()):
+    def add_user_rating(self, user: Rating):
+        rows = self._manager.get_all_values()
+        if any(user.tg_username == row[user.tg_username.index] for row in rows):
             raise UsernameAlreadyExistsError
 
-        self._manager.add_row(user.to_list())
-        self._manager.sort_table(2)
+        self._manager.add_row(user.to_row())
+        self._manager.sort_table(user.rating.index)
 
-    def update_all_user_ratings(self, ratings: List[Player]):
+    def update_all_user_ratings(self, ratings: List[Rating]):
         rows = []
-        for player in ratings:
-            rows.append(player.to_list())
+        for rating in ratings:
+            rows.append(rating.to_row())
         self._manager.update_values(rows)
-        self._manager.sort_table(2)
+        self._manager.sort_table(Rating().rating.index)
 
-    def get_ratings(self) -> List[Player]:
+    def update_user_rating(self, tg_username: str, rating: Rating):
+        rows = self._manager.get_all_values()[1:]
+        for i, row in enumerate(rows):
+            if row[rating.tg_username.index] == tg_username:
+                rows[i] = rating.to_row()
+        self._manager.update_values(rows)
+        self._manager.sort_table(rating.rating.index)
+
+    def get_ratings(self) -> List[Rating]:
         rows = self._manager.get_all_values()[1:]
         ratings = []
         for row in rows:
-            ratings.append(Player.from_list(row))
+            ratings.append(Rating.from_row(row))
         return ratings
 
-    def get_rating(self, tg_username: str) -> Optional[Player]:
-        players = self.get_ratings()
-        for player in players:
-            if player.tg_username == tg_username:
-                return player
+    def get_rating(self, tg_username: str) -> Optional[Rating]:
+        ratings = self.get_ratings()
+        for rating in ratings:
+            if rating.tg_username.value == tg_username:
+                return rating
         return None
 
     def delete_rating(self, tg_username: str):
         new_ratings = [
-            player for player in self.get_ratings() if player.tg_username != tg_username
+            rating
+            for rating in self.get_ratings()
+            if rating.tg_username.value != tg_username
         ]
         self.update_all_user_ratings(new_ratings)
 

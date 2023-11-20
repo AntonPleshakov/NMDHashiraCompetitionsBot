@@ -7,6 +7,7 @@ from db.gapi.worksheet_manager import Matrix
 class Param(ABC):
     def __init__(self, view: str):
         self.view: str = view
+        self.index: int = -1
 
     def value_repr(self) -> str:
         pass
@@ -20,6 +21,17 @@ class Param(ABC):
 
 
 class Parameters:
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls)
+        instance._index_ctr = 0
+        return instance
+
+    def __setattr__(self, key, value):
+        if isinstance(value, Param) and value.index == -1:
+            value.index = self._index_ctr
+            self._index_ctr += 1
+        super().__setattr__(key, value)
+
     def params(self) -> Dict[str, Param]:
         result = {}
         for name, value in vars(self).items():
