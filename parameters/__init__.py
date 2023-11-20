@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Dict
+from typing import Dict, List
 
 from db.gapi.worksheet_manager import Matrix
 
@@ -10,6 +10,9 @@ class Param(ABC):
 
     def value_repr(self) -> str:
         pass
+
+    def __str__(self):
+        return self.value_repr()
 
     @abstractmethod
     def set_value(self, value: str):
@@ -24,6 +27,12 @@ class Parameters:
                 result[name] = value
         return result
 
+    def __eq__(self, other):
+        for param in self.params():
+            if getattr(self, param) != getattr(other, param):
+                return False
+        return True
+
     def to_matrix(self) -> Matrix:
         result: Matrix = []
         for param in self.params().values():
@@ -32,10 +41,20 @@ class Parameters:
 
     @classmethod
     def from_matrix(cls, matrix: Matrix):
-        settings = cls()
-        for attr, row in zip(settings.params(), matrix):
-            settings.set_value(attr, row[1])
-        return settings
+        parameters = cls()
+        for attr, row in zip(parameters.params(), matrix):
+            parameters.set_value(attr, row[1])
+        return parameters
+
+    def to_row(self) -> List[str]:
+        return [param.value_repr() for param in self.params().values()]
+
+    @classmethod
+    def from_row(cls, row: List[str]):
+        parameters = cls()
+        for attr, value in zip(parameters.params(), row):
+            parameters.set_value(attr, value)
+        return parameters
 
     def view(self):
         text = ""

@@ -31,9 +31,7 @@ def del_admin_options(cb_query: CallbackQuery, bot: TeleBot):
 
 def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     admin_id = int(cb_query.data)
-    admin_name = [
-        admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
-    ][0]
+    admin_name = admins_db.get_admin(admin_id).username
 
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"approved/{admin_id}").inline())
@@ -53,9 +51,7 @@ def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
 
 def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
     admin_id = int(cb_query.data.split("/")[-1])
-    admin_name = [
-        admin.username for admin in admins_db.get_admins() if admin.user_id == admin_id
-    ][0]
+    admin_name = admins_db.get_admin(admin_id).username
     admins_db.del_admin(admin_id)
 
     user_id, chat_id, _ = get_ids(cb_query)
