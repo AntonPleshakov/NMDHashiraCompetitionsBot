@@ -15,6 +15,9 @@ class Param(ABC):
     def __str__(self):
         return self.value_repr()
 
+    def __eq__(self, other):
+        return self.value_repr() == other.value_repr()
+
     @abstractmethod
     def set_value(self, value: str):
         pass
@@ -38,6 +41,9 @@ class Parameters:
             if isinstance(value, Param):
                 result[name] = value
         return result
+
+    def params_views(self) -> List[str]:
+        return [param.view for param in self.params().values()]
 
     def __eq__(self, other):
         for param in self.params():
