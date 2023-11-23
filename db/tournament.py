@@ -50,15 +50,16 @@ class TournamentDB:
         ]
         if not tournaments_ss:
             return None
-        dates_lists = [ss.name.split()[-1].split(".") for ss in tournaments_ss]
-        dates = [
-            date(int(date_list[2]), int(date_list[1]), int(date_list[0]))
-            for date_list in dates_lists
-        ]
-        latest_date = max(dates)
-        latest_ss_name = conf_ss_name + " " + latest_date.strftime("%d.%m.%Y")
-        latest_ss_id = [ss.id for ss in tournaments_ss if ss.name == latest_ss_name][0]
-        ss = manager.open(latest_ss_id)
+
+        latest_date = None
+        latest_ss = None
+        for ss in tournaments_ss:
+            date_list = ss.name.split()[-1].split(".")
+            ss_date = date(int(date_list[2]), int(date_list[1]), int(date_list[0]))
+            if latest_date is None or latest_date < ss_date:
+                latest_date = ss_date
+                latest_ss = ss
+        ss = manager.open(latest_ss.id)
         return TournamentDB(ss)
 
     def register_player(self, player: Player):
