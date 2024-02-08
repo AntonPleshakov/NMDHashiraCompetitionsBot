@@ -10,7 +10,7 @@ class McMahonPairing:
         players_list: List[Player] = None,
         previous_matches: List[List[Match]] = None,
     ):
-        self._players: Dict[str, Player] = {p.tg_username: p for p in players_list}
+        self._players: Dict[int, Player] = {p.tg_id: p for p in players_list}
         self._tours_counted: int = 0
         for i, pairs in enumerate(previous_matches):
             self._populate_opponents(pairs)
@@ -20,27 +20,27 @@ class McMahonPairing:
         for match in matches:
             if not match.second_player:
                 continue
-            first_player_name = match.first_player.tg_username
-            second_player_name = match.second_player.tg_username
-            first_player = self._players[first_player_name]
-            second_player = self._players[second_player_name]
-            first_player.opponents.append(second_player_name)
-            second_player.opponents.append(first_player_name)
+            first_player_id = match.first_player.tg_id
+            second_player_id = match.second_player.tg_id
+            first_player = self._players[first_player_id]
+            second_player = self._players[second_player_id]
+            first_player.opponents.append(second_player_id)
+            second_player.opponents.append(first_player_id)
 
     def add_player(self, player: Player):
         # init scores
         player.mm = player.rating / 100
         player.sos = 0
         player.sodos = 0
-        self._players[player.tg_username] = player
+        self._players[player.tg_id] = player
 
     def update_coefficients(self, tour_result: List[Match], tour_number: int):
         if tour_number <= self._tours_counted:
             return
         # calculate mm score first
         for pair in tour_result:
-            first = self._players[pair.first_player.tg_username]
-            second = self._players[pair.second_player.tg_username]
+            first = self._players[pair.first_player.tg_id]
+            second = self._players[pair.second_player.tg_id]
             if pair.result == MatchResult.FirstWon:
                 first.mm += 1
             elif pair.result == MatchResult.SecondWon:
@@ -51,8 +51,8 @@ class McMahonPairing:
 
         # calculate SOS and SODOS
         for pair in tour_result:
-            first = self._players[pair.first_player.tg_username]
-            second = self._players[pair.second_player.tg_username]
+            first = self._players[pair.first_player.tg_id]
+            second = self._players[pair.second_player.tg_id]
 
             first.sos += second.mm
             second.sos += first.mm
