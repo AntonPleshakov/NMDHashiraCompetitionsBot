@@ -66,7 +66,7 @@ class TournamentDB:
         self._registration_page.sort_table(player.rating.index)
 
     def get_registered_players(self) -> List[RegistrationRow]:
-        matrix = self._registration_page.get_all_values()[1:]
+        matrix = self._registration_page.get_all_values()
         players = [RegistrationRow.from_row(row) for row in matrix]
         return players
 
@@ -104,7 +104,7 @@ class TournamentDB:
         if not self._tours:
             raise TournamentNotStartedError
         tour = self._tours[tour_idx]
-        matrix = tour.get_all_values()[1:]
+        matrix = tour.get_all_values()
         results = [Match.from_row(row) for row in matrix]
         return results
 

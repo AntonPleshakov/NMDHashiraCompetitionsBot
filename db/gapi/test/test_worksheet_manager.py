@@ -31,17 +31,19 @@ def manager(manager_factory):
 )
 @pytest.mark.gdrive_access
 def test_header(manager: WorksheetManager, header: Matrix):
-    actual_values = manager.get_all_values()
+    manager.set_header([])
+    manager.update_values([[]])
+    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
     assert actual_values != header
     assert manager._ws.frozen_rows == 0
 
     manager.set_header(header)
-    actual_values = manager.get_all_values()
+    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
     assert actual_values == header
     assert manager._ws.frozen_rows == len(header)
 
     manager.set_header([])
-    actual_values = manager.get_all_values()
+    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
     assert actual_values == [[]]
     assert manager._ws.frozen_rows == 0
 
@@ -51,7 +53,7 @@ def test_header(manager: WorksheetManager, header: Matrix):
 )
 @pytest.mark.gdrive_access
 def test_update_values(manager: WorksheetManager, values: Matrix):
-    manager.update_values(values, True)
+    manager.update_values(values)
 
     actual_values = manager.get_all_values()
     assert actual_values == values
@@ -60,16 +62,17 @@ def test_update_values(manager: WorksheetManager, values: Matrix):
 @pytest.mark.gdrive_access
 def test_update_values_with_header(manager: WorksheetManager):
     header = ["First", "Second", "Third"]
-    values_with_header = [header, ["1", "2", "3"]]
-    manager.update_values(values_with_header, True)
+    values = ["1", "2", "3"]
+    manager.set_header([header])
+    manager.update_values([values])
 
-    actual_values = manager.get_all_values()
-    assert actual_values == values_with_header
+    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    assert actual_values == [header, values]
 
     new_values = ["4", "5", "6"]
-    manager.update_values([new_values], False)
+    manager.update_values([new_values])
 
-    actual_values = manager.get_all_values()
+    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
     assert len(actual_values) == 2
     assert actual_values[0] == header
     assert actual_values[1] == new_values
@@ -92,19 +95,17 @@ DESC_COL = [[v] for v in DESC_ROW_9_0]
 DAD_MATRIX = merge_columns([DESC_COL, ASC_COL, DESC_COL])
 ADA_MATRIX = merge_columns([ASC_COL, DESC_COL, ASC_COL])
 HEADER = [["First", "Second", "Third"]]
-DAD_HEADER = HEADER + DAD_MATRIX
-ADA_HEADER = HEADER + ADA_MATRIX
 
 
 @pytest.mark.parametrize(
-    "input_values, expected_values, column_index, sort_header, sort_order",
+    "input_values, expected_values, column_index, sort_order, header",
     [
-        (DESC_COL, ASC_COL, 0, True, "ASCENDING"),
-        (ASC_COL, DESC_COL, 0, True, "DESCENDING"),
-        (ADA_MATRIX, DAD_MATRIX, 1, True, "ASCENDING"),
-        (DAD_MATRIX, ADA_MATRIX, 1, True, "DESCENDING"),
-        (ADA_HEADER, DAD_HEADER, 1, False, "ASCENDING"),
-        (DAD_HEADER, ADA_HEADER, 1, False, "DESCENDING"),
+        (DESC_COL, ASC_COL, 0, "ASCENDING", []),
+        (ASC_COL, DESC_COL, 0, "DESCENDING", []),
+        (ADA_MATRIX, DAD_MATRIX, 1, "ASCENDING", []),
+        (DAD_MATRIX, ADA_MATRIX, 1, "DESCENDING", []),
+        (ADA_MATRIX, DAD_MATRIX, 1, "ASCENDING", HEADER),
+        (DAD_MATRIX, ADA_MATRIX, 1, "DESCENDING", HEADER),
     ],
 )
 @pytest.mark.gdrive_access
@@ -114,14 +115,15 @@ def test_sort_values(
     input_values: Matrix,
     expected_values: Matrix,
     column_index: int,
-    sort_header: bool,
     sort_order: str,
+    header: Matrix
 ):
     # Given
-    manager.update_values(input_values, True)
+    manager.set_header(header)
+    manager.update_values(input_values)
 
     # When
-    manager.sort_table(column_index, sort_header, sort_order)
+    manager.sort_table(column_index, sort_order)
 
     # Then
     actual_values = manager.get_all_values()
@@ -143,7 +145,7 @@ for i in range(3):
 @pytest.mark.slow
 def test_add_row(manager: WorksheetManager, row: List[str]):
     init_values = MAT_3V3
-    manager.update_values(init_values, True)
+    manager.update_values(init_values)
 
     manager.add_row(row)
 
@@ -154,7 +156,7 @@ def test_add_row(manager: WorksheetManager, row: List[str]):
 @pytest.mark.gdrive_access
 def test_add_row_after_empty(manager: WorksheetManager):
     init_values = MAT_3V3
-    manager.update_values(init_values, True)
+    manager.update_values(init_values)
     empty_row = []
     two_cell_row = ["1", "2"]
 

@@ -54,7 +54,7 @@ class AdminsDB:
 
     def fetch_admins(self):
         self._manager.fetch()
-        admins_matrix = self._manager.get_all_values()[1:]
+        admins_matrix = self._manager.get_all_values()
         self._admins: List[Admin] = [Admin.from_row(row) for row in admins_matrix]
         self._admins_id_set: Set[int] = {admin.user_id.value for admin in self._admins}
 

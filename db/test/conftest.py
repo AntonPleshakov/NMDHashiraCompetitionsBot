@@ -14,12 +14,12 @@ TEST_DATA_ADMINS = [
 
 # Each next user should be placed first after sort by rating
 TEST_DATA_PLAYERS = [
-    Player("Anton", "NMD_Anton", 100, 100),
-    Player("Ivan", "NMD_Ivan", 200, 100),
-    Player("Max", "NMD_Max", 300, 100),
-    Player("Sam", "NMD_Sam", 400, 100),
-    Player("Nikita", "NMD_Nikita", 500, 100),
-    Player("Sergey", "NMD_Sergey", 600, 100),
-    Player("Kirill", "NMD_Kirill", 700, 100),
-    Player("Georgiy", "NMD_Georgiy", 800, 100),
+    Player("Anton", "NMD_Anton", 100),
+    Player("Ivan", "NMD_Ivan", 200),
+    Player("Max", "NMD_Max", 300),
+    Player("Sam", "NMD_Sam", 400),
+    Player("Nikita", "NMD_Nikita", 500),
+    Player("Sergey", "NMD_Sergey", 600),
+    Player("Kirill", "NMD_Kirill", 700),
+    Player("Georgiy", "NMD_Georgiy", 800),
 ]

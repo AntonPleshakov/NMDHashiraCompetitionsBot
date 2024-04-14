@@ -28,18 +28,20 @@ class WorksheetManager:
         )
 
     def set_header(self, header: Matrix):
-        if self._header_range:
-            self.bold_cells(self._header_range, False)
-            self._header_range = ()
+        values = self.get_all_values()
+        if self._header_range[0] > 0:
+            end_range = tuple(x+1 for x in self._header_range)
+            self.bold_cells(end_range, False)
+            self._header_range = (0, 0)
         self._ws.frozen_rows = len(header)
-        self.update_values(header, True)
+        self.update_values(header + values)
         if len(header) > 0:
             self._header_range = (len(header), len(header[0]))
             self.bold_cells(self._header_range)
         self.fetch()
 
     def get_all_values(self) -> Matrix:
-        return self.cache()
+        return self.cache()[self._header_range[0]:]
 
     def add_row(self, row: List[str]):
         row_index = len(self.cache())
@@ -49,10 +51,9 @@ class WorksheetManager:
     def sort_table(
         self,
         column_index: int,
-        sort_header: bool = False,
         sort_order: str = "DESCENDING",
     ):
-        start_range = (1, 1) if sort_header else (2, 1)
+        start_range = (self._header_range[0] + 1, 1)
         cache = self.cache()
         end_range = (len(cache), len(cache[0]))
         self._ws.sort_range(start_range, end_range, column_index, sort_order)
@@ -61,14 +62,10 @@ class WorksheetManager:
     def update_values(
         self,
         values: Matrix,
-        update_header: bool = False,
         start_range: Optional[tuple] = None,
     ):
         if not start_range:
-            if not update_header and self._header_range:
-                start_range = (self._header_range[0] + 1, 1)
-            else:
-                start_range = (1, 1)
+            start_range = (self._header_range[0] + 1, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)

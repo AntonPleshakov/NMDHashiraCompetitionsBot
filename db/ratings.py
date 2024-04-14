@@ -43,7 +43,7 @@ class RatingsDB:
         self._manager.sort_table(Rating().rating.index)
 
     def update_user_rating(self, tg_username: str, rating: Rating):
-        rows = self._manager.get_all_values()[1:]
+        rows = self._manager.get_all_values()
         for i, row in enumerate(rows):
             if row[rating.tg_username.index] == tg_username:
                 rows[i] = rating.to_row()
@@ -51,7 +51,7 @@ class RatingsDB:
         self._manager.sort_table(rating.rating.index)
 
     def get_ratings(self) -> List[Rating]:
-        rows = self._manager.get_all_values()[1:]
+        rows = self._manager.get_all_values()
         ratings = []
         for row in rows:
             ratings.append(Rating.from_row(row))
