@@ -9,6 +9,7 @@ from parameters.int_param import IntParam
 class TournamentSettings(Parameters):
     def __init__(self):
         self.rounds_number: IntParam = IntParam("Количество раундов")
+        self.registration_duration_hours: IntParam = IntParam("Длительность регистрации в часах")
         self.round_duration_hours: IntParam = IntParam("Длительность раунда в часах")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
@@ -17,6 +18,9 @@ class TournamentSettings(Parameters):
     @property
     def round_duration_seconds(self) -> int:
         return datetime.timedelta(hours=self.round_duration_hours.value).seconds
+
+    def registration_duration_seconds(self) -> int:
+        return datetime.timedelta(hours=self.registration_duration_hours.value).seconds
 
     @classmethod
     def default_settings(cls):
