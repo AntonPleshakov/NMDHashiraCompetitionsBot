@@ -5,10 +5,10 @@ from pygsheets import Worksheet
 
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
-from db.tournament import TournamentDB
-from tournament.match import Match, MatchResult
-from tournament.player import Player
-from .conftest import TEST_DATA_PLAYERS
+from db.tournament import TournamentDB, RegistrationRow
+from db.ratings import Rating
+from db.tournament_structures import Match, Result
+from .conftest import TEST_DATA_PLAYERS, DEFAULT_TOURNAMENT_SETTINGS, ratingToRegistration
 
 
 @pytest.fixture
@@ -18,7 +18,12 @@ def spreadsheets():
     def create_ss(date: str):
         table_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
         ss_manager = manager.create(table_name)
-        ss_manager.rename_worksheet(getconf("TOURNAMENT_REGISTER_PAGE_NAME"))
+        settings_ws = ss_manager.rename_worksheet(getconf("TOURNAMENT_SETTINGS_PAGE_NAME"))
+        settings_ws.update_values(DEFAULT_TOURNAMENT_SETTINGS.to_matrix())
+        registration_page = ss_manager.add_worksheet(
+            getconf("TOURNAMENT_REGISTER_PAGE_NAME")
+        )
+        registration_page.set_header([RegistrationRow().params_views()])
         return ss_manager
 
     spreadsheets = [
@@ -48,7 +53,7 @@ def test_empty_latest_tournament():
 
 @pytest.fixture(scope="module")
 def tournament():
-    result = TournamentDB.create_new_tournament()
+    result = TournamentDB.create_new_tournament(DEFAULT_TOURNAMENT_SETTINGS)
     yield result
     GSheetsManager().delete(result._manager._ss.title)
 
@@ -60,33 +65,36 @@ def test_new_tournament(tournament: TournamentDB):
         tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
     )
     worksheets = tournament._manager._ss.worksheets()
-    assert len(worksheets) == 1
-    assert worksheets[0].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
+    assert len(worksheets) == 2
+    assert worksheets[0].title == getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
+    assert worksheets[1].title == getconf("TOURNAMENT_REGISTER_PAGE_NAME")
 
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
-def test_registration(tournament: TournamentDB, player: Player):
+def test_registration(tournament: TournamentDB, player: Rating):
+    player_registration = ratingToRegistration(player)
     registered_players = tournament.get_registered_players()
-    assert player not in registered_players
+    assert player_registration not in registered_players
 
-    tournament.register_player(player)
+    tournament.register_player(player_registration)
     registered_players = tournament.get_registered_players()
     assert len(registered_players) > 0
-    assert registered_players[0] == player  # List must be sorted by rating
+    assert registered_players[0] == player_registration  # List must be sorted by rating
 
 
 @pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
 @pytest.mark.gdrive_access
-def test_update_player_info(tournament: TournamentDB, player: Player):
+def test_update_player_info(tournament: TournamentDB, player: Rating):
+    player_registration = ratingToRegistration(player)
     registered_players = tournament.get_registered_players()
-    assert registered_players[-1] == player  # Each next user must be the last by rating
+    assert registered_players[-1] == player_registration  # Each next user must be the last by rating
 
-    player.rating = int(registered_players[0].rating) + 1
-    tournament.update_player_info(player)
+    player_registration.rating.value = int(registered_players[0].rating) + 1
+    tournament.update_player_info(player_registration)
     registered_players = tournament.get_registered_players()
     # With the new rating the user must be the first
-    assert registered_players[0] == player
+    assert registered_players[0] == player_registration
 
 
 @pytest.mark.gdrive_access
@@ -94,9 +102,12 @@ def test_start_new_tour(tournament: TournamentDB):
     # Given
     pairs = []
     for i in range(0, len(TEST_DATA_PLAYERS), 2):
-        first_player = TEST_DATA_PLAYERS[i]
-        second_player = TEST_DATA_PLAYERS[i + 1]
-        match = Match(first_player, second_player)
+        first_player = TEST_DATA_PLAYERS[i].tg_username.value_repr()
+        second_player = TEST_DATA_PLAYERS[i + 1].tg_username.value_repr()
+        default_res = "-"
+        default_map = "default_map"
+        default_bg = "default_bg"
+        match = Match.from_row([first_player, default_res, second_player, default_map, default_bg])
         pairs.append(match)
     rounds = 5
 
@@ -106,9 +117,9 @@ def test_start_new_tour(tournament: TournamentDB):
 
     # Then
     worksheets = tournament._manager._ss.worksheets()
-    assert len(worksheets) == (rounds + 1)  # Additional worksheet for registration
+    assert len(worksheets) == (rounds + 2)  # Additional worksheets for registration and settings
     for i in range(rounds):
-        worksheet: Worksheet = worksheets[i + 1]
+        worksheet: Worksheet = worksheets[i + 2]
         assert worksheet.title == (
             getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(i + 1)
         )
@@ -120,11 +131,12 @@ def test_results_registration(tournament: TournamentDB):
     # Given
     matches = tournament.get_results()
     for match in matches:
-        assert match.result == MatchResult.NotPlayed
+        default_result = "-"
+        assert match.result.value_repr() == default_result
 
     expected_results = []
     for i in range(len(matches)):
-        result = MatchResult(i % len(MatchResult))
+        result = "1:0" if i % 2 == 0 else "0:1"
         expected_results.append(result)
 
     # When
@@ -135,14 +147,19 @@ def test_results_registration(tournament: TournamentDB):
     matches = tournament.get_results()
     assert len(matches) == len(expected_results)
     for i in range(len(matches)):
-        assert matches[i].result == expected_results[i]
+        assert matches[i].result.value_repr() == expected_results[i]
 
 
 @pytest.mark.gdrive_access
 def test_finish_tournament(tournament: TournamentDB):
     worksheets_number = len(tournament._manager._ss.worksheets())
 
-    tournament.finish_tournament(TEST_DATA_PLAYERS)
+    result = []
+    for i in range(len(TEST_DATA_PLAYERS)):
+        rating = TEST_DATA_PLAYERS[i]
+        row = Result.from_row([i+1, rating.tg_username.value_repr(), rating.nmd_username.value_repr(), 1, 1, 1, 1])
+        result.append(row)
+    tournament.finish_tournament(result)
 
     worksheets = tournament._manager._ss.worksheets()
     assert len(worksheets) == (worksheets_number + 1)

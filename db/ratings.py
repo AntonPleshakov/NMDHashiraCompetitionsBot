@@ -29,7 +29,7 @@ class RatingsDB:
 
     def add_user_rating(self, user: Rating):
         rows = self._manager.get_all_values()
-        if any(user.tg_username == row[user.tg_username.index] for row in rows):
+        if any(str(user.tg_username) == row[user.tg_username.index] for row in rows):
             raise UsernameAlreadyExistsError
 
         self._manager.add_row(user.to_row())
