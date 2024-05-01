@@ -17,12 +17,16 @@ def offer_to_add_info(tg_id: int, bot: TeleBot):
 
 def get_registration_list_message() -> str:
     players = tournament_manager.tournament.db.get_registered_players()
-    message = "Список зарегистрировавшихся\:\n" + "\n".join(
-        [
-            f"[{player.tg_username.value}](tg://user?id={str(player.tg_id.value)}) \({player.nmd_username.value}\)\: Рейтинг {player.rating.value}"
-            for player in players
-        ]
-    )
+    message = "Список зарегистрировавшихся\:\n"
+    for player in players:
+        tg_username = player.tg_username.value
+        id = str(player.tg_id.value)
+        nmd_username = player.nmd_username.value
+        rating = player.rating.value
+        message = message + f"[{tg_username}](tg://user?id={id})"
+        if nmd_username:
+            message = message + f" \({nmd_username}\)"
+        message = message + f"\: Рейтинг {rating}\n"
     return message
 
 
