@@ -38,7 +38,7 @@ class RatingsDB:
 
     def add_user_rating(self, user: Rating):
         rows = self._manager.get_all_values()
-        if any(str(user.tg_username) == row[user.tg_username.index] for row in rows):
+        if any(user.tg_id.value == row[user.tg_id.index] for row in rows):
             raise UsernameAlreadyExistsError
 
         self._manager.add_row(user.to_row())
@@ -51,10 +51,10 @@ class RatingsDB:
         self._manager.update_values(rows)
         self._manager.sort_table(Rating().rating.index)
 
-    def update_user_rating(self, tg_username: str, rating: Rating):
+    def update_user_rating(self, tg_id: int, rating: Rating):
         rows = self._manager.get_all_values()
         for i, row in enumerate(rows):
-            if row[rating.tg_username.index] == tg_username:
+            if row[rating.tg_id.index] == tg_id:
                 rows[i] = rating.to_row()
         self._manager.update_values(rows)
         self._manager.sort_table(rating.rating.index)
@@ -66,18 +66,16 @@ class RatingsDB:
             ratings.append(Rating.from_row(row))
         return ratings
 
-    def get_rating(self, tg_username: str) -> Optional[Rating]:
+    def get_rating(self, tg_id: int) -> Optional[Rating]:
         ratings = self.get_ratings()
         for rating in ratings:
-            if rating.tg_username.value == tg_username:
+            if rating.tg_id.value == tg_id:
                 return rating
         return None
 
-    def delete_rating(self, tg_username: str):
+    def delete_rating(self, tg_id: int):
         new_ratings = [
-            rating
-            for rating in self.get_ratings()
-            if rating.tg_username.value != tg_username
+            rating for rating in self.get_ratings() if rating.tg_id.value != tg_id
         ]
         self.update_all_user_ratings(new_ratings)
 

@@ -1,15 +1,14 @@
 import logging
+from typing import Union
 
 from telebot import TeleBot, logger
 from telebot.handler_backends import BaseMiddleware
-from telebot.types import Message, CallbackQuery
+from telebot.types import CallbackQuery, Message
 
 import tg.manager
 from config.config import getconf
 from tg.filters import add_custom_filters
-from tg.utils import (
-    get_permissions_denied_message,
-)
+from tg.utils import empty_filter, get_permissions_denied_message, get_ids
 
 bot = TeleBot(getconf("TOKEN"), parse_mode="MarkdownV2", use_class_middlewares=True)
 logger.setLevel(logging.INFO)
@@ -31,22 +30,28 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
         pass
 
 
-@bot.message_handler(chat_types=["private"], is_admin=False)
-def permission_denied_message(message: Message):
-    bot.reply_to(message, text=get_permissions_denied_message(message.from_user.id))
-
-
-@bot.callback_query_handler(func=None, is_private=True, is_admin=False)
-def permission_denied_callback(callback_query: CallbackQuery):
-    bot.send_message(
-        callback_query.message.chat.id,
-        text=get_permissions_denied_message(callback_query.from_user.id),
-    )
-    bot.answer_callback_query(callback_query.id)
+def permission_denied_message(message: Union[Message, CallbackQuery]):
+    user_id, chat_id, _ = get_ids(message)
+    denied_text = get_permissions_denied_message(user_id)
+    if isinstance(message, Message):
+        bot.reply_to(message=message, text=denied_text)
+    else:
+        bot.send_message(chat_id=chat_id, text=denied_text)
 
 
 if __name__ == "__main__":
     add_custom_filters(bot)
     tg.manager.register_handlers(bot)
+    bot.register_message_handler(
+        permission_denied_message,
+        chat_types=["private"],
+        is_admin=False,
+    )
+    bot.register_callback_query_handler(
+        permission_denied_message,
+        func=empty_filter,
+        is_private=True,
+        is_admin=False,
+    )
     bot.setup_middleware(AlwaysAnswerCallbackQueryMiddleware())
     bot.infinity_polling()

@@ -1,6 +1,7 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery
 
+from config.config import getconf
 from db.ratings import ratings_db, Rating
 from nmd_exceptions import PlayerNotFoundError, TournamentStartedError
 from tg.utils import empty_filter, get_ids
@@ -11,7 +12,8 @@ from tournament.tournament_manager import tournament_manager
 def offer_to_add_info(tg_id: int, bot: TeleBot):
     bot.send_message(
         chat_id=tg_id,
-        text="Добавьте информацию о себе",
+        text="Для комфортного взаимодействия между игроками рекомендуется указать свой игровой никнейм\.\n"
+        "Вы можете написать его здесь и отредактировать в любое время\.",
     )
 
 
@@ -30,7 +32,9 @@ def get_registration_list_message() -> str:
     return message
 
 
-def add_or_update_registration_list(chat_id: int, message_thread_id: int, bot: TeleBot):
+def add_or_update_registration_list(bot: TeleBot, add: bool = True):
+    chat_id = int(getconf("CHAT_ID"))
+    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
     settings = tournament_manager.tournament.db.settings
 
     if settings.registration_list_message_id:
@@ -39,7 +43,7 @@ def add_or_update_registration_list(chat_id: int, message_thread_id: int, bot: T
             chat_id=chat_id,
             text=get_registration_list_message(),
         )
-    else:
+    elif add:
         message = bot.send_message(
             chat_id=chat_id,
             message_thread_id=message_thread_id,
@@ -51,7 +55,6 @@ def add_or_update_registration_list(chat_id: int, message_thread_id: int, bot: T
 def register(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(cb_query)
     username = cb_query.from_user.username
-    message_thread_id = cb_query.message.message_thread_id
 
     rating = ratings_db.get_rating(user_id)
     if not rating:
@@ -64,7 +67,7 @@ def register(cb_query: CallbackQuery, bot: TeleBot):
     player = Player(user_id, rating.rating.value, rating.deviation.value)
     try:
         tournament_manager.tournament.add_player(player)
-        add_or_update_registration_list(chat_id, message_thread_id, bot)
+        add_or_update_registration_list(bot)
         bot.answer_callback_query(message_id, text="Вы зарегистрированы")
     except TournamentStartedError:
         bot.answer_callback_query(

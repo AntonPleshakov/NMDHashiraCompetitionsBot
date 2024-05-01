@@ -7,7 +7,7 @@ from telebot.types import (
     CallbackQuery,
 )
 
-from . import admins, dev, ratings, tournament
+from . import admins, dev, ratings, tournament, users
 from .utils import empty_filter, Button, get_ids
 
 
@@ -17,6 +17,7 @@ def main_menu_keyboard():
     keyboard.add(Button("Рейтинги", "ratings").inline())
     keyboard.add(Button("Турнир", "tournament").inline())
     keyboard.add(Button("Служебные", "dev").inline())
+    keyboard.add(Button("Пользовательские", "users").inline())
     return keyboard
 
 
@@ -42,7 +43,11 @@ def home_command(message: Union[Message, CallbackQuery], bot: TeleBot):
 
 def register_handlers(bot: TeleBot):
     bot.register_message_handler(
-        home_command, commands=["start"], chat_types=["private"], pass_bot=True
+        home_command,
+        commands=["start"],
+        chat_types=["private"],
+        pass_bot=True,
+        is_admin=True,
     )
     bot.register_callback_query_handler(
         home_command, func=empty_filter, button="home", is_private=True, pass_bot=True
@@ -52,3 +57,4 @@ def register_handlers(bot: TeleBot):
     dev.register_handlers(bot)
     ratings.register_handlers(bot)
     tournament.register_handlers(bot)
+    users.register_handlers(bot)

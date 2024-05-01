@@ -1,9 +1,7 @@
 from enum import Enum
-from typing import List, Dict
+from typing import List
 
-import telebot.types
-
-from db.ratings import ratings_db, Rating
+from db.ratings import ratings_db
 from db.tournament import TournamentDB
 from db.tournament_structures import RegistrationRow
 from nmd_exceptions import (
@@ -59,6 +57,11 @@ class Tournament:
             raise PlayerNotFoundError
         self.db.register_player(RegistrationRow.from_rating(rating))
         self._pairing.add_player(player)
+
+    def update_player_info(self, player: RegistrationRow):
+        if self._state != TournamentState.REGISTRATION:
+            raise TournamentStartedError
+        self.db.register_player(player)
 
     def add_result(
         self,
