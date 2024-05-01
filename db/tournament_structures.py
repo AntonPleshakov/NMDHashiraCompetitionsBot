@@ -1,3 +1,4 @@
+from db.ratings import Rating
 from parameters import Parameters
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
@@ -9,6 +10,15 @@ class RegistrationRow(Parameters):
         self.tg_id: IntParam = IntParam("ТГ ID")
         self.nmd_username: StrParam = StrParam("NMD Username")
         self.rating: IntParam = IntParam("Рейтинг")
+
+    @classmethod
+    def from_rating(cls, rating: Rating):
+        parameters = cls()
+        parameters.tg_username = rating.tg_username
+        parameters.tg_id = rating.tg_id
+        parameters.nmd_username = rating.nmd_username
+        parameters.rating = rating.rating
+        return parameters
 
 
 class Match(Parameters):

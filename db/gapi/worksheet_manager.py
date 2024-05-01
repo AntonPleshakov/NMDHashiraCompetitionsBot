@@ -30,7 +30,7 @@ class WorksheetManager:
     def set_header(self, header: Matrix):
         values = self.get_all_values()
         if self._header_range[0] > 0:
-            end_range = tuple(x+1 for x in self._header_range)
+            end_range = tuple(x + 1 for x in self._header_range)
             self.bold_cells(end_range, False)
             self._header_range = (0, 0)
         self._ws.frozen_rows = len(header)
@@ -41,7 +41,7 @@ class WorksheetManager:
         self.fetch()
 
     def get_all_values(self) -> Matrix:
-        return self.cache()[self._header_range[0]:]
+        return self.cache()[self._header_range[0] :]
 
     def add_row(self, row: List[str]):
         row_index = len(self.cache())

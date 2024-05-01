@@ -10,10 +10,11 @@ from .tournament_settings import TournamentSettings
 class TournamentManager:
     def __init__(self):
         self._tournament: Optional[Tournament] = None
+        self._settings: TournamentSettings = TournamentSettings()
         latest_tournament_db = TournamentDB.get_latest_tournament()
         if latest_tournament_db and not latest_tournament_db.is_finished():
             self._tournament = Tournament(latest_tournament_db)
-        self._settings: TournamentSettings = TournamentSettings()
+            self._settings = self._tournament.db.settings
 
     @property
     def tournament(self):
@@ -25,7 +26,7 @@ class TournamentManager:
         self._tournament = Tournament(TournamentDB.create_new_tournament(settings))
         self._settings = settings
         threading.Timer(
-            settings.round_duration_seconds, TournamentManager.next_tour, [self]
+            settings.registration_duration_seconds, TournamentManager.next_tour, [self]
         ).start()
 
     def next_tour(self):

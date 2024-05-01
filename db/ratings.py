@@ -5,6 +5,7 @@ from nmd_exceptions import UsernameAlreadyExistsError
 from parameters import Parameters
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
+from tournament.player import Player
 from .gapi.gsheets_manager import GSheetsManager
 from .gapi.worksheet_manager import WorksheetManager
 
@@ -16,6 +17,14 @@ class Rating(Parameters):
         self.nmd_username: StrParam = StrParam("NMD Username")
         self.rating: IntParam = IntParam("Рейтинг")
         self.deviation: IntParam = IntParam("Отклонение")
+
+    @classmethod
+    def from_player(cls, player: Player):
+        rating = cls()
+        rating.tg_id.value = player.tg_id
+        rating.rating.value = player.rating
+        rating.deviation.value = player.deviation
+        return rating
 
 
 class RatingsDB:

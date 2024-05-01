@@ -1,4 +1,5 @@
 import datetime
+from configparser import NoOptionError
 
 from config.config import getconf
 from parameters import Parameters
@@ -9,16 +10,23 @@ from parameters.int_param import IntParam
 class TournamentSettings(Parameters):
     def __init__(self):
         self.rounds_number: IntParam = IntParam("Количество раундов")
-        self.registration_duration_hours: IntParam = IntParam("Длительность регистрации в часах")
+        self.registration_duration_hours: IntParam = IntParam(
+            "Длительность регистрации в часах"
+        )
         self.round_duration_hours: IntParam = IntParam("Длительность раунда в часах")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
         self.element_effect_map: BoolParam = BoolParam("Элементные слабости на поле")
+        self.welcome_message_id: IntParam = IntParam("ID сообщения о начале турнира")
+        self.registration_list_message_id: IntParam = IntParam(
+            "ID сообщения зарегистрированных игроков"
+        )
 
     @property
     def round_duration_seconds(self) -> int:
         return datetime.timedelta(hours=self.round_duration_hours.value).seconds
 
+    @property
     def registration_duration_seconds(self) -> int:
         return datetime.timedelta(hours=self.registration_duration_hours.value).seconds
 
@@ -26,5 +34,8 @@ class TournamentSettings(Parameters):
     def default_settings(cls):
         settings = cls()
         for name, param in settings.params().items():
-            param.set_value(getconf(name))
+            try:
+                param.set_value(getconf(name))
+            except NoOptionError:
+                pass
         return settings

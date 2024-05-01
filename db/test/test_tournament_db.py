@@ -8,7 +8,11 @@ from db.gapi.gsheets_manager import GSheetsManager
 from db.tournament import TournamentDB, RegistrationRow
 from db.ratings import Rating
 from db.tournament_structures import Match, Result
-from .conftest import TEST_DATA_PLAYERS, DEFAULT_TOURNAMENT_SETTINGS, ratingToRegistration
+from .conftest import (
+    TEST_DATA_PLAYERS,
+    DEFAULT_TOURNAMENT_SETTINGS,
+    ratingToRegistration,
+)
 
 
 @pytest.fixture
@@ -18,7 +22,9 @@ def spreadsheets():
     def create_ss(date: str):
         table_name = getconf("TOURNAMENT_GTABLE_NAME") + " " + date
         ss_manager = manager.create(table_name)
-        settings_ws = ss_manager.rename_worksheet(getconf("TOURNAMENT_SETTINGS_PAGE_NAME"))
+        settings_ws = ss_manager.rename_worksheet(
+            getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
+        )
         settings_ws.update_values(DEFAULT_TOURNAMENT_SETTINGS.to_matrix())
         registration_page = ss_manager.add_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
@@ -88,7 +94,9 @@ def test_registration(tournament: TournamentDB, player: Rating):
 def test_update_player_info(tournament: TournamentDB, player: Rating):
     player_registration = ratingToRegistration(player)
     registered_players = tournament.get_registered_players()
-    assert registered_players[-1] == player_registration  # Each next user must be the last by rating
+    assert (
+        registered_players[-1] == player_registration
+    )  # Each next user must be the last by rating
 
     player_registration.rating.value = int(registered_players[0].rating) + 1
     tournament.update_player_info(player_registration)
@@ -107,7 +115,9 @@ def test_start_new_tour(tournament: TournamentDB):
         default_res = "-"
         default_map = "default_map"
         default_bg = "default_bg"
-        match = Match.from_row([first_player, default_res, second_player, default_map, default_bg])
+        match = Match.from_row(
+            [first_player, default_res, second_player, default_map, default_bg]
+        )
         pairs.append(match)
     rounds = 5
 
@@ -117,7 +127,9 @@ def test_start_new_tour(tournament: TournamentDB):
 
     # Then
     worksheets = tournament._manager._ss.worksheets()
-    assert len(worksheets) == (rounds + 2)  # Additional worksheets for registration and settings
+    assert len(worksheets) == (
+        rounds + 2
+    )  # Additional worksheets for registration and settings
     for i in range(rounds):
         worksheet: Worksheet = worksheets[i + 2]
         assert worksheet.title == (
@@ -157,7 +169,17 @@ def test_finish_tournament(tournament: TournamentDB):
     result = []
     for i in range(len(TEST_DATA_PLAYERS)):
         rating = TEST_DATA_PLAYERS[i]
-        row = Result.from_row([i+1, rating.tg_username.value_repr(), rating.nmd_username.value_repr(), 1, 1, 1, 1])
+        row = Result.from_row(
+            [
+                i + 1,
+                rating.tg_username.value_repr(),
+                rating.nmd_username.value_repr(),
+                1,
+                1,
+                1,
+                1,
+            ]
+        )
         result.append(row)
     tournament.finish_tournament(result)
 

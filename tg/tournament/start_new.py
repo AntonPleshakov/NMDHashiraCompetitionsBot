@@ -116,11 +116,18 @@ def start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
     bot.delete_state(user_id)
 
     tournament_manager.start_tournament(settings)
-    bot.send_message(
-        chat_id=int(getconf("CHAT_ID")),
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
+    chat_id = int(getconf("CHAT_ID"))
+    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
+    message = bot.send_message(
+        chat_id=chat_id,
         text=get_tournament_welcome_message(settings),
-        message_thread_id=int(getconf("TOURNAMENT_THREAD_ID")),
+        message_thread_id=message_thread_id,
+        reply_markup=keyboard,
     )
+    bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
+    tournament_manager.tournament.db.settings.welcome_message_id.value = message.id
 
 
 def register_handlers(bot: TeleBot):

@@ -121,3 +121,7 @@ class TournamentDB:
 
     def is_finished(self) -> bool:
         return self._results_page is not None
+
+    @property
+    def settings(self) -> TournamentSettings:
+        return self._settings

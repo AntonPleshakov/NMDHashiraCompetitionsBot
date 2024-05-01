@@ -1,8 +1,11 @@
 from enum import Enum
 from typing import List, Dict
 
-from db.ratings import ratings_db
+import telebot.types
+
+from db.ratings import ratings_db, Rating
 from db.tournament import TournamentDB
+from db.tournament_structures import RegistrationRow
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
@@ -10,6 +13,7 @@ from nmd_exceptions import (
     WrongPlayersInMatch,
     MatchWithPlayersNotFound,
     MatchResultWasAlreadyRegistered,
+    PlayerNotFoundError,
 )
 from .match import MatchResult
 from .mcmahon_pairing import McMahonPairing
@@ -25,10 +29,6 @@ class TournamentState(Enum):
 class Tournament:
     def __init__(self, tournament_db: TournamentDB):
         self.db: TournamentDB = tournament_db
-        ratings = ratings_db.get_ratings()
-        self._players: Dict[str, Player] = {
-            player.tg_username: player for player in ratings
-        }
         self._state: TournamentState = (
             TournamentState.IN_PROGRESS
             if self.db.get_tours_number() > 0
@@ -51,15 +51,13 @@ class Tournament:
         self.db.start_new_tour(pairs)
         self._state = TournamentState.IN_PROGRESS
 
-    def add_player(self, player_tg_username: str):
+    def add_player(self, player: Player):
         if self._state != TournamentState.REGISTRATION:
             raise TournamentStartedError
-        if player_tg_username not in self._players:
-            new_player = Player(player_tg_username)
-            ratings_db.add_user_rating(new_player)
-            self._players[player_tg_username] = new_player
-        player = self._players[player_tg_username]
-        self.db.register_player(player)
+        rating = ratings_db.get_rating(player.tg_id)
+        if not rating:
+            raise PlayerNotFoundError
+        self.db.register_player(RegistrationRow.from_rating(rating))
         self._pairing.add_player(player)
 
     def add_result(

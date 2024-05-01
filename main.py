@@ -19,9 +19,11 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
     def __init__(self):
         super().__init__()
         self.update_types = ["callback_query"]
+        self._ignore_data = {"tournament/register"}
 
     def pre_process(self, message: CallbackQuery, data: dict):
-        bot.answer_callback_query(message.id)
+        if message.data not in self._ignore_data:
+            bot.answer_callback_query(message.id)
 
     def post_process(
         self, message: CallbackQuery, data: dict, exception: BaseException

@@ -3,7 +3,7 @@ import os
 
 _MODE = os.getenv("MODE", "Release")
 _config = configparser.ConfigParser()
-_config.read("config/config.ini", encoding='utf-8')
+_config.read("config/config.ini", encoding="utf-8")
 
 
 def getconf(option: str) -> str:
@@ -11,4 +11,4 @@ def getconf(option: str) -> str:
 
 
 def reset_config(filepath: str):
-    _config.read(filepath, encoding='utf-8')
+    _config.read(filepath, encoding="utf-8")

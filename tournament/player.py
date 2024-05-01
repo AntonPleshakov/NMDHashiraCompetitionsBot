@@ -1,6 +1,7 @@
 from typing import List
 
 from config.config import getconf
+from db.ratings import Rating
 
 
 class Player:

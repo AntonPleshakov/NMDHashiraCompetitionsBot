@@ -33,17 +33,23 @@ def manager(manager_factory):
 def test_header(manager: WorksheetManager, header: Matrix):
     manager.set_header([])
     manager.update_values([[]])
-    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    actual_values = manager._ws.get_all_values(
+        include_tailing_empty=False, include_tailing_empty_rows=False
+    )
     assert actual_values != header
     assert manager._ws.frozen_rows == 0
 
     manager.set_header(header)
-    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    actual_values = manager._ws.get_all_values(
+        include_tailing_empty=False, include_tailing_empty_rows=False
+    )
     assert actual_values == header
     assert manager._ws.frozen_rows == len(header)
 
     manager.set_header([])
-    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    actual_values = manager._ws.get_all_values(
+        include_tailing_empty=False, include_tailing_empty_rows=False
+    )
     assert actual_values == [[]]
     assert manager._ws.frozen_rows == 0
 
@@ -66,13 +72,17 @@ def test_update_values_with_header(manager: WorksheetManager):
     manager.set_header([header])
     manager.update_values([values])
 
-    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    actual_values = manager._ws.get_all_values(
+        include_tailing_empty=False, include_tailing_empty_rows=False
+    )
     assert actual_values == [header, values]
 
     new_values = ["4", "5", "6"]
     manager.update_values([new_values])
 
-    actual_values = manager._ws.get_all_values(include_tailing_empty=False, include_tailing_empty_rows=False)
+    actual_values = manager._ws.get_all_values(
+        include_tailing_empty=False, include_tailing_empty_rows=False
+    )
     assert len(actual_values) == 2
     assert actual_values[0] == header
     assert actual_values[1] == new_values
@@ -116,7 +126,7 @@ def test_sort_values(
     expected_values: Matrix,
     column_index: int,
     sort_order: str,
-    header: Matrix
+    header: Matrix,
 ):
     # Given
     manager.set_header(header)
