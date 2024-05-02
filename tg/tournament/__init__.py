@@ -1,7 +1,7 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
-from tg.tournament import start_new, update_match_result
+from tg.tournament import start_new, update_match_result, new_tour, register
 from tg.utils import Button, empty_filter, get_ids
 
 
@@ -33,5 +33,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
 
+    new_tour.register_handlers()
+    register.register_handlers(bot)
     start_new.register_handlers(bot)
     update_match_result.register_handlers(bot)

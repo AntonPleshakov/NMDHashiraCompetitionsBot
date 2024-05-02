@@ -86,6 +86,6 @@ def register_handlers(bot: TeleBot):
         register,
         func=empty_filter,
         button="tournament/register",
-        is_private=True,
+        is_private=False,
         pass_bot=True,
     )
