@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List
 
 from db.ratings import ratings_db
 from db.tournament import TournamentDB
@@ -7,7 +6,6 @@ from db.tournament_structures import RegistrationRow
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
-    WrongNumberOfPlayers,
     WrongPlayersInMatch,
     MatchWithPlayersNotFound,
     MatchResultWasAlreadyRegistered,
@@ -65,12 +63,10 @@ class Tournament:
 
     def add_result(
         self,
-        players_tg_name: List[str],
-        result: MatchResult,
+        user_id: int,
+        won: bool,
         force_update: bool = False,
     ):
-        if len(players_tg_name) != 2:
-            raise WrongNumberOfPlayers
         match_index = None
         for i, match in enumerate(self.db.get_results()):
             if match.first_player.tg_username in players_tg_name:

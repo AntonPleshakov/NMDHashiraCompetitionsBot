@@ -36,6 +36,9 @@ def apply_result_offer(cb_query: CallbackQuery):
 
 
 def apply_result(cb_query: CallbackQuery):
+    user_id, chat_id, message_id = get_ids(cb_query)
+    tournament_manager.tournament.add_result(user_id, "tournament/won" == cb_query.data)
+    bot.delete_message(chat_id, message_id)
 
 
 def register_handlers():
