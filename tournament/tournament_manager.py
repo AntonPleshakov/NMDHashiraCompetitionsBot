@@ -3,6 +3,8 @@ from typing import Optional
 
 from db.tournament import TournamentDB
 from nmd_exceptions import TournamentNotStartedError
+from tg.tournament.finish import announce_tournament_end
+from tg.tournament.new_tour import announce_new_tour
 from .tournament import Tournament
 from .tournament_settings import TournamentSettings
 
@@ -34,10 +36,12 @@ class TournamentManager:
             raise TournamentNotStartedError
         if self._tournament.db.get_tours_number() < self._settings.rounds_number.value:
             self._tournament.new_round()
+            announce_new_tour()
             round_duration = self._settings.round_duration_seconds
             threading.Timer(round_duration, TournamentManager.next_tour, [self]).start()
         else:
             self._tournament.finish_tournament()
+            announce_tournament_end()
             self._tournament = None
 
 

@@ -20,6 +20,8 @@ def announce_new_tour():
         message_thread_id=message_thread_id,
     )
     bot.pin_chat_message(chat_id, message.id)
+    settings = tournament_manager.tournament.db.settings
+    settings.welcome_message_id.value = message.id
 
 
 def apply_result_offer(cb_query: CallbackQuery):

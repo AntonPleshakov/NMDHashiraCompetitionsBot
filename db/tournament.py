@@ -14,9 +14,9 @@ class TournamentDB:
     def __init__(self, spreadsheet_manager: SpreadsheetManager):
         self._manager: SpreadsheetManager = spreadsheet_manager
         settings_page_name = getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
-        settings_page = self._manager.get_worksheet(settings_page_name)
+        self._settings_page = self._manager.get_worksheet(settings_page_name)
         self._settings: TournamentSettings = TournamentSettings.from_matrix(
-            settings_page.get_all_values()
+            self._settings_page.get_all_values()
         )
         self._registration_page: WorksheetManager = self._manager.get_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
@@ -125,3 +125,8 @@ class TournamentDB:
     @property
     def settings(self) -> TournamentSettings:
         return self._settings
+
+    @settings.setter
+    def settings(self, value: TournamentSettings):
+        self._settings = value
+        self._settings_page.update_values(value.to_matrix())

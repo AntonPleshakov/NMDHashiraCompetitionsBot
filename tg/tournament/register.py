@@ -39,7 +39,7 @@ def add_or_update_registration_list(bot: TeleBot, add: bool = True):
 
     if settings.registration_list_message_id:
         bot.edit_message_text(
-            message_id=settings.registration_list_message_id,
+            message_id=settings.registration_list_message_id.value,
             chat_id=chat_id,
             text=get_registration_list_message(),
         )
