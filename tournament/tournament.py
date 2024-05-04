@@ -6,12 +6,10 @@ from db.tournament_structures import RegistrationRow
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
-    WrongPlayersInMatch,
     MatchWithPlayersNotFound,
     MatchResultWasAlreadyRegistered,
     PlayerNotFoundError,
 )
-from .match import MatchResult
 from .mcmahon_pairing import McMahonPairing
 from .player import Player
 
@@ -68,27 +66,22 @@ class Tournament:
         force_update: bool = False,
     ):
         match_index = None
-        for i, match in enumerate(self.db.get_results()):
-            if match.first_player.tg_username in players_tg_name:
-                if match.second_player.tg_username not in players_tg_name:
-                    raise WrongPlayersInMatch
+        match = None
+        for i, result in enumerate(self.db.get_results()):
+            if (result.first_id == user_id) or (result.second_id == user_id):
                 match_index = i
+                match = result
                 break
         if not match_index:
             raise MatchWithPlayersNotFound
-        match = self.db.get_results()[match_index]
-        if match.result != MatchResult.NotPlayed and not force_update:
+        if match.result.value != "-" and not force_update:
             raise MatchResultWasAlreadyRegistered
         # swap result in case of players swapped
-        if match.first_player.tg_username == players_tg_name[1] and result in [
-            MatchResult.FirstWon,
-            MatchResult.SecondWon,
-        ]:
-            result = (
-                MatchResult.FirstWon
-                if result == MatchResult.SecondWon
-                else MatchResult.SecondWon
-            )
+        result = "0:1"
+        if match.first_id == user_id and won:
+            result = "1:0"
+        elif match.second_id == user_id and not won:
+            result = "1:0"
         self.db.register_result(match_index, result)
 
     def finish_tournament(self):

@@ -24,7 +24,9 @@ class RegistrationRow(Parameters):
 class Match(Parameters):
     def __init__(self):
         self.first: StrParam = StrParam("Первый игрок")
+        self.first_id: int = 0
         self.result: StrParam = StrParam("Результат")
+        self.second_id: int = 0
         self.second: StrParam = StrParam("Второй игрок")
         self.map: StrParam = StrParam("Карта")
         self.battleground_effect: StrParam = StrParam("Эффект поля")
