@@ -2,7 +2,7 @@ from enum import Enum
 
 from db.ratings import ratings_db
 from db.tournament import TournamentDB
-from db.tournament_structures import RegistrationRow
+from db.tournament_structures import RegistrationRow, Match
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
@@ -74,15 +74,16 @@ class Tournament:
                 break
         if not match_index:
             raise MatchWithPlayersNotFound
-        if match.result.value != "-" and not force_update:
+        result = Match.STR_TO_MATCH_RESULT[match.result.value]
+        if result != Match.MatchResult.NotPlayed and not force_update:
             raise MatchResultWasAlreadyRegistered
         # swap result in case of players swapped
-        result = "0:1"
+        result = Match.MatchResult.SecondWon
         if match.first_id == user_id and won:
-            result = "1:0"
+            result = Match.MatchResult.FirstWon
         elif match.second_id == user_id and not won:
-            result = "1:0"
-        self.db.register_result(match_index, result)
+            result = Match.MatchResult.FirstWon
+        self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[result])
 
     def finish_tournament(self):
         self._pairing.update_coefficients(
