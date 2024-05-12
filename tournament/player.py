@@ -1,7 +1,7 @@
 from typing import List
 
 from config.config import getconf
-from db.ratings import Rating
+from db.tournament_structures import RegistrationRow
 
 
 class Player:
@@ -15,6 +15,15 @@ class Player:
         self.rating: int = rating
         self.deviation: int = deviation
         self.opponents: List[int] = []
-        self.mm: float = 1
+        self.mm: float = rating / 100
         self.sos: float = 0
         self.sodos: float = 0
+
+    @classmethod
+    def from_registration(cls, registration: RegistrationRow):
+        player = cls(
+            registration.tg_id.value,
+            registration.rating.value,
+            registration.deviation.value,
+        )
+        return player

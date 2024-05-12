@@ -38,9 +38,8 @@ class Tournament:
     def new_round(self):
         if self._state == TournamentState.FINISHED:
             raise TournamentFinishedError
-        self._pairing.update_coefficients(
-            self.db.get_results(), self.db.get_tours_number()
-        )
+        if self._state == TournamentState.IN_PROGRESS:
+            self._pairing.update_coefficients(self.db.get_results())
         pairs = self._pairing.gen_pairs()
         self.db.start_new_tour(pairs)
         self._state = TournamentState.IN_PROGRESS
@@ -52,7 +51,6 @@ class Tournament:
         if not rating:
             raise PlayerNotFoundError
         self.db.register_player(RegistrationRow.from_rating(rating))
-        self._pairing.add_player(player)
 
     def update_player_info(self, player: RegistrationRow):
         if self._state != TournamentState.REGISTRATION:
@@ -86,7 +84,6 @@ class Tournament:
         self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[result])
 
     def finish_tournament(self):
-        self._pairing.update_coefficients(
-            self.db.get_results(), self.db.get_tours_number()
-        )
+        self._pairing.update_coefficients(self.db.get_results())
+        # recalc rating and deviation. Show results
         self._state = TournamentState.FINISHED

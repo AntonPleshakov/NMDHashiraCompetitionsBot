@@ -1,66 +1,56 @@
 from typing import List, Dict
 
+from db.tournament_structures import Match, RegistrationRow
 from .player import Player
 
 
 class McMahonPairing:
     def __init__(
         self,
-        players_list: List[Player] = None,
+        players: List[RegistrationRow] = None,
         previous_matches: List[List[Match]] = None,
     ):
-        self._players: Dict[int, Player] = {p.tg_id: p for p in players_list}
-        self._tours_counted: int = 0
+        self._players: Dict[int, Player] = {
+            p.tg_id.value: Player.from_registration(p) for p in players
+        }
         for i, pairs in enumerate(previous_matches):
             self._populate_opponents(pairs)
-            self.update_coefficients(pairs, i + 1)
+            self.update_coefficients(pairs)
 
     def _populate_opponents(self, matches: List[Match]):
         for match in matches:
-            if not match.second_player:
+            if not match.second.value:
                 continue
-            first_player_id = match.first_player.tg_id
-            second_player_id = match.second_player.tg_id
-            first_player = self._players[first_player_id]
-            second_player = self._players[second_player_id]
-            first_player.opponents.append(second_player_id)
-            second_player.opponents.append(first_player_id)
+            first_player = self._players[match.first_id]
+            second_player = self._players[match.second_id]
+            first_player.opponents.append(match.second_id)
+            second_player.opponents.append(match.first_id)
 
-    def add_player(self, player: Player):
-        # init scores
-        player.mm = player.rating / 100
-        player.sos = 0
-        player.sodos = 0
-        self._players[player.tg_id] = player
-
-    def update_coefficients(self, tour_result: List[Match], tour_number: int):
-        if tour_number <= self._tours_counted:
-            return
+    def update_coefficients(self, tour_result: List[Match]):
+        first_won = Match.MatchResult.FirstWon
+        second_won = Match.MatchResult.SecondWon
         # calculate mm score first
-        for pair in tour_result:
-            first = self._players[pair.first_player.tg_id]
-            second = self._players[pair.second_player.tg_id]
-            if pair.result == MatchResult.FirstWon:
+        for match in tour_result:
+            first = self._players[match.first_id]
+            second = self._players[match.second_id]
+
+            if match.result == first_won:
                 first.mm += 1
-            elif pair.result == MatchResult.SecondWon:
+            elif match.result == second_won:
                 second.mm += 1
-            elif pair.result == MatchResult.Tie:
-                first.mm += 0.5
-                second.mm += 0.5
 
         # calculate SOS and SODOS
-        for pair in tour_result:
-            first = self._players[pair.first_player.tg_id]
-            second = self._players[pair.second_player.tg_id]
+        for match in tour_result:
+            first = self._players[match.first_id]
+            second = self._players[match.second_id]
 
             first.sos += second.mm
             second.sos += first.mm
 
-            if pair.result == MatchResult.FirstWon:
+            if match.result == first_won:
                 first.sodos += second.mm
-            elif pair.result == MatchResult.SecondWon:
+            elif match.result == second_won:
                 second.sodos += first.mm
-        self._tours_counted = tour_number
 
     def gen_pairs(self) -> List[Match]:
         players = list(self._players.values())
@@ -75,6 +65,6 @@ class McMahonPairing:
                     break
             if opponent:
                 players.remove(opponent)
-            result.append(Match(player, opponent))
+            result.append(Match.new_match(player, opponent))
         self._populate_opponents(result)
         return result
