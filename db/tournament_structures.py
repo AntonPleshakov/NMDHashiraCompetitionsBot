@@ -1,3 +1,5 @@
+from enum import Enum
+
 from db.ratings import Rating
 from parameters import Parameters
 from parameters.int_param import IntParam
@@ -30,6 +32,21 @@ class Match(Parameters):
         self.second: StrParam = StrParam("Второй игрок")
         self.map: StrParam = StrParam("Карта")
         self.battleground_effect: StrParam = StrParam("Эффект поля")
+
+    def to_string(self):
+        return f"{self.first.value} {self.result.value} {self.second.value}"
+
+    class MatchResult(Enum):
+        NotPlayed = 0
+        FirstWon = 1
+        SecondWon = 2
+
+    MATCH_RESULT_TO_STR = {
+        MatchResult.NotPlayed: "-",
+        MatchResult.FirstWon: "1:0",
+        MatchResult.SecondWon: "0:1",
+    }
+    STR_TO_MATCH_RESULT = {value: key for (key, value) in MATCH_RESULT_TO_STR.items()}
 
 
 class Result(Parameters):

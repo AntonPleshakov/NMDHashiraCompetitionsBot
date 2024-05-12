@@ -22,10 +22,10 @@ def get_registration_list_message() -> str:
     message = "Список зарегистрировавшихся\:\n"
     for player in players:
         tg_username = player.tg_username.value
-        id = str(player.tg_id.value)
+        tg_id = player.tg_id.value_repr()
         nmd_username = player.nmd_username.value
-        rating = player.rating.value
-        message = message + f"[{tg_username}](tg://user?id={id})"
+        rating = player.rating.value_repr()
+        message = message + f"[{tg_username}](tg://user?id={tg_id})"
         if nmd_username:
             message = message + f" \({nmd_username}\)"
         message = message + f"\: Рейтинг {rating}\n"

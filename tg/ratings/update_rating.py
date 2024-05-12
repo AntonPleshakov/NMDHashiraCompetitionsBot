@@ -16,8 +16,8 @@ def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     for player in ratings_db.get_ratings():
         button = Button(
-            f"{player.tg_username}: {player.nmd_username}",
-            f"{player.tg_username}",
+            f"{player.tg_username.value}: {player.nmd_username.value}",
+            f"{player.tg_id.value}",
         )
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
@@ -33,8 +33,8 @@ def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
-    tg_username = cb_query.data
-    player = ratings_db.get_rating(tg_username)
+    tg_id = cb_query.data
+    player = ratings_db.get_rating(tg_id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button(f"{player.rating.view}", f"rating").inline())
@@ -42,7 +42,7 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
 
     user_id, chat_id, message_id = get_ids(cb_query)
-    bot.add_data(user_id, tg_username=tg_username)
+    bot.add_data(user_id, tg_id=tg_id)
     bot.set_state(user_id, UpdateRatingStates.parameter)
 
     text = f"Выбран игрок {player.tg_username} \({player.nmd_username}\):\n"
@@ -72,14 +72,14 @@ def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
 def update_player_parameter(message: Message, bot: TeleBot):
     user_id = message.from_user.id
     with bot.retrieve_data(user_id) as data:
-        tg_username = data["tg_username"]
+        tg_id = data["tg_id"]
         param_to_update = data["param_to_update"]
     bot.delete_state(user_id)
 
     new_value = message.text
-    player = ratings_db.get_rating(tg_username)
+    player = ratings_db.get_rating(tg_id)
     player.set_value(param_to_update, new_value)
-    ratings_db.update_user_rating(tg_username, player)
+    ratings_db.update_user_rating(tg_id, player)
     bot.reply_to(message, "Параметр успешно обновлен")
 
 

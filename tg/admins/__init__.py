@@ -31,7 +31,7 @@ def admins_list(cb_query: CallbackQuery, bot: TeleBot):
     current_admins = admins_db.get_admins()
     text = "Список администраторов:\n"
     for admin in current_admins:
-        text = text + f"[{admin.username}](tg://user?id={admin.user_id})\n"
+        text = text + f"[{admin.username.value}](tg://user?id={admin.user_id.value})\n"
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Назад в Администраторы", "admins").inline())

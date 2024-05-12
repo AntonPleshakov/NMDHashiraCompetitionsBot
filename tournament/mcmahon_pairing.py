@@ -1,6 +1,5 @@
 from typing import List, Dict
 
-from .match import Match, MatchResult
 from .player import Player
 
 

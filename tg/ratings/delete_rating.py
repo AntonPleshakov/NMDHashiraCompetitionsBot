@@ -15,8 +15,8 @@ def delete_rating_options(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     for player in ratings_db.get_ratings():
         button = Button(
-            f"{player.tg_username}: {player.nmd_username}",
-            f"{player.tg_username}",
+            f"{player.tg_username.value}: {player.nmd_username.value}",
+            f"{player.tg_id.value}",
         )
         keyboard.add(button.inline())
     keyboard.add(Button("Назад в Рейтинг лист", "ratings").inline())
@@ -32,11 +32,13 @@ def delete_rating_options(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
-    tg_username = cb_query.data
-    nmd_username = ratings_db.get_rating(tg_username).nmd_username
+    tg_id = cb_query.data
+    rating = ratings_db.get_rating(tg_id)
+    nmd_username = rating.nmd_username.value
+    tg_username = rating.tg_username.value
 
     keyboard = InlineKeyboardMarkup()
-    keyboard.row(Button("Да", f"approved/{tg_username}").inline())
+    keyboard.row(Button("Да", f"approved/{tg_id}").inline())
     keyboard.row(Button("Нет", "ratings").inline())
 
     user_id, chat_id, message_id = get_ids(cb_query)
@@ -52,8 +54,9 @@ def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def delete_rating_approved(cb_query: CallbackQuery, bot: TeleBot):
-    tg_username = int(cb_query.data.split("/")[-1])
-    ratings_db.delete_rating(tg_username)
+    tg_id = int(cb_query.data.split("/")[-1])
+    tg_username = ratings_db.get_rating(tg_id).tg_username.value
+    ratings_db.delete_rating(tg_id)
 
     user_id, chat_id, _ = get_ids(cb_query)
     bot.delete_state(user_id)
