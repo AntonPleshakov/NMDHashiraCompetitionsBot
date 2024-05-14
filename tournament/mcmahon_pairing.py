@@ -10,9 +10,11 @@ class McMahonPairing:
         players: List[RegistrationRow] = None,
         previous_matches: List[List[Match]] = None,
     ):
-        self._players: Dict[int, Player] = {
-            p.tg_id.value: Player.from_registration(p) for p in players
-        }
+        self._players: Dict[int, Player] = {}
+        self._registrations: Dict[int, RegistrationRow] = {}
+        for p in players:
+            self._players[p.tg_id.value] = Player.from_registration(p)
+            self._registrations[p.tg_id.value] = p
         for i, pairs in enumerate(previous_matches):
             self._populate_opponents(pairs)
             self.update_coefficients(pairs)
@@ -23,8 +25,14 @@ class McMahonPairing:
                 continue
             first_player = self._players[match.first_id]
             second_player = self._players[match.second_id]
-            first_player.opponents.append(match.second_id)
-            second_player.opponents.append(match.first_id)
+            first_player.opponents.add(match.second_id)
+            second_player.opponents.add(match.first_id)
+
+    def get_players(self) -> List[Player]:
+        return list(self._players.values())
+
+    def get_user(self, player: Player):
+        return self._registrations[player.tg_id]
 
     def update_coefficients(self, tour_result: List[Match]):
         first_won = Match.MatchResult.FirstWon
@@ -65,6 +73,6 @@ class McMahonPairing:
                     break
             if opponent:
                 players.remove(opponent)
-            result.append(Match.new_match(player, opponent))
+            result.append(Match.new_match(self.get_user(player), opponent))
         self._populate_opponents(result)
         return result

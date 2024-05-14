@@ -68,7 +68,7 @@ class Parameters:
         return [param.value_repr() for param in self.params().values()]
 
     @classmethod
-    def from_row(cls, row: List[str]):
+    def from_row(cls, row: List[any]):
         parameters = cls()
         for attr, value in zip(parameters.params(), row):
             parameters.set_value(attr, value)
@@ -83,5 +83,7 @@ class Parameters:
     def set_value(self, attr_name: str, value: any):
         if isinstance(value, str):
             getattr(self, attr_name).set_value(value)
+        if isinstance(value, Param):
+            getattr(self, attr_name).set_value(value.value_repr())
         else:
             getattr(self, attr_name).value = value

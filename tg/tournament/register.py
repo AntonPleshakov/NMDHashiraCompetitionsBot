@@ -58,13 +58,12 @@ def register(cb_query: CallbackQuery, bot: TeleBot):
 
     rating = ratings_db.get_rating(user_id)
     if not rating:
-        default_player = Player(user_id)
-        new_rating = Rating.from_player(default_player)
+        new_rating = Rating.default(user_id)
         new_rating.tg_username.value = username
         ratings_db.add_user_rating(new_rating)
         offer_to_add_info(user_id, bot)
 
-    player = Player(user_id, rating.rating.value, rating.deviation.value)
+    player = Player(user_id, rating.rating.value)
     try:
         tournament_manager.tournament.add_player(player)
         add_or_update_registration_list(bot)

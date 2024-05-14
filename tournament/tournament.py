@@ -2,7 +2,7 @@ from enum import Enum
 
 from db.ratings import ratings_db
 from db.tournament import TournamentDB
-from db.tournament_structures import RegistrationRow, Match
+from db.tournament_structures import RegistrationRow, Match, Result
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
@@ -85,5 +85,12 @@ class Tournament:
 
     def finish_tournament(self):
         self._pairing.update_coefficients(self.db.get_results())
+        players = self._pairing.get_players()
+        tournament_table = []
+        for i, player in enumerate(players):
+            user = self._pairing.get_user(player)
+            result = Result.create(i, player, user)
+            tournament_table.append(result)
+        self.db.finish_tournament(tournament_table)
         # recalc rating and deviation. Show results
         self._state = TournamentState.FINISHED

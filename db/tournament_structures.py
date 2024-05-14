@@ -5,6 +5,7 @@ from db.ratings import Rating
 from parameters import Parameters
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
+from tournament.player import Player
 
 
 class RegistrationRow(Parameters):
@@ -92,3 +93,18 @@ class Result(Parameters):
         self.mm: IntParam = IntParam("Очки")
         self.sos: IntParam = IntParam("SOS")
         self.sodos: IntParam = IntParam("SODOS")
+
+    @classmethod
+    def create(cls, place: int, player: Player, user: RegistrationRow):
+        res = cls.from_row(
+            [
+                place,
+                user.tg_username,
+                user.nmd_username,
+                player.rating,
+                player.mm,
+                player.sos,
+                player.sodos,
+            ]
+        )
+        return res
