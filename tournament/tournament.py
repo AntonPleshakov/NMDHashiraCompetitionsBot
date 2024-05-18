@@ -10,6 +10,7 @@ from nmd_exceptions import (
     MatchResultWasAlreadyRegistered,
     PlayerNotFoundError,
 )
+from .elo import calc_new_ratings
 from .mcmahon_pairing import McMahonPairing
 from .player import Player
 
@@ -86,11 +87,20 @@ class Tournament:
     def finish_tournament(self):
         self._pairing.update_coefficients(self.db.get_results())
         players = self._pairing.get_players()
+
+        tours = []
+        for i in range(self.db.get_tours_number() - 1):
+            tours.append(self.db.get_results(i))
+        new_ratings = calc_new_ratings(players, tours)
+
         tournament_table = []
         for i, player in enumerate(players):
             user = self._pairing.get_user(player)
             result = Result.create(i, player, user)
+            new_rating = new_ratings[player.tg_id].rating.value
+            result.rating.value = f"{player.rating} -> {new_rating}"
             tournament_table.append(result)
         self.db.finish_tournament(tournament_table)
-        # recalc rating and deviation. Show results
+
+        # recalc deviation. Update ratings_db
         self._state = TournamentState.FINISHED

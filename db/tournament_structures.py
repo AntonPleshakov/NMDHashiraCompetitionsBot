@@ -31,6 +31,13 @@ class Match(Parameters):
         FirstWon = 1
         SecondWon = 2
 
+        def reversed(self):
+            if self.value == self.FirstWon:
+                return self.SecondWon
+            if self.value == self.SecondWon:
+                return self.FirstWon
+            return self.value
+
     def __init__(self):
         self.first: StrParam = StrParam("Первый игрок")
         self.first_id: int = 0

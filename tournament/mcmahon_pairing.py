@@ -29,7 +29,9 @@ class McMahonPairing:
             second_player.opponents.add(match.first_id)
 
     def get_players(self) -> List[Player]:
-        return list(self._players.values())
+        players = list(self._players.values())
+        players.sort(key=lambda x: (x.mm, x.sos, x.sodos, x.rating), reverse=True)
+        return players
 
     def get_user(self, player: Player):
         return self._registrations[player.tg_id]
