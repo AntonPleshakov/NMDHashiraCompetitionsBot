@@ -10,7 +10,7 @@ from nmd_exceptions import (
     MatchResultWasAlreadyRegistered,
     PlayerNotFoundError,
 )
-from .deviation_math import recalc_deviation_by_time
+from .deviation_math import recalc_deviation_by_time, calc_new_deviation
 from .elo import calc_new_ratings
 from .mcmahon_pairing import McMahonPairing
 from .player import Player
@@ -118,10 +118,11 @@ class Tournament:
                 ratings_id_to_index[player.tg_id] = index
             rating.rating.value = new_rating
             rating.update_date()
+            new_deviation = calc_new_deviation(player, rating, new_ratings)
+            rating.deviation.value = new_deviation
             ratings[index] = rating
 
         self.db.finish_tournament(tournament_table)
         ratings_db.update_all_user_ratings(ratings)
 
-        # recalc deviation
         self._state = TournamentState.FINISHED
