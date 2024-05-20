@@ -24,3 +24,7 @@ class TournamentStartedError(Exception):
 
 class TournamentFinishedError(Exception):
     pass
+
+
+class NewPlayerError(Exception):
+    pass

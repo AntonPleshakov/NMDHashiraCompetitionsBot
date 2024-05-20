@@ -10,6 +10,7 @@ from nmd_exceptions import (
     MatchResultWasAlreadyRegistered,
     PlayerNotFoundError,
 )
+from .deviation_math import recalc_deviation_by_time
 from .elo import calc_new_ratings
 from .mcmahon_pairing import McMahonPairing
 from .player import Player
@@ -88,6 +89,9 @@ class Tournament:
         self._pairing.update_coefficients(self.db.get_results())
         players = self._pairing.get_players()
         ratings = ratings_db.get_ratings()
+        for player in ratings:
+            new_deviation = recalc_deviation_by_time(player)
+            player.deviation.value = new_deviation
         ratings_id_to_index = {r.tg_id.value: i for i, r in enumerate(ratings)}
 
         tours = []
@@ -102,14 +106,20 @@ class Tournament:
             new_rating = new_ratings[player.tg_id].rating.value
             result.rating.value = f"{player.rating} -> {new_rating}"
             tournament_table.append(result)
+            rating: Rating
+            index: int
             if player.tg_id in ratings_id_to_index:
-                i = ratings_id_to_index[player.tg_id]
-                ratings[i].rating.value = new_rating
+                index = ratings_id_to_index[player.tg_id]
+                rating = ratings[index]
             else:
                 rating = Rating.default(player.tg_id)
-                rating.rating.value = new_rating
                 ratings.append(rating)
-                ratings_id_to_index[player.tg_id] = len(ratings) - 1
+                index = len(ratings) - 1
+                ratings_id_to_index[player.tg_id] = index
+            rating.rating.value = new_rating
+            rating.update_date()
+            ratings[index] = rating
+
         self.db.finish_tournament(tournament_table)
         ratings_db.update_all_user_ratings(ratings)
 

@@ -1,7 +1,8 @@
+from datetime import date, datetime
 from typing import List, Optional
 
 from config.config import getconf
-from nmd_exceptions import UsernameAlreadyExistsError
+from nmd_exceptions import UsernameAlreadyExistsError, NewPlayerError
 from parameters import Parameters
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
@@ -10,12 +11,15 @@ from .gapi.worksheet_manager import WorksheetManager
 
 
 class Rating(Parameters):
+    DATE_FORMAT = "%d.%m.%Y"
+
     def __init__(self):
         self.tg_username: StrParam = StrParam("ТГ Username")
         self.tg_id: IntParam = IntParam("ТГ ID")
         self.nmd_username: StrParam = StrParam("NMD Username")
         self.rating: IntParam = IntParam("Рейтинг")
         self.deviation: IntParam = IntParam("Отклонение")
+        self.last_date: StrParam = StrParam("Дата последнего турнира")
 
     @classmethod
     def default(cls, tg_id: int):
@@ -23,7 +27,18 @@ class Rating(Parameters):
         rating.tg_id.value = tg_id
         rating.rating.value = 100
         rating.deviation.value = getconf("DEFAULT_K")
+        rating.last_date.value = ""
         return rating
+
+    def update_date(self):
+        self.last_date.value = date.today().strftime(self.DATE_FORMAT)
+
+    def get_weeks(self):
+        if not self.last_date.value:
+            raise NewPlayerError
+        last_date = datetime.strptime(self.last_date.value, self.DATE_FORMAT).date()
+        date_diff = date.today() - last_date
+        return date_diff.days // 7
 
 
 class RatingsDB:
