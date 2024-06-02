@@ -129,7 +129,6 @@ def start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
         reply_markup=keyboard,
     )
     bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
-    tournament_manager.tournament.db.settings.welcome_message_id.value = message.id
 
 
 def register_handlers(bot: TeleBot):

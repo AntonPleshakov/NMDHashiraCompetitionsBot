@@ -68,7 +68,10 @@ def get_tournament_welcome_message(
 
 
 def get_next_tour_message(
-    settings: TournamentSettings, pairs: List[Match], tournament_url: str
+    settings: TournamentSettings,
+    pairs: List[Match],
+    tours_number: int,
+    tournament_url: str,
 ) -> str:
     tour_hours = settings.round_duration_hours.value
     pairs_str = ""
@@ -80,7 +83,7 @@ def get_next_tour_message(
         f"""
         Внимание, трибуты!
 
-        Настало время для следующего тура нашего захватывающего турнира.
+        Настало время для {tours_number} тура нашего захватывающего турнира.
         Пришло время доказать свою силу и мастерство на арене!
 
         У вас есть {tour_hours} {get_right_suffix(tour_hours, "час")} на проведение битвы.

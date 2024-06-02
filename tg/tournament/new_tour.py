@@ -20,12 +20,11 @@ def announce_new_tour(pairs: List[Match]):
     keyboard.add(Button("Объявить результат", "tournament/apply_result").inline())
     message = bot.send_message(
         chat_id,
-        get_next_tour_message(settings, pairs, tournament_url),
+        get_next_tour_message(settings, pairs, tours_number, tournament_url),
         reply_markup=keyboard,
         message_thread_id=message_thread_id,
     )
     bot.pin_chat_message(chat_id, message.id)
-    settings.welcome_message_id.value = message.id
 
 
 def apply_result_offer(cb_query: CallbackQuery):
