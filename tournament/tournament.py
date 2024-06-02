@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import List
 
 from db.ratings import ratings_db, Rating
 from db.tournament import TournamentDB
@@ -37,7 +38,7 @@ class Tournament:
             previous_tours.append(self.db.get_results(i))
         self._pairing: McMahonPairing = McMahonPairing(players_list, previous_tours)
 
-    def new_round(self):
+    def new_round(self) -> List[Match]:
         if self._state == TournamentState.FINISHED:
             raise TournamentFinishedError
         if self._state == TournamentState.IN_PROGRESS:
@@ -45,6 +46,7 @@ class Tournament:
         pairs = self._pairing.gen_pairs()
         self.db.start_new_tour(pairs)
         self._state = TournamentState.IN_PROGRESS
+        return pairs
 
     def add_player(self, player: Player):
         if self._state != TournamentState.REGISTRATION:

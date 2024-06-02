@@ -122,7 +122,9 @@ def start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
     message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
     message = bot.send_message(
         chat_id=chat_id,
-        text=get_tournament_welcome_message(settings),
+        text=get_tournament_welcome_message(
+            settings, tournament_manager.tournament.db.get_url()
+        ),
         message_thread_id=message_thread_id,
         reply_markup=keyboard,
     )

@@ -2,7 +2,11 @@ from datetime import date
 from typing import List, Optional
 
 from config.config import getconf
-from nmd_exceptions import PlayerNotFoundError, TournamentNotStartedError
+from nmd_exceptions import (
+    PlayerNotFoundError,
+    TournamentNotStartedError,
+    TournamentNotFinishedError,
+)
 from tournament.tournament_settings import TournamentSettings
 from .gapi.gsheets_manager import GSheetsManager
 from .gapi.spreadsheet_manager import SpreadsheetManager
@@ -61,6 +65,9 @@ class TournamentDB:
         ss = manager.open(latest_ss.id)
         return TournamentDB(ss)
 
+    def get_url(self):
+        return self._manager.get_url()
+
     def register_player(self, player: RegistrationRow):
         self._registration_page.add_row(player.to_row())
         self._registration_page.sort_table(player.rating.index)
@@ -106,6 +113,13 @@ class TournamentDB:
         tour = self._tours[tour_idx]
         matrix = tour.get_all_values()
         results = [Match.from_row(row) for row in matrix]
+        return results
+
+    def get_final_results(self) -> List[Result]:
+        if not self.is_finished():
+            raise TournamentNotFinishedError
+        matrix = self._results_page.get_all_values()
+        results = [Result.from_row(row) for row in matrix]
         return results
 
     def get_tours_number(self) -> int:

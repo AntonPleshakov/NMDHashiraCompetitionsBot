@@ -44,3 +44,6 @@ class SpreadsheetManager:
         self._cache.pop(old_name)
         self._cache[new_name] = ws
         return WorksheetManager(ws)
+
+    def get_url(self) -> str:
+        return self._ss.url
