@@ -3,7 +3,7 @@ from configparser import NoOptionError
 from enum import Enum
 from typing import Optional
 
-from config.config import getconf
+from db.global_settings import settings_db
 from db.ratings import Rating
 from parameters import Parameters
 from parameters.bool_param import BoolParam
@@ -131,7 +131,6 @@ class TournamentSettings(Parameters):
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
         self.element_effect_map: BoolParam = BoolParam("Элементные слабости на поле")
-        self.welcome_message_id: IntParam = IntParam("ID сообщения о начале турнира")
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )
@@ -149,7 +148,7 @@ class TournamentSettings(Parameters):
         settings = cls()
         for name, param in settings.params().items():
             try:
-                param.set_value(getconf(name))
+                param.set_value(settings_db.settings.get_value(name))
             except NoOptionError:
                 pass
         return settings

@@ -87,3 +87,6 @@ class Parameters:
             getattr(self, attr_name).set_value(value.value_repr())
         else:
             getattr(self, attr_name).value = value
+
+    def get_value(self, attr_name):
+        return getattr(self, attr_name).value_repr()
