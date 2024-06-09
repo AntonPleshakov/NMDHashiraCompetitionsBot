@@ -4,8 +4,7 @@ from typing import Union, Tuple, List
 from telebot.types import InlineKeyboardButton, KeyboardButton, Message, CallbackQuery
 
 from db.admins import admins_db
-from db.tournament_structures import Match
-from tournament.tournament_settings import TournamentSettings
+from db.tournament_structures import Match, TournamentSettings
 
 
 def get_permissions_denied_message(user_id: int):

@@ -7,11 +7,10 @@ from nmd_exceptions import (
     TournamentNotStartedError,
     TournamentNotFinishedError,
 )
-from tournament.tournament_settings import TournamentSettings
 from .gapi.gsheets_manager import GSheetsManager
 from .gapi.spreadsheet_manager import SpreadsheetManager
 from .gapi.worksheet_manager import WorksheetManager
-from .tournament_structures import RegistrationRow, Match, Result
+from .tournament_structures import RegistrationRow, Match, Result, TournamentSettings
 
 
 class TournamentDB:

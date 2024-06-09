@@ -3,11 +3,11 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
 
 from config.config import getconf
+from db.tournament_structures import TournamentSettings
 from parameters import Param
 from parameters.bool_param import BoolParam
 from tg.utils import Button, empty_filter, get_tournament_welcome_message, get_ids
 from tournament.tournament_manager import tournament_manager
-from tournament.tournament_settings import TournamentSettings
 
 CANCEL_BTN = Button("Отменить изменение параметра", "tournament/start_new").inline()
 

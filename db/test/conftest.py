@@ -1,7 +1,5 @@
 from db.ratings import Rating
-from tournament.tournament_settings import TournamentSettings
-from db.tournament_structures import RegistrationRow
-
+from db.tournament_structures import RegistrationRow, TournamentSettings
 
 TEST_DATA_ADMINS = [
     ("Anton", 1),

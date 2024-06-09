@@ -2,11 +2,11 @@ import threading
 from typing import Optional
 
 from db.tournament import TournamentDB
+from db.tournament_structures import TournamentSettings
 from nmd_exceptions import TournamentNotStartedError
 from tg.tournament.finish import announce_tournament_end
 from tg.tournament.new_tour import announce_new_tour
 from .tournament import Tournament
-from .tournament_settings import TournamentSettings
 
 
 class TournamentManager:
