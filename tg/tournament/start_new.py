@@ -1,3 +1,6 @@
+import threading
+from datetime import datetime
+
 from telebot import TeleBot, formatting
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
@@ -10,6 +13,7 @@ from tg.utils import Button, empty_filter, get_tournament_welcome_message, get_i
 from tournament.tournament_manager import tournament_manager
 
 CANCEL_BTN = Button("Отменить изменение параметра", "tournament/start_new").inline()
+DATETIME_FORMAT = "%d/%m, %H:%M"
 
 
 def start_new_tournament(bot: TeleBot, settings: TournamentSettings):
@@ -32,11 +36,13 @@ def start_new_tournament(bot: TeleBot, settings: TournamentSettings):
 class TournamentStartStates(StatesGroup):
     edit_param = State()
     new_value = State()
+    delayed_start = State()
 
 
 def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(Button("Запустить с выбранными настройками", "confirmed").inline())
+    keyboard.add(Button("Запустить с выбранными настройками", "start").inline())
+    keyboard.add(Button("Запланировать запуск", "delayed_start").inline())
     for attr_name, param in settings.params().items():
         keyboard.add(
             Button(
@@ -126,6 +132,43 @@ def edit_tournament_param(message: Message, bot: TeleBot):
     )
 
 
+def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
+    user_id, chat_id, _ = get_ids(cb_query)
+    bot.set_state(user_id, TournamentStartStates.delayed_start)
+
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(CANCEL_BTN)
+    bot.send_message(
+        chat_id=chat_id,
+        text=f"Введите дату старта в формате ({DATETIME_FORMAT})\n"
+        f"Например: ({datetime.now().strftime(DATETIME_FORMAT)})",
+        reply_markup=keyboard,
+    )
+
+
+def delayed_start_confirmed(message: Message, bot: TeleBot):
+    user_id, chat_id, _ = get_ids(message)
+    try:
+        start_date = datetime.strptime(message.text, DATETIME_FORMAT)
+        start_date = start_date.replace(year=datetime.now().year)
+        time_to_start = start_date - datetime.now()
+        with bot.retrieve_data(user_id) as data:
+            settings = data["settings"]
+        bot.delete_state(user_id)
+
+        threading.Timer(
+            time_to_start.total_seconds(), start_new_tournament, [bot, settings]
+        )
+    except Exception as e:
+        keyboard = InlineKeyboardMarkup(row_width=1)
+        keyboard.add(CANCEL_BTN)
+        bot.send_message(
+            chat_id=chat_id,
+            text=f"Неудалось обработать сообщение\n{e}\nПовторите еще раз",
+            reply_markup=keyboard,
+        )
+
+
 def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
     user_id = cb_query.from_user.id
     with bot.retrieve_data(user_id) as data:
@@ -166,10 +209,24 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
+        delayed_start,
+        func=empty_filter,
+        state=TournamentStartStates.edit_param,
+        button=f"delayed_start",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_message_handler(
+        delayed_start_confirmed,
+        chat_types=["private"],
+        state=TournamentStartStates.delayed_start,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
         start_new_tournament_option,
         func=empty_filter,
         state=TournamentStartStates.edit_param,
-        button=f"confirmed",
+        button=f"start",
         is_private=True,
         pass_bot=True,
     )
