@@ -38,6 +38,10 @@ class Tournament:
             previous_tours.append(self.db.get_results(i))
         self._pairing: McMahonPairing = McMahonPairing(players_list, previous_tours)
 
+    @property
+    def state(self) -> TournamentState:
+        return self._state
+
     def new_round(self) -> List[Match]:
         if self._state == TournamentState.FINISHED:
             raise TournamentFinishedError

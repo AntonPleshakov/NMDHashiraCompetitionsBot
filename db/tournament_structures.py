@@ -1,5 +1,5 @@
-import datetime
 from configparser import NoOptionError
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional
 
@@ -122,6 +122,8 @@ class Result(Parameters):
 
 
 class TournamentSettings(Parameters):
+    DATETIME_FORMAT = "%d/%m/%Y, %H:%M"
+
     def __init__(self):
         self.rounds_number: IntParam = IntParam("Количество раундов")
         self.registration_duration_hours: IntParam = IntParam(
@@ -134,14 +136,33 @@ class TournamentSettings(Parameters):
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )
+        self._tournament_start_date = StrParam("Время начала турнира")
 
     @property
-    def round_duration_seconds(self) -> int:
-        return datetime.timedelta(hours=self.round_duration_hours.value).seconds
+    def round_duration_seconds(self) -> float:
+        return timedelta(hours=self.round_duration_hours.value).total_seconds()
 
     @property
-    def registration_duration_seconds(self) -> int:
-        return datetime.timedelta(hours=self.registration_duration_hours.value).seconds
+    def registration_duration_seconds(self) -> float:
+        return timedelta(hours=self.registration_duration_hours.value).total_seconds()
+
+    @property
+    def tournament_start_date(self) -> datetime:
+        datestr = self._tournament_start_date.value
+        return datetime.strptime(datestr, self.DATETIME_FORMAT)
+
+    @tournament_start_date.setter
+    def tournament_start_date(self, new_date: datetime):
+        datestr = new_date.strftime(self.DATETIME_FORMAT)
+        self._tournament_start_date.value = datestr
+
+    @property
+    def tournament_finish_datetime(self) -> datetime:
+        tournament_duration = (
+            self.rounds_number.value * self.round_duration_hours.value
+            + self.registration_duration_hours.value
+        )
+        return self.tournament_start_date + timedelta(hours=tournament_duration)
 
     @classmethod
     def default_settings(cls):

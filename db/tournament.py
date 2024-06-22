@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from typing import List, Optional
 
 from config.config import getconf
@@ -21,6 +21,7 @@ class TournamentDB:
         self._settings: TournamentSettings = TournamentSettings.from_matrix(
             self._settings_page.get_all_values()
         )
+        self._settings.tournament_start_date = datetime.now()
         self._registration_page: WorksheetManager = self._manager.get_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
         )

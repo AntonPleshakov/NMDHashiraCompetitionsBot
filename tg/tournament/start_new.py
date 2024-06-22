@@ -12,6 +12,23 @@ from tournament.tournament_manager import tournament_manager
 CANCEL_BTN = Button("Отменить изменение параметра", "tournament/start_new").inline()
 
 
+def start_new_tournament(bot: TeleBot, settings: TournamentSettings):
+    tournament_manager.start_tournament(settings)
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
+    chat_id = int(getconf("CHAT_ID"))
+    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
+    message = bot.send_message(
+        chat_id=chat_id,
+        text=get_tournament_welcome_message(
+            settings, tournament_manager.tournament.db.get_url()
+        ),
+        message_thread_id=message_thread_id,
+        reply_markup=keyboard,
+    )
+    bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
+
+
 class TournamentStartStates(StatesGroup):
     edit_param = State()
     new_value = State()
@@ -109,26 +126,13 @@ def edit_tournament_param(message: Message, bot: TeleBot):
     )
 
 
-def start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
+def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
     user_id = cb_query.from_user.id
     with bot.retrieve_data(user_id) as data:
         settings = data["settings"]
     bot.delete_state(user_id)
 
-    tournament_manager.start_tournament(settings)
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
-    chat_id = int(getconf("CHAT_ID"))
-    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
-    message = bot.send_message(
-        chat_id=chat_id,
-        text=get_tournament_welcome_message(
-            settings, tournament_manager.tournament.db.get_url()
-        ),
-        message_thread_id=message_thread_id,
-        reply_markup=keyboard,
-    )
-    bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
+    start_new_tournament(bot, settings)
 
 
 def register_handlers(bot: TeleBot):
@@ -162,7 +166,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        start_new_tournament,
+        start_new_tournament_option,
         func=empty_filter,
         state=TournamentStartStates.edit_param,
         button=f"confirmed",
