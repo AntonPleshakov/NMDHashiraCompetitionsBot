@@ -14,6 +14,10 @@ class MatchResultWasAlreadyRegistered(Exception):
     pass
 
 
+class MatchResultTryingToBeChanged(Exception):
+    pass
+
+
 class TournamentNotStartedError(Exception):
     pass
 

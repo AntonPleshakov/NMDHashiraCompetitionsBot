@@ -4,7 +4,8 @@ from typing import Union, Tuple, List
 from telebot.types import InlineKeyboardButton, KeyboardButton, Message, CallbackQuery
 
 from db.admins import admins_db
-from db.tournament_structures import Match, TournamentSettings
+from db.ratings import Rating
+from db.tournament_structures import Match, TournamentSettings, RegistrationRow
 
 
 def get_permissions_denied_message(user_id: int):
@@ -139,6 +140,15 @@ def get_ids(message: Union[Message, CallbackQuery]) -> Tuple[int, int, int]:
     chat_id = message.chat.id
     message_id = message.id
     return user_id, chat_id, message_id
+
+
+def get_user_view(message: Union[Message, CallbackQuery]) -> str:
+    user = message.from_user
+    return f"{user.first_name} {user.last_name}({user.username})"
+
+
+def get_player_rating_view(player: Union[RegistrationRow, Rating]) -> str:
+    return f"{player.tg_username.value}({player.nmd_username.value}): {player.rating.value}"
 
 
 class Button:

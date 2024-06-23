@@ -3,8 +3,10 @@ from typing import List
 from telebot.types import InlineKeyboardMarkup, CallbackQuery
 
 from config.config import getconf
+from db.admins import admins_db
 from db.tournament_structures import Match
 from main import bot
+from nmd_exceptions import MatchResultTryingToBeChanged
 from tg.utils import Button, empty_filter, get_ids, get_next_tour_message
 from tournament.tournament_manager import tournament_manager
 
@@ -42,7 +44,22 @@ def apply_result_offer(cb_query: CallbackQuery):
 
 def apply_result(cb_query: CallbackQuery):
     user_id, chat_id, message_id = get_ids(cb_query)
-    tournament_manager.tournament.add_result(user_id, "tournament/won" == cb_query.data)
+    try:
+        tournament_manager.tournament.add_result(
+            user_id, "tournament/won" == cb_query.data
+        )
+    except MatchResultTryingToBeChanged:
+        admins_list = [
+            f"[{admin.username}](tg://user?id={admin.user_id})"
+            for admin in admins_db.get_admins()
+        ]
+        bot.send_message(
+            chat_id=user_id,
+            text="Вы пытаетесь зарегистрировать результат\, отличный от уже зарегистрированного\.\n"
+            + "Свяжитесь с одним из администраторов\, если вы хотите оспорить зарегистрированный результат\.\n"
+            + "Список администраторов\: "
+            + "\, ".join(admins_list),
+        )
     bot.delete_message(chat_id, message_id)
 
 

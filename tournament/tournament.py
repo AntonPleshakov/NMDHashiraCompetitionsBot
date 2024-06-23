@@ -4,13 +4,16 @@ from typing import List
 from db.ratings import ratings_db, Rating
 from db.tournament import TournamentDB
 from db.tournament_structures import RegistrationRow, Match, Result
+from logger.NMDLogger import nmd_logger
 from nmd_exceptions import (
     TournamentStartedError,
     TournamentFinishedError,
     MatchWithPlayersNotFound,
     MatchResultWasAlreadyRegistered,
     PlayerNotFoundError,
+    MatchResultTryingToBeChanged,
 )
+from tg.utils import get_player_rating_view
 from .deviation_math import recalc_deviation_by_time, calc_new_deviation
 from .elo import calc_new_ratings
 from .mcmahon_pairing import McMahonPairing
@@ -25,12 +28,14 @@ class TournamentState(Enum):
 
 class Tournament:
     def __init__(self, tournament_db: TournamentDB):
+        nmd_logger.info("Tournament is created")
         self.db: TournamentDB = tournament_db
         self._state: TournamentState = (
             TournamentState.IN_PROGRESS
             if self.db.get_tours_number() > 0
             else TournamentState.REGISTRATION
         )
+        nmd_logger.info(f"Current state is {self._state.name}")
 
         players_list = self.db.get_registered_players()
         previous_tours = []
@@ -43,9 +48,12 @@ class Tournament:
         return self._state
 
     def new_round(self) -> List[Match]:
+        nmd_logger.info("New round start")
         if self._state == TournamentState.FINISHED:
+            nmd_logger.error("Tournament state is Finished, exception")
             raise TournamentFinishedError
         if self._state == TournamentState.IN_PROGRESS:
+            nmd_logger.info("Update coefficients with results of last round")
             self._pairing.update_coefficients(self.db.get_results())
         pairs = self._pairing.gen_pairs()
         self.db.start_new_tour(pairs)
@@ -53,15 +61,21 @@ class Tournament:
         return pairs
 
     def add_player(self, player: Player):
+        nmd_logger.info(f"Try to register new player, id:{player.tg_id}")
         if self._state != TournamentState.REGISTRATION:
+            nmd_logger.error("Tournament state is not in registration, exception")
             raise TournamentStartedError
         rating = ratings_db.get_rating(player.tg_id)
         if not rating:
+            nmd_logger.error("Rating not found, exception")
             raise PlayerNotFoundError
+        nmd_logger.info(f"Player rating {get_player_rating_view(rating)}")
         self.db.register_player(RegistrationRow.from_rating(rating))
 
     def update_player_info(self, player: RegistrationRow):
+        nmd_logger.info(f"Update player info {get_player_rating_view(player)}")
         if self._state != TournamentState.REGISTRATION:
+            nmd_logger.error("Can't update player info not in registration, exception")
             raise TournamentStartedError
         self.db.register_player(player)
 
@@ -71,6 +85,9 @@ class Tournament:
         won: bool,
         force_update: bool = False,
     ):
+        nmd_logger.info(
+            f"Register result of user {user_id}, won: {won}, force_update: {force_update}"
+        )
         match_index = None
         match = None
         for i, result in enumerate(self.db.get_results()):
@@ -79,17 +96,25 @@ class Tournament:
                 match = result
                 break
         if not match_index:
+            nmd_logger.error("No match found with the user, exception")
             raise MatchWithPlayersNotFound
-        result = Match.STR_TO_MATCH_RESULT[match.result.value]
-        if result != Match.MatchResult.NotPlayed and not force_update:
-            raise MatchResultWasAlreadyRegistered
         # swap result in case of players swapped
-        result = Match.MatchResult.SecondWon
+        new_result = Match.MatchResult.SecondWon
         if match.first_id == user_id and won:
-            result = Match.MatchResult.FirstWon
+            new_result = Match.MatchResult.FirstWon
         elif match.second_id == user_id and not won:
-            result = Match.MatchResult.FirstWon
-        self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[result])
+            new_result = Match.MatchResult.FirstWon
+        old_result: Match.MatchResult = Match.STR_TO_MATCH_RESULT[match.result.value]
+        if old_result != Match.MatchResult.NotPlayed:
+            if old_result == new_result:
+                nmd_logger.info("Same result was already registered")
+                raise MatchResultWasAlreadyRegistered
+            elif not force_update:
+                nmd_logger.warning(
+                    f"Result mismatch, old: {old_result.name}, new: {new_result.name}"
+                )
+                raise MatchResultTryingToBeChanged
+        self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[new_result])
 
     def finish_tournament(self):
         self._pairing.update_coefficients(self.db.get_results())

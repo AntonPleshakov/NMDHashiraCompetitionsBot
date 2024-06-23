@@ -1,17 +1,21 @@
-import logging
 from typing import Union
 
-from telebot import TeleBot, logger
+from telebot import TeleBot
 from telebot.handler_backends import BaseMiddleware
 from telebot.types import CallbackQuery, Message
 
 import tg.manager
 from config.config import getconf
+from logger.NMDLogger import nmd_logger
 from tg.filters import add_custom_filters
-from tg.utils import empty_filter, get_permissions_denied_message, get_ids
+from tg.utils import (
+    empty_filter,
+    get_permissions_denied_message,
+    get_ids,
+    get_user_view,
+)
 
 bot = TeleBot(getconf("TOKEN"), parse_mode="MarkdownV2", use_class_middlewares=True)
-logger.setLevel(logging.INFO)
 
 
 class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
@@ -31,6 +35,7 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
 
 
 def permission_denied_message(message: Union[Message, CallbackQuery]):
+    nmd_logger.info(f"Permission denied for user '{get_user_view(message)}'")
     user_id, chat_id, _ = get_ids(message)
     denied_text = get_permissions_denied_message(user_id)
     if isinstance(message, Message):
@@ -40,6 +45,7 @@ def permission_denied_message(message: Union[Message, CallbackQuery]):
 
 
 if __name__ == "__main__":
+    nmd_logger.info("Bot started")
     add_custom_filters(bot)
     tg.manager.register_handlers(bot)
     bot.register_message_handler(
