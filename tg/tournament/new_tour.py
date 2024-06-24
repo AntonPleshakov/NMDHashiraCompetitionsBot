@@ -48,17 +48,19 @@ def apply_result(cb_query: CallbackQuery):
         tournament_manager.tournament.add_result(
             user_id, "tournament/won" == cb_query.data
         )
+        bot.answer_callback_query(message_id)
     except MatchResultTryingToBeChanged:
         admins_list = [
             f"[{admin.username}](tg://user?id={admin.user_id})"
             for admin in admins_db.get_admins()
         ]
-        bot.send_message(
-            chat_id=user_id,
+        bot.answer_callback_query(
+            message_id,
             text="Вы пытаетесь зарегистрировать результат\, отличный от уже зарегистрированного\.\n"
             + "Свяжитесь с одним из администраторов\, если вы хотите оспорить зарегистрированный результат\.\n"
             + "Список администраторов\: "
             + "\, ".join(admins_list),
+            show_alert=True,
         )
     bot.delete_message(chat_id, message_id)
 

@@ -22,7 +22,7 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
     def __init__(self):
         super().__init__()
         self.update_types = ["callback_query"]
-        self._ignore_data = {"tournament/register"}
+        self._ignore_data = {"tournament/register", "tournament/(won|lose)"}
 
     def pre_process(self, message: CallbackQuery, data: dict):
         if message.data not in self._ignore_data:
