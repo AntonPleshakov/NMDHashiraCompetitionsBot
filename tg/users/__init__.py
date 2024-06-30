@@ -6,6 +6,7 @@ from telebot.types import CallbackQuery, Message, InlineKeyboardMarkup
 from db.admins import admins_db
 from db.ratings import ratings_db
 from db.tournament_structures import RegistrationRow
+from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError, TournamentStartedError
 from tg.tournament.register import add_or_update_registration_list
 from tg.utils import get_ids, Button
@@ -13,6 +14,7 @@ from tournament.tournament_manager import tournament_manager
 
 
 def users_main_menu(message: Union[Message, CallbackQuery], bot: TeleBot):
+    nmd_logger.info(f"Main menu for users to {message.from_user.username}")
     user_id, chat_id, _ = get_ids(message)
     keyboard = None
     if admins_db.is_admin(user_id):
@@ -27,6 +29,9 @@ def users_main_menu(message: Union[Message, CallbackQuery], bot: TeleBot):
 
 
 def update_nmd_username(message: Message, bot: TeleBot):
+    nmd_logger.info(
+        f"User {message.from_user.username} wants to update username to {message.text}"
+    )
     user_id = message.from_user.id
     new_nmd_username = message.text
     try:
@@ -43,7 +48,8 @@ def update_nmd_username(message: Message, bot: TeleBot):
             RegistrationRow.from_rating(rating)
         )
         add_or_update_registration_list(bot, False)
-    except (TournamentNotStartedError, TournamentStartedError):
+    except (TournamentNotStartedError, TournamentStartedError) as e:
+        nmd_logger.info(f"User {message.from_user.username} got exception {e}")
         pass
 
 

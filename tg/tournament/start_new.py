@@ -7,6 +7,7 @@ from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
 
 from config.config import getconf
 from db.tournament_structures import TournamentSettings
+from logger.NMDLogger import nmd_logger
 from parameters import Param
 from parameters.bool_param import BoolParam
 from tg.utils import Button, empty_filter, get_tournament_welcome_message, get_ids
@@ -17,6 +18,7 @@ DATETIME_FORMAT = "%d/%m, %H:%M"
 
 
 def start_new_tournament(bot: TeleBot, settings: TournamentSettings):
+    nmd_logger.info("Start new tournament")
     tournament_manager.start_tournament(settings)
     keyboard = InlineKeyboardMarkup()
     keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
@@ -55,6 +57,7 @@ def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMar
 
 
 def offer_to_start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Offer to start new tournament for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     settings = TournamentSettings.default_settings()
     bot.set_state(user_id, TournamentStartStates.edit_param)
@@ -68,6 +71,7 @@ def offer_to_start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Offer to edit tournament settings")
     attr_name = cb_query.data
     user_id, chat_id, _ = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
@@ -96,6 +100,7 @@ def edit_bool_tournament_param(cb_query: CallbackQuery, bot: TeleBot):
         param_to_update = data["param_to_update"]
         settings.set_value(param_to_update, value == "on")
         data["settings"] = settings
+    nmd_logger.info(f"Edit bool param {param_to_update} to {value == "on"}")
     bot.set_state(user_id, TournamentStartStates.edit_param)
     bot.edit_message_text(
         text="*Настройки турнира:*\n" + settings.view(),
@@ -108,6 +113,7 @@ def edit_bool_tournament_param(cb_query: CallbackQuery, bot: TeleBot):
 def edit_tournament_param(message: Message, bot: TeleBot):
     user_id, chat_id, _ = get_ids(message)
     if not message.text.isdigit():
+        nmd_logger.info(f"Edit param, but message not digit: {message.text}")
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(CANCEL_BTN)
         bot.send_message(
@@ -124,6 +130,7 @@ def edit_tournament_param(message: Message, bot: TeleBot):
         settings.params()[param_to_update].set_value(message.text)
         data["settings"] = settings
 
+    nmd_logger.info(f"Edit param {param_to_update} to {message.text}")
     bot.set_state(user_id, TournamentStartStates.edit_param)
     bot.send_message(
         chat_id=chat_id,
@@ -133,6 +140,7 @@ def edit_tournament_param(message: Message, bot: TeleBot):
 
 
 def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Delayed start")
     user_id, chat_id, _ = get_ids(cb_query)
     bot.set_state(user_id, TournamentStartStates.delayed_start)
 
@@ -147,6 +155,7 @@ def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def delayed_start_confirmed(message: Message, bot: TeleBot):
+    nmd_logger.info(f"Delayed start confirmed in {message.text}")
     user_id, chat_id, _ = get_ids(message)
     try:
         start_date = datetime.strptime(message.text, DATETIME_FORMAT)
@@ -160,6 +169,7 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
             time_to_start.total_seconds(), start_new_tournament, [bot, settings]
         )
     except Exception as e:
+        nmd_logger.exception("Exception in delayed start")
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(CANCEL_BTN)
         bot.send_message(
@@ -170,6 +180,7 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
 
 
 def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Start tournament immediately")
     user_id = cb_query.from_user.id
     with bot.retrieve_data(user_id) as data:
         settings = data["settings"]

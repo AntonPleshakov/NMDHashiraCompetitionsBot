@@ -6,6 +6,7 @@ from telebot.types import InlineKeyboardMarkup, CallbackQuery
 from config.config import getconf
 from db.admins import admins_db
 from db.tournament_structures import Match
+from logger.NMDLogger import nmd_logger
 from nmd_exceptions import MatchResultTryingToBeChanged
 from tg.utils import (
     Button,
@@ -18,6 +19,7 @@ from tournament.tournament_manager import tournament_manager
 
 
 def announce_new_tour(bot: TeleBot, pairs: List[Match]):
+    nmd_logger.info("New tour announcement")
     chat_id = int(getconf("CHAT_ID"))
     message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
     db = tournament_manager.tournament.db
@@ -36,6 +38,7 @@ def announce_new_tour(bot: TeleBot, pairs: List[Match]):
 
 
 def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Offer to apply result for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Выиграл", "tournament/won").inline())
@@ -49,6 +52,9 @@ def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def apply_result(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(
+        f"User {cb_query.from_user.username} applied result: {cb_query.data}"
+    )
     user_id, chat_id, message_id = get_ids(cb_query)
     try:
         tournament_manager.tournament.add_result(
@@ -56,6 +62,9 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
         )
         bot.answer_callback_query(message_id)
     except MatchResultTryingToBeChanged:
+        nmd_logger.warning(
+            f"MatchResultTryingToBeChanged exception for user {cb_query.from_user.username}"
+        )
         admins_list = [
             f"[{admin.username}](tg://user?id={admin.user_id})"
             for admin in admins_db.get_admins()

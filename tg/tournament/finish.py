@@ -1,11 +1,13 @@
 from telebot import TeleBot
 
 from config.config import getconf
+from logger.NMDLogger import nmd_logger
 from tg.utils import get_tournament_end_message
 from tournament.tournament_manager import tournament_manager
 
 
 def announce_tournament_end(bot: TeleBot):
+    nmd_logger.info("End tournament announcement")
     chat_id = int(getconf("CHAT_ID"))
     message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
     settings = tournament_manager.tournament.db.settings

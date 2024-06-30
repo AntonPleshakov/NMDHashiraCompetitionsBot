@@ -3,6 +3,7 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.tournament_structures import Match
+from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError
 from tg.utils import Button, empty_filter, get_ids
 from tournament.tournament_manager import tournament_manager
@@ -14,6 +15,7 @@ class UpdateMatchStates(StatesGroup):
 
 
 def chose_match_to_update(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Chose match to update for {cb_query.from_user.username}")
     try:
         matches = tournament_manager.tournament.db.get_results()
         keyboard = InlineKeyboardMarkup(row_width=1)
@@ -44,6 +46,9 @@ def chose_match_to_update(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def chose_result_to_update_match(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(
+        f"Match to update was chosen: {tournament_manager.tournament.db.get_results()[int(cb_query.data)].to_string()}"
+    )
     match_index = int(cb_query.data)
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.add_data(user_id, match_index=match_index)
@@ -67,6 +72,7 @@ def chose_result_to_update_match(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def update_result(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"New result: {cb_query.data}")
     user_id, chat_id, _ = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
         match_index = data["match_index"]

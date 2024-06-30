@@ -7,6 +7,7 @@ from telebot.types import InlineKeyboardButton, KeyboardButton, Message, Callbac
 from db.admins import admins_db
 from db.ratings import Rating
 from db.tournament_structures import Match, TournamentSettings, RegistrationRow
+from logger.NMDLogger import nmd_logger
 
 
 def get_permissions_denied_message(user_id: int):
@@ -25,6 +26,7 @@ def get_permissions_denied_message(user_id: int):
 
 
 def report_to_admins(bot: TeleBot, message: str):
+    nmd_logger.info(f"Report a message to admins:\n{message}")
     for admin in admins_db.get_admins():
         bot.send_message(chat_id=admin.user_id.value, text=message)
 

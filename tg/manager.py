@@ -7,6 +7,7 @@ from telebot.types import (
     CallbackQuery,
 )
 
+from logger.NMDLogger import nmd_logger
 from . import admins, dev, ratings, tournament, users
 from .utils import empty_filter, Button, get_ids
 
@@ -22,6 +23,7 @@ def main_menu_keyboard():
 
 
 def home_command(message: Union[Message, CallbackQuery], bot: TeleBot):
+    nmd_logger.info(f"Home for {message.from_user.username}")
     keyboard = main_menu_keyboard()
     text = "Выберите раздел управления"
     user_id, chat_id, message_id = get_ids(message)
