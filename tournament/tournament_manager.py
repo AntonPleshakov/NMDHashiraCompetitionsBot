@@ -104,7 +104,7 @@ class TournamentManager:
             raise TournamentNotStartedError
         if self._tournament.db.get_tours_number() < self._settings.rounds_number.value:
             pairs = self._tournament.new_round()
-            announce_new_tour(pairs)
+            announce_new_tour(bot, pairs)
             round_duration = self._settings.round_duration_seconds
             threading.Timer(round_duration, TournamentManager.next_tour, [self]).start()
             nmd_logger.info(f"Next tour will start in {round_duration} seconds")

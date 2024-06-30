@@ -117,6 +117,7 @@ class Tournament:
         self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[new_result])
 
     def finish_tournament(self):
+        nmd_logger.info("Finish tournament")
         self._pairing.update_coefficients(self.db.get_results())
         players = self._pairing.get_players()
         ratings = ratings_db.get_ratings()

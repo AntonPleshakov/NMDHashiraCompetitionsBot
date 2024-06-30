@@ -33,7 +33,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
 
-    new_tour.register_handlers()
+    new_tour.register_handlers(bot)
     register.register_handlers(bot)
     start_new.register_handlers(bot)
     update_match_result.register_handlers(bot)

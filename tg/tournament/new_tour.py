@@ -1,17 +1,23 @@
 from typing import List
 
+from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup, CallbackQuery
 
 from config.config import getconf
 from db.admins import admins_db
 from db.tournament_structures import Match
-from main import bot
 from nmd_exceptions import MatchResultTryingToBeChanged
-from tg.utils import Button, empty_filter, get_ids, get_next_tour_message
+from tg.utils import (
+    Button,
+    empty_filter,
+    get_ids,
+    get_next_tour_message,
+    report_to_admins,
+)
 from tournament.tournament_manager import tournament_manager
 
 
-def announce_new_tour(pairs: List[Match]):
+def announce_new_tour(bot: TeleBot, pairs: List[Match]):
     chat_id = int(getconf("CHAT_ID"))
     message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
     db = tournament_manager.tournament.db
@@ -29,7 +35,7 @@ def announce_new_tour(pairs: List[Match]):
     bot.pin_chat_message(chat_id, message.id)
 
 
-def apply_result_offer(cb_query: CallbackQuery):
+def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(cb_query)
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Выиграл", "tournament/won").inline())
@@ -42,7 +48,7 @@ def apply_result_offer(cb_query: CallbackQuery):
     )
 
 
-def apply_result(cb_query: CallbackQuery):
+def apply_result(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(cb_query)
     try:
         tournament_manager.tournament.add_result(
@@ -62,19 +68,26 @@ def apply_result(cb_query: CallbackQuery):
             + "\, ".join(admins_list),
             show_alert=True,
         )
+        report_to_admins(
+            bot,
+            f"{cb_query.from_user.username} пытается зарегистрировать результат\, отличный от зарегистрированного\.\n"
+            + f"Data: {cb_query.data}",
+        )
     bot.delete_message(chat_id, message_id)
 
 
-def register_handlers():
+def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         apply_result_offer,
         func=empty_filter,
         button="tournament/apply_result",
         is_private=False,
+        pass_bot=True,
     )
     bot.register_callback_query_handler(
         apply_result,
         func=empty_filter,
         button="tournament/(won|lose)",
         is_private=False,
+        pass_bot=True,
     )

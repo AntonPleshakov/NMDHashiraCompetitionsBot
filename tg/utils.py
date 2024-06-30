@@ -1,6 +1,7 @@
 from textwrap import dedent
 from typing import Union, Tuple, List
 
+from telebot import TeleBot
 from telebot.types import InlineKeyboardButton, KeyboardButton, Message, CallbackQuery
 
 from db.admins import admins_db
@@ -21,6 +22,11 @@ def get_permissions_denied_message(user_id: int):
         + "Список администраторов\: "
         + "\, ".join(admins_list)
     )
+
+
+def report_to_admins(bot: TeleBot, message: str):
+    for admin in admins_db.get_admins():
+        bot.send_message(chat_id=admin.user_id.value, text=message)
 
 
 def get_right_suffix(value: int, word_without_suffix: str) -> str:
