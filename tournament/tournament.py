@@ -141,9 +141,11 @@ class Tournament:
             rating: Rating
             index: int
             if player.tg_id in ratings_id_to_index:
+                nmd_logger.info(f"Player {player.tg_id} exist in ratings db")
                 index = ratings_id_to_index[player.tg_id]
                 rating = ratings[index]
             else:
+                nmd_logger.warning(f"Player {player.tg_id} doesn't exist in ratings db")
                 rating = Rating.default(player.tg_id)
                 ratings.append(rating)
                 index = len(ratings) - 1

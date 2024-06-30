@@ -1,6 +1,7 @@
 from typing import List, Dict
 
 from db.tournament_structures import Match, RegistrationRow
+from logger.NMDLogger import nmd_logger
 from .player import Player
 
 
@@ -10,6 +11,7 @@ class McMahonPairing:
         players: List[RegistrationRow] = None,
         previous_matches: List[List[Match]] = None,
     ):
+        nmd_logger.info("Create pairing class")
         self._players: Dict[int, Player] = {}
         self._registrations: Dict[int, RegistrationRow] = {}
         for p in players:
@@ -20,6 +22,7 @@ class McMahonPairing:
             self.update_coefficients(pairs)
 
     def _populate_opponents(self, matches: List[Match]):
+        nmd_logger.info(f"Populate opponents for {len(matches)} matches")
         for match in matches:
             if not match.second.value:
                 continue
@@ -37,6 +40,7 @@ class McMahonPairing:
         return self._registrations[player.tg_id]
 
     def update_coefficients(self, tour_result: List[Match]):
+        nmd_logger.info(f"Update coefficients for {len(tour_result)} matches")
         first_won = Match.MatchResult.FirstWon
         second_won = Match.MatchResult.SecondWon
         # calculate mm score first
@@ -63,6 +67,7 @@ class McMahonPairing:
                 second.sodos += first.mm
 
     def gen_pairs(self) -> List[Match]:
+        nmd_logger.info("Gen pairs")
         players = list(self._players.values())
         players.sort(key=lambda x: (x.mm, x.sos, x.sodos, x.rating), reverse=True)
         result = []
