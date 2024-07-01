@@ -1,4 +1,5 @@
 from config.config import getconf
+from logger.NMDLogger import nmd_logger
 from parameters import Parameters
 from parameters.bool_param import BoolParam
 from parameters.int_param import IntParam
@@ -49,6 +50,7 @@ class SettingsDB:
 
     @settings.setter
     def settings(self, value: GlobalSettings):
+        nmd_logger.info(f"DB: new global settings: {value.to_matrix()}")
         self._settings = value
         self._manager.update_values(value.to_matrix())
 

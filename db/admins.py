@@ -1,6 +1,7 @@
 from typing import Set, List, Optional
 
 from config.config import getconf
+from logger.NMDLogger import nmd_logger
 from parameters import Parameters
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
@@ -27,6 +28,7 @@ class AdminsDB:
         self.fetch_admins()
 
     def add_admin(self, new_admin: Admin):
+        nmd_logger.info(f"DB: add admin {new_admin.username}")
         self._manager.add_row(new_admin.to_row())
         self._admins.append(new_admin)
         self._admins_id_set.add(new_admin.user_id.value)
@@ -44,6 +46,7 @@ class AdminsDB:
         return user_id in self._admins_id_set
 
     def del_admin(self, user_id: int):
+        nmd_logger.info(f"DB: del admin {user_id}")
         admins = self.get_admins()
         new_admins = [
             admin.to_row() for admin in admins if admin.user_id.value != user_id
@@ -53,6 +56,7 @@ class AdminsDB:
         self._admins_id_set = {admin.user_id.value for admin in self._admins}
 
     def fetch_admins(self):
+        nmd_logger.info("DB: fetch admins")
         self._manager.fetch()
         admins_matrix = self._manager.get_all_values()
         self._admins: List[Admin] = [Admin.from_row(row) for row in admins_matrix]

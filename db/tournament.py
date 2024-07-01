@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional
 
 from config.config import getconf
+from logger.NMDLogger import nmd_logger
 from nmd_exceptions import (
     PlayerNotFoundError,
     TournamentNotStartedError,
@@ -30,6 +31,7 @@ class TournamentDB:
 
     @classmethod
     def create_new_tournament(cls, settings: TournamentSettings):
+        nmd_logger.info(f"DB: create new tournament")
         spreadsheet_name = (
             getconf("TOURNAMENT_GTABLE_NAME") + " " + date.today().strftime("%d.%m.%Y")
         )
@@ -52,6 +54,7 @@ class TournamentDB:
             ss for ss in manager.get_spreadsheets() if conf_ss_name in ss.name
         ]
         if not tournaments_ss:
+            nmd_logger.info("No tournament spreadsheet exist")
             return None
 
         latest_date = None
@@ -69,6 +72,7 @@ class TournamentDB:
         return self._manager.get_url()
 
     def register_player(self, player: RegistrationRow):
+        nmd_logger.info(f"DB: register player {player.tg_username.value}")
         self._registration_page.add_row(player.to_row())
         self._registration_page.sort_table(player.rating.index)
 
@@ -78,11 +82,13 @@ class TournamentDB:
         return players
 
     def update_player_info(self, player: RegistrationRow):
+        nmd_logger.info(f"DB: update player info to: {', '.join(player.to_row())}")
         players = self.get_registered_players()
         player_indexes = [
             i for i, v in enumerate(players) if v.tg_username == player.tg_username
         ]
         if not player_indexes:
+            nmd_logger.warning("DB: Player not found")
             raise PlayerNotFoundError
         row = player_indexes[0] + 2  # starting from 1 plus header
         start_range = (row, 1)
@@ -92,6 +98,7 @@ class TournamentDB:
         self._registration_page.sort_table(player.rating.index)
 
     def start_new_tour(self, pairs: List[Match]):
+        nmd_logger.info("DB: start new tour")
         tour_number = len(self._tours) + 1
         tour_title = getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(tour_number)
         tour_page = self._manager.add_worksheet(tour_title)
@@ -101,10 +108,11 @@ class TournamentDB:
         self._tours.append(tour_page)
 
     def register_result(self, pair_index: int, result: str):
+        nmd_logger.info(f"DB: register result. Pair {pair_index}, result {result}")
         if not self._tours:
             raise TournamentNotStartedError
         tour = self._tours[-1]
-        start_range = (pair_index + 2, Match().result.index + 1)
+        start_range = (pair_index + 2, Match()._result.index + 1)
         tour.update_values([[result]], start_range=start_range)
 
     def get_results(self, tour_idx: int = -1) -> List[Match]:
@@ -126,6 +134,7 @@ class TournamentDB:
         return len(self._tours)
 
     def finish_tournament(self, tournament_table: List[Result]):
+        nmd_logger.info("DB: finish tournament")
         results_title = getconf("TOURNAMENT_RESULTS_PAGE_NAME")
         results_page = self._manager.add_worksheet(results_title)
         results_page.set_header([Result().params_views()])

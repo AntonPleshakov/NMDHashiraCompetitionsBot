@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional
 
 from config.config import getconf
+from logger.NMDLogger import nmd_logger
 from nmd_exceptions import UsernameAlreadyExistsError, NewPlayerError
 from parameters import Parameters
 from parameters.int_param import IntParam
@@ -51,6 +52,7 @@ class RatingsDB:
         )
 
     def add_user_rating(self, user: Rating):
+        nmd_logger.info(f"DB: add user rating for {user.tg_username}")
         rows = self._manager.get_all_values()
         if any(user.tg_id.value == row[user.tg_id.index] for row in rows):
             raise UsernameAlreadyExistsError
@@ -59,13 +61,15 @@ class RatingsDB:
         self._manager.sort_table(user.rating.index)
 
     def update_all_user_ratings(self, ratings: List[Rating]):
-        rows = []
-        for rating in ratings:
-            rows.append(rating.to_row())
+        nmd_logger.info("DB: update all ratings")
+        rows = [r.to_row() for r in ratings]
         self._manager.update_values(rows)
         self._manager.sort_table(Rating().rating.index)
 
     def update_user_rating(self, tg_id: int, rating: Rating):
+        nmd_logger.info(
+            f"DB: update user {rating.tg_username} info to: {', '.join(rating.to_row())}"
+        )
         rows = self._manager.get_all_values()
         for i, row in enumerate(rows):
             if row[rating.tg_id.index] == tg_id:
@@ -94,6 +98,7 @@ class RatingsDB:
         self.update_all_user_ratings(new_ratings)
 
     def fetch_ratings(self):
+        nmd_logger.info("DB: fetch ratings")
         self._manager.fetch()
 
 

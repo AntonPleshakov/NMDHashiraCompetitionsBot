@@ -2,6 +2,8 @@ from typing import List, Optional, Tuple
 
 from pygsheets.worksheet import Worksheet
 
+from logger.NMDLogger import nmd_logger
+
 Matrix = List[List[str]]
 
 
@@ -12,6 +14,7 @@ class WorksheetManager:
         self._header_range: Tuple[int, int] = (self._ws.frozen_rows, 0)
 
     def fetch(self):
+        nmd_logger.info("GAPI: fetch ws")
         self._cache = self._ws.get_all_values(
             include_tailing_empty_rows=False, include_tailing_empty=False
         )
@@ -22,12 +25,16 @@ class WorksheetManager:
         return self._cache
 
     def bold_cells(self, end_range: tuple, to_bold: bool = True):
+        nmd_logger.info(
+            f"GAPI: {"bold" if to_bold else "unbold"} cells until {end_range}"
+        )
         start_range = (1, 1)
         self._ws.apply_format(
             [[start_range, end_range]], {"textFormat": {"bold": to_bold}}
         )
 
     def set_header(self, header: Matrix):
+        nmd_logger.info(f"GAPI: set header: {header}")
         values = self.get_all_values()
         if self._header_range[0] > 0:
             end_range = tuple(x + 1 for x in self._header_range)
@@ -44,6 +51,7 @@ class WorksheetManager:
         return self.cache()[self._header_range[0] :]
 
     def add_row(self, row: List[str]):
+        nmd_logger.info(f"GAPI: add row: {row}")
         row_index = len(self.cache())
         self._ws.insert_rows(row=row_index, values=row)
         self.cache().append(row)
@@ -53,6 +61,9 @@ class WorksheetManager:
         column_index: int,
         sort_order: str = "DESCENDING",
     ):
+        nmd_logger.info(
+            f"GAPI: sort table by {column_index} column in {sort_order} order"
+        )
         start_range = (self._header_range[0] + 1, 1)
         cache = self.cache()
         end_range = (len(cache), len(cache[0]))
@@ -64,6 +75,7 @@ class WorksheetManager:
         values: Matrix,
         start_range: Optional[tuple] = None,
     ):
+        nmd_logger.info(f"GAPI: update values since {start_range} to {values}")
         if not start_range:
             start_range = (self._header_range[0] + 1, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
