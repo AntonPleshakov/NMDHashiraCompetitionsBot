@@ -5,7 +5,7 @@ from telebot import TeleBot, formatting
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
 
-from config.config import getconf
+from db.global_settings import settings_db
 from db.tournament_structures import TournamentSettings
 from logger.NMDLogger import nmd_logger
 from parameters import Param
@@ -22,8 +22,8 @@ def start_new_tournament(bot: TeleBot, settings: TournamentSettings):
     tournament_manager.start_tournament(settings)
     keyboard = InlineKeyboardMarkup()
     keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
-    chat_id = int(getconf("CHAT_ID"))
-    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
+    chat_id = settings_db.settings.chat_id.value
+    message_thread_id = settings_db.settings.tournament_thread_id.value
     message = bot.send_message(
         chat_id=chat_id,
         text=get_tournament_welcome_message(

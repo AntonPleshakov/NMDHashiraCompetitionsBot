@@ -1,7 +1,7 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery
 
-from config.config import getconf
+from db.global_settings import settings_db
 from db.ratings import ratings_db, Rating
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import PlayerNotFoundError, TournamentStartedError
@@ -35,8 +35,8 @@ def get_registration_list_message() -> str:
 
 
 def add_or_update_registration_list(bot: TeleBot, add: bool = True):
-    chat_id = int(getconf("CHAT_ID"))
-    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
+    chat_id = settings_db.settings.chat_id.value
+    message_thread_id = settings_db.settings.tournament_thread_id.value
     settings = tournament_manager.tournament.db.settings
 
     if settings.registration_list_message_id:

@@ -1,6 +1,6 @@
 from telebot import TeleBot
 
-from config.config import getconf
+from db.global_settings import settings_db
 from logger.NMDLogger import nmd_logger
 from tg.utils import get_tournament_end_message
 from tournament.tournament_manager import tournament_manager
@@ -8,8 +8,8 @@ from tournament.tournament_manager import tournament_manager
 
 def announce_tournament_end(bot: TeleBot):
     nmd_logger.info("End tournament announcement")
-    chat_id = int(getconf("CHAT_ID"))
-    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
+    chat_id = settings_db.settings.chat_id.value
+    message_thread_id = settings_db.settings.tournament_thread_id.value
     settings = tournament_manager.tournament.db.settings
     tournament_url = tournament_manager.tournament.db.settings
     results = tournament_manager.tournament.db.get_final_results()

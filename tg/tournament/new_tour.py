@@ -3,8 +3,8 @@ from typing import List
 from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup, CallbackQuery
 
-from config.config import getconf
 from db.admins import admins_db
+from db.global_settings import settings_db
 from db.tournament_structures import Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import MatchResultTryingToBeChanged
@@ -20,8 +20,8 @@ from tournament.tournament_manager import tournament_manager
 
 def announce_new_tour(bot: TeleBot, pairs: List[Match]):
     nmd_logger.info("New tour announcement")
-    chat_id = int(getconf("CHAT_ID"))
-    message_thread_id = int(getconf("TOURNAMENT_THREAD_ID"))
+    chat_id = settings_db.settings.chat_id.value
+    message_thread_id = settings_db.settings.tournament_thread_id.value
     db = tournament_manager.tournament.db
     tours_number = db.get_tours_number()
     settings = tournament_manager.tournament.db.settings
