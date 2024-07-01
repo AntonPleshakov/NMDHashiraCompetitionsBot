@@ -2,7 +2,7 @@ from parameters import Param
 
 
 class StrParam(Param):
-    def __init__(self, view: str, value: str = None):
+    def __init__(self, view: str, value: str = ""):
         super().__init__(view)
         self.value: str = value
 

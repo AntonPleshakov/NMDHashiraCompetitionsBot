@@ -2,7 +2,7 @@ from parameters import Param
 
 
 class IntParam(Param):
-    def __init__(self, view: str, value: int = None):
+    def __init__(self, view: str, value: int = 0):
         super().__init__(view)
         self.value: int = value
 

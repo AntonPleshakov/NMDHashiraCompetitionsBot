@@ -2,7 +2,7 @@ from parameters import Param
 
 
 class BoolParam(Param):
-    def __init__(self, view: str, value: bool = None):
+    def __init__(self, view: str, value: bool = False):
         super().__init__(view)
         self.value: bool = value
 

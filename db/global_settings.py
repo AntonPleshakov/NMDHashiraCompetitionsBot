@@ -30,6 +30,8 @@ class GlobalSettings(Parameters):
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
         self.element_effect_map: BoolParam = BoolParam("Элементные слабости на поле")
+        self.chat_id: IntParam = IntParam("Tournament chat id")
+        self.tournament_thread_id: IntParam = IntParam("Tournament thread id")
 
 
 class SettingsDB:
