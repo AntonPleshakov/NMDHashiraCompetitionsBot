@@ -5,11 +5,13 @@ from telebot.types import (
 )
 
 from db.admins import admins_db
+from logger.NMDLogger import nmd_logger
 from tg.admins import add_admin, del_admin
 from tg.utils import empty_filter, Button, get_ids
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Admins main menu for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.delete_state(user_id)
 
@@ -28,6 +30,7 @@ def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def admins_list(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Admins list")
     current_admins = admins_db.get_admins()
     text = "Список администраторов:\n"
     for admin in current_admins:

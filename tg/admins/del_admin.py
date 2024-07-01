@@ -3,6 +3,7 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.admins import admins_db
+from logger.NMDLogger import nmd_logger
 from tg.utils import Button, empty_filter, get_ids
 
 
@@ -12,6 +13,7 @@ class DelAdminStates(StatesGroup):
 
 
 def del_admin_options(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Del admin options for {cb_query.from_user.username}")
     current_admins = admins_db.get_admins()[1:]  # filter main admin
     keyboard = InlineKeyboardMarkup(row_width=1)
     for admin in current_admins:
@@ -30,6 +32,11 @@ def del_admin_options(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(
+        "Offer to delete "
+        + f"{[admin for admin in admins_db.get_admins() if admin.user_id.value == cb_query.data][0].username}"
+        + " from admins"
+    )
     admin_id = int(cb_query.data)
     admin_name = admins_db.get_admin(admin_id).username
 
@@ -50,6 +57,7 @@ def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Del admin approved")
     admin_id = int(cb_query.data.split("/")[-1])
     admin_name = admins_db.get_admin(admin_id).username.value
     admins_db.del_admin(admin_id)

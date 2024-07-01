@@ -10,6 +10,7 @@ from telebot.types import (
 )
 
 from db.admins import Admin, admins_db
+from logger.NMDLogger import nmd_logger
 from tg.utils import Button, empty_filter, get_ids
 
 
@@ -20,6 +21,7 @@ class AddAdminStates(StatesGroup):
 
 
 def send_user_request_message(bot: TeleBot, chat_id: int, user_id: int):
+    nmd_logger.info(f"Send user request message")
     request_user_btn = KeyboardButtonRequestUser(request_id=0, user_is_bot=False)
     button = KeyboardButton(
         text="Поделиться пользователем", request_user=request_user_btn
@@ -42,11 +44,13 @@ def send_user_request_message(bot: TeleBot, chat_id: int, user_id: int):
 
 
 def add_admin(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Add admin for {cb_query.from_user.username}")
     user_id, chat_id, _ = get_ids(cb_query)
     send_user_request_message(bot, chat_id, user_id)
 
 
 def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
+    nmd_logger.info(f"Confirmation to add new admin {new_admin.username}")
     keyboard = InlineKeyboardMarkup()
     keyboard.row(Button("Да", f"approved").inline())
     keyboard.row(Button("Нет", "admins").inline())
@@ -69,8 +73,10 @@ def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
 
 
 def get_user_data(message: Message, bot: TeleBot):
+    nmd_logger.info(f"Get user data: {message.text}")
     user_info = message.text.split(" ")
     if len(user_info) != 2 or not user_info[1].isdigit():
+        nmd_logger.info("Wrong format")
         bot.reply_to(message, text="Неверный формат данных пользователя")
         user_id, chat_id, _ = get_ids(message)
         send_user_request_message(bot, chat_id, user_id)
@@ -82,6 +88,7 @@ def get_user_data(message: Message, bot: TeleBot):
 
 
 def get_user_id(message: Message, bot: TeleBot):
+    nmd_logger.info(f"Get user id: {message.user_shared.user_id}")
     user_id, chat_id, message_id = get_ids(message)
     new_admin_id = message.user_shared.user_id
     bot.add_data(user_id, admin_id=new_admin_id)
@@ -97,6 +104,7 @@ def get_user_id(message: Message, bot: TeleBot):
 
 
 def get_username(message: Message, bot: TeleBot):
+    nmd_logger.info(f"Get username: {message.text}")
     with bot.retrieve_data(message.from_user.id) as data:
         user_id = data.pop("admin_id")
     username = message.text
@@ -104,6 +112,7 @@ def get_username(message: Message, bot: TeleBot):
 
 
 def add_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Add admin approved")
     user_id, chat_id, _ = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
         new_admin = data.pop("new_admin")

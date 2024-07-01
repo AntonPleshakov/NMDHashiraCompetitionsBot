@@ -1,11 +1,13 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
+from logger.NMDLogger import nmd_logger
 from tg.ratings import update_rating, delete_rating
 from tg.utils import Button, empty_filter, get_ids
 
 
 def ratings_main_menu(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Ratings main menu for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.delete_state(user_id)
 

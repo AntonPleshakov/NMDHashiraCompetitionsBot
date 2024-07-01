@@ -7,10 +7,12 @@ import db.gapi.gdrive_manager
 from config.config import getconf, reset_config
 from db.admins import admins_db
 from db.ratings import ratings_db
+from logger.NMDLogger import nmd_logger
 from tg.utils import empty_filter, Button, get_ids
 
 
 def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Dev main menu for {cb_query.from_user.username}")
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Загрузить логи", "dev/upload_logs").inline())
     keyboard.add(Button("Обновить файл конфигураций", "dev/update_config").inline())
@@ -28,16 +30,19 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def upload_logs(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Update logs")
     chat_id = cb_query.message.chat.id
     try:
         logs_db = db.gapi.gdrive_manager.GDriveManager()
         logs_db.upload_file(os.path.abspath(os.fspath(getconf("LOG_FILE_NAME"))))
         bot.send_message(chat_id, "Логи успешно загружены")
     except FileNotFoundError:
+        nmd_logger.exception("File not found")
         bot.send_message(chat_id, "Лог файл отсутствует")
 
 
 def update_config(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Update config")
     files_db = db.gapi.gdrive_manager.GDriveManager()
     files_db.download_file("config.ini", "config/config.ini")
     reset_config("config/config.ini")
@@ -45,11 +50,13 @@ def update_config(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def fetch_admins(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Fetch admins")
     admins_db.fetch_admins()
     bot.send_message(cb_query.message.chat.id, "Администраторы обновлены")
 
 
 def fetch_ratings(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Fetch ratings")
     ratings_db.fetch_ratings()
     bot.send_message(cb_query.message.chat.id, "Рейтинг лист обновлен")
 

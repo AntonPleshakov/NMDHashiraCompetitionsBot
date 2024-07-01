@@ -3,6 +3,7 @@ from telebot.handler_backends import StatesGroup, State
 from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from db.ratings import ratings_db, Rating
+from logger.NMDLogger import nmd_logger
 from tg.utils import Button, empty_filter, get_ids
 
 
@@ -13,6 +14,7 @@ class UpdateRatingStates(StatesGroup):
 
 
 def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Options to update rating")
     keyboard = InlineKeyboardMarkup(row_width=1)
     for player in ratings_db.get_ratings():
         button = Button(
@@ -35,6 +37,7 @@ def update_rating_chose_player(cb_query: CallbackQuery, bot: TeleBot):
 def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
     tg_id = cb_query.data
     player = ratings_db.get_rating(tg_id)
+    nmd_logger.info(f"Admin chose {player.tg_username} rating to update")
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button(f"{player.rating.view}", f"rating").inline())
@@ -58,6 +61,7 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Offer to update {cb_query.data}")
     param_to_update = cb_query.data
 
     user_id, chat_id, _ = get_ids(cb_query)
@@ -70,6 +74,7 @@ def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def update_player_parameter(message: Message, bot: TeleBot):
+    nmd_logger.info(f"New value for param = {message.text}")
     user_id = message.from_user.id
     with bot.retrieve_data(user_id) as data:
         tg_id = data["tg_id"]
