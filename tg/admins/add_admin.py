@@ -63,8 +63,8 @@ def add_admin_confirmation(message: Message, bot: TeleBot, new_admin: Admin):
         chat_id=chat_id,
         reply_to_message_id=message_id,
         text="Вы уверены что хотите добавить "
-        + f"[{new_admin.username}](tg://user?id={new_admin.user_id})"
-        + " в качестве администратора\?\n"
+        + f'<a href="tg://user?id={new_admin.user_id}">{new_admin.username}</a>\n'
+        + " в качестве администратора?\n"
         + "*Обратите внимание:*\n"
         + "Если имя пользователя в данном сообщении не является ссылкой на профиль, "
         + "то пользователь еще не взаимодействовал с ботом",
@@ -97,7 +97,7 @@ def get_user_id(message: Message, bot: TeleBot):
     keyboard.add(Button("Отмена", "admins").inline())
     bot.send_message(
         chat_id,
-        text=f"ID пользователя\: {new_admin_id}\nВведите имя пользователя",
+        text=f"ID пользователя: {new_admin_id}\nВведите имя пользователя",
         reply_markup=keyboard,
     )
     bot.set_state(user_id, AddAdminStates.username)
@@ -122,11 +122,11 @@ def add_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
     admin_username = new_admin.username
     bot.send_message(
         chat_id=chat_id,
-        text=f"Пользователь [{admin_username}](tg://user?id={str(admin_id)}) добавлен в качестве администратора",
+        text=f'Пользователь <a href="tg://user?id={admin_id}">{admin_username}</a> добавлен в качестве администратора',
     )
     bot.send_message(
         chat_id=admin_id,
-        text="Поздравляю\! Вам только что выдали права администратора\, можете начать с команды \/start",
+        text="Поздравляю! Вам только что выдали права администратора, можете начать с команды /start",
     )
 
 

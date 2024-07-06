@@ -22,7 +22,7 @@ def users_main_menu(message: Union[Message, CallbackQuery], bot: TeleBot):
         keyboard.add(Button("Назад в меню", "home").inline())
     bot.send_message(
         chat_id=chat_id,
-        text="Добро пожаловать в менеджер турниров Hashira\.\n"
+        text="Добро пожаловать в менеджер турниров Hashira.\n"
         "Для обновления вашего игрового никнейма просто напишите его здесь",
         reply_markup=keyboard,
     )

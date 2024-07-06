@@ -15,7 +15,7 @@ from tg.utils import (
     get_user_view,
 )
 
-bot = TeleBot(getconf("TOKEN"), parse_mode="MarkdownV2", use_class_middlewares=True)
+bot = TeleBot(getconf("TOKEN"), parse_mode="HTML", use_class_middlewares=True)
 
 
 class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):

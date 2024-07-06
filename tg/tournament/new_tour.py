@@ -9,6 +9,7 @@ from tg.utils import (
     empty_filter,
     get_ids,
     report_to_admins,
+    get_like_emoji,
 )
 from tournament.tournament_manager import tournament_manager
 
@@ -21,7 +22,7 @@ def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Проиграл", "tournament/lose").inline())
     bot.send_message(
         chat_id,
-        "Сообщите ваш результат\nP\.S\. неявка\, сдача и т\.д\. оцениваются как поражение",
+        "Сообщите ваш результат\nP.S. неявка, сдача и т.д. оцениваются как поражение",
         reply_markup=keyboard,
         message_thread_id=cb_query.message.message_thread_id,
     )
@@ -42,23 +43,23 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
             f"MatchResultTryingToBeChanged exception for user {cb_query.from_user.username}"
         )
         admins_list = [
-            f"[{admin.username}](tg://user?id={admin.user_id})"
+            f'<a href="tg://user?id={admin.user_id}">{admin.username}</a>\n'
             for admin in admins_db.get_admins()
         ]
         bot.answer_callback_query(
             message_id,
-            text="Вы пытаетесь зарегистрировать результат\, отличный от уже зарегистрированного\.\n"
-            + "Свяжитесь с одним из администраторов\, если вы хотите оспорить зарегистрированный результат\.\n"
-            + "Список администраторов\: "
-            + "\, ".join(admins_list),
+            text="Вы пытаетесь зарегистрировать результат, отличный от уже зарегистрированного.\n"
+            + "Свяжитесь с одним из администраторов, если вы хотите оспорить зарегистрированный результат.\n"
+            + "Список администраторов: "
+            + ", ".join(admins_list),
             show_alert=True,
         )
         report_to_admins(
             bot,
-            f"{cb_query.from_user.username} пытается зарегистрировать результат\, отличный от зарегистрированного\.\n"
+            f"{cb_query.from_user.username} пытается зарегистрировать результат, отличный от зарегистрированного.\n"
             + f"Data: {cb_query.data}",
         )
-    bot.delete_message(chat_id, message_id)
+    bot.set_message_reaction(chat_id, message_id, get_like_emoji())
 
 
 def register_handlers(bot: TeleBot):

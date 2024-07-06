@@ -47,8 +47,8 @@ def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text="Вы уверены что хотите лишить пользователя "
-        + f"[{admin_name}](tg://user?id={admin_id})"
-        + " администраторских прав\?",
+        + f'<a href="tg://user?id={admin_id}">{admin_name}</a>\n'
+        + " администраторских прав?",
         chat_id=chat_id,
         message_id=message_id,
         reply_markup=keyboard,
@@ -66,11 +66,11 @@ def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
     bot.delete_state(user_id)
     bot.send_message(
         chat_id=chat_id,
-        text=f"Пользователь [{admin_name}](tg://user?id={admin_id}) лишен администраторских прав",
+        text=f'Пользователь <a href="tg://user?id={admin_id}">{admin_name}</a> лишен администраторских прав',
     )
     bot.send_message(
         chat_id=admin_id,
-        text="Сожалею\, но вы только что были лишены администраторских прав",
+        text="Сожалею, но вы только что были лишены администраторских прав",
     )
 
 
@@ -86,7 +86,7 @@ def register_handlers(bot: TeleBot):
         del_admin_confirmation,
         func=empty_filter,
         state=DelAdminStates.admin_id,
-        button="\d+",
+        button=r"\d+",
         is_private=True,
         pass_bot=True,
     )
@@ -94,7 +94,7 @@ def register_handlers(bot: TeleBot):
         del_admin_approved,
         func=empty_filter,
         state=DelAdminStates.confirmed,
-        button="approved/\d+",
+        button=r"approved/\d+",
         is_private=True,
         pass_bot=True,
     )

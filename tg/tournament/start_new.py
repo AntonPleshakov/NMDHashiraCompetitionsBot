@@ -9,11 +9,11 @@ import tg.common.settings
 from db.tournament_structures import TournamentSettings
 from logger.NMDLogger import nmd_logger
 from tg import common
-from tg.utils import Button, empty_filter, get_ids
+from tg.utils import Button, empty_filter, get_ids, get_like_emoji
 from tournament.tournament_manager import tournament_manager, TournamentManager
 
 MENU_BTN = Button("Назад в турнир", "tournament/start_new").inline()
-DATETIME_FORMAT = "%d/%m, %H:%M"
+DATETIME_FORMAT = "%d/%m %H:%M"
 
 
 class TournamentStartStates(StatesGroup):
@@ -40,7 +40,7 @@ def new_tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     bot.set_state(user_id, TournamentStartStates.main_menu)
     bot.add_data(user_id, settings=settings)
     bot.edit_message_text(
-        text="*Настройки турнира:*\n" + settings.view(),
+        text="<b>Настройки турнира:</b>\n" + settings.view(),
         chat_id=chat_id,
         message_id=message_id,
         reply_markup=tournament_start_keyboard(),
@@ -66,15 +66,15 @@ def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(MENU_BTN)
     bot.send_message(
         chat_id=chat_id,
-        text=f"Введите дату старта в формате ({DATETIME_FORMAT})\n"
-        f"Например: ({datetime.now().strftime(DATETIME_FORMAT)})",
+        text=f"Введите дату старта в формате '{DATETIME_FORMAT}'\n"
+        f"Например: {datetime.now().strftime(DATETIME_FORMAT)}",
         reply_markup=keyboard,
     )
 
 
 def delayed_start_confirmed(message: Message, bot: TeleBot):
     nmd_logger.info(f"Delayed start confirmed in {message.text}")
-    user_id, chat_id, _ = get_ids(message)
+    user_id, chat_id, message_id = get_ids(message)
     try:
         start_date = datetime.strptime(message.text, DATETIME_FORMAT)
         start_date = start_date.replace(year=datetime.now().year)
@@ -88,6 +88,7 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
             TournamentManager.start_tournament,
             [tournament_manager, settings],
         )
+        bot.set_message_reaction(chat_id, message_id, get_like_emoji())
     except Exception as e:
         nmd_logger.exception("Exception in delayed start")
         keyboard = InlineKeyboardMarkup(row_width=1)
@@ -168,7 +169,7 @@ def register_handlers(bot: TeleBot):
         offer_to_edit_param,
         func=empty_filter,
         state=TournamentStartStates.settings,
-        button=f"\w+",
+        button=r"\w+",
         is_private=True,
         pass_bot=True,
     )
@@ -176,7 +177,7 @@ def register_handlers(bot: TeleBot):
         edit_bool_param,
         func=empty_filter,
         state=TournamentStartStates.new_value,
-        button=f"(on|off)",
+        button=r"(on|off)",
         is_private=True,
         pass_bot=True,
     )

@@ -48,7 +48,7 @@ def update_rating_parameters(cb_query: CallbackQuery, bot: TeleBot):
     bot.add_data(user_id, tg_id=tg_id)
     bot.set_state(user_id, UpdateRatingStates.parameter)
 
-    text = f"Выбран игрок {player.tg_username} \({player.nmd_username}\):\n"
+    text = f"Выбран игрок {player.tg_username} ({player.nmd_username}):\n"
     for param in player.params().values():
         text += f"{param.view}: {param.value_repr()}\n"
 
@@ -100,7 +100,7 @@ def register_handlers(bot: TeleBot):
         update_rating_parameters,
         func=empty_filter,
         state=UpdateRatingStates.player,
-        button="\w+",
+        button=r"\w+",
         is_private=True,
         pass_bot=True,
     )
@@ -108,7 +108,7 @@ def register_handlers(bot: TeleBot):
         update_rating_enter_value,
         func=empty_filter,
         state=UpdateRatingStates.parameter,
-        button="\w+",
+        button=r"\w+",
         is_private=True,
         pass_bot=True,
     )

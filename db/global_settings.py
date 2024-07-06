@@ -18,10 +18,10 @@ class GlobalSettings(Parameters):
             "Периодичность турниров в днях"
         )
         self.tournament_start_time_hours: IntParam = IntParam(
-            "Время начала турнира по Москве \(часы\)"
+            "Время начала турнира по Москве (часы)"
         )
         self.tournament_start_time_minutes: IntParam = IntParam(
-            "Время начала турнира по Москве \(минуты\)"
+            "Время начала турнира по Москве (минуты)"
         )
         # default settings
         self.rounds_number: IntParam = IntParam("Количество раундов")

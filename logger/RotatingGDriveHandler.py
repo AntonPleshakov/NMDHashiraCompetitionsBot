@@ -13,6 +13,10 @@ class RotatingGDriveHandler(RotatingFileHandler):
     ):
         super().__init__(filename, maxBytes=max_bytes, backupCount=backup_count)
 
+    def emit(self, record):
+        record.msg = record.msg.encode("utf8")
+        super().emit(record)
+
     def doRollover(self):
         super().doRollover()
         gdrive_db = db.gapi.gdrive_manager.GDriveManager()

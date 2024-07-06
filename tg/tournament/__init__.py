@@ -1,11 +1,15 @@
 from telebot import TeleBot
-from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
+from telebot.types import (
+    CallbackQuery,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from db.admins import admins_db
 from db.global_settings import settings_db
 from logger.NMDLogger import nmd_logger
 from tg.tournament import start_new, update_match_result, new_tour, register
-from tg.utils import Button, empty_filter, get_ids
+from tg.utils import Button, empty_filter, get_ids, get_like_emoji
 
 
 def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
@@ -30,7 +34,7 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 def register_chat_id(message: Message, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(message)
-    bot.delete_message(chat_id=chat_id, message_id=message_id)
+    bot.set_message_reaction(chat_id, message_id, get_like_emoji())
     if not admins_db.is_admin(user_id):
         bot.send_message(user_id, "Только администратор может менять настройки бота")
         return

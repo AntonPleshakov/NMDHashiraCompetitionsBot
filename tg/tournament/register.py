@@ -14,23 +14,23 @@ def offer_to_add_info(tg_id: int, bot: TeleBot):
     nmd_logger.info("Send offer to set nmd username")
     bot.send_message(
         chat_id=tg_id,
-        text="Для комфортного взаимодействия между игроками рекомендуется указать свой игровой никнейм\.\n"
-        "Вы можете написать его здесь и отредактировать в любое время\.",
+        text="Для комфортного взаимодействия между игроками рекомендуется указать свой игровой никнейм.\n"
+        "Вы можете написать его здесь и отредактировать в любое время.",
     )
 
 
 def get_registration_list_message() -> str:
     players = tournament_manager.tournament.db.get_registered_players()
-    message = "Список зарегистрировавшихся\:\n"
+    message = "<b>Список зарегистрировавшихся:</b>\n"
     for player in players:
         tg_username = player.tg_username.value
         tg_id = player.tg_id.value_repr()
         nmd_username = player.nmd_username.value
         rating = player.rating.value_repr()
-        message = message + f"[{tg_username}](tg://user?id={tg_id})"
+        message = message + f'<a href="tg://user?id={tg_id}">{tg_username}</a>'
         if nmd_username:
-            message = message + f" \({nmd_username}\)"
-        message = message + f"\: Рейтинг {rating}\n"
+            message = message + f" ({nmd_username})"
+        message = message + f": Рейтинг {rating}\n"
     return message
 
 

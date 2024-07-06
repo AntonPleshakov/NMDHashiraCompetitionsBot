@@ -108,8 +108,8 @@ def edit_int_param(
         keyboard.add(back_button)
         bot.send_message(
             chat_id=chat_id,
-            text="Неверный формат нового значения\.\n"
-            "Значение может быть только числом\.\n"
+            text="Неверный формат нового значения.\n"
+            "Значение может быть только числом.\n"
             "Повторите еще раз",
             reply_markup=keyboard,
         )

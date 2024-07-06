@@ -33,8 +33,12 @@ def admins_list(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Admins list")
     current_admins = admins_db.get_admins()
     text = "Список администраторов:\n"
+    admins_str = []
     for admin in current_admins:
-        text = text + f"[{admin.username.value}](tg://user?id={admin.user_id.value})\n"
+        admins_str.append(
+            f'<a href="tg://user?id={admin.user_id.value}">{admin.username.value}</a>'
+        )
+    text += "\n".join(admins_str)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Назад в Администраторы", "admins").inline())

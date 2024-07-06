@@ -48,8 +48,8 @@ def delete_rating_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     bot.set_state(user_id, DelRatingStates.confirmed)
     bot.edit_message_text(
         text="Вы уверены что хотите удалить игрока "
-        + f"{tg_username} \({nmd_username}\)"
-        + " из списка рейтингов\?",
+        + f"{tg_username} ({nmd_username})"
+        + " из списка рейтингов?",
         chat_id=chat_id,
         message_id=message_id,
         reply_markup=keyboard,
@@ -82,7 +82,7 @@ def register_handlers(bot: TeleBot):
         delete_rating_confirmation,
         func=empty_filter,
         state=DelRatingStates.player_data,
-        button="\w+",
+        button=r"\w+",
         is_private=True,
         pass_bot=True,
     )
@@ -90,7 +90,7 @@ def register_handlers(bot: TeleBot):
         delete_rating_approved,
         func=empty_filter,
         state=DelRatingStates.confirmed,
-        button="approved/\w+",
+        button=r"approved/\w+",
         is_private=True,
         pass_bot=True,
     )
