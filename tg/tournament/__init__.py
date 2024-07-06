@@ -1,6 +1,7 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
+from db.admins import admins_db
 from db.global_settings import settings_db
 from logger.NMDLogger import nmd_logger
 from tg.tournament import start_new, update_match_result, new_tour, register
@@ -28,15 +29,22 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def register_chat_id(message: Message, bot: TeleBot):
-    _, chat_id, message_id = get_ids(message)
-    thread_id = message.message_thread_id
-    nmd_logger.info(
-        f"Register chat_id {chat_id} and thread_id {thread_id} as tournament"
-    )
-    with settings_db.settings as settings:
-        settings.chat_id.value = chat_id
-        settings.tournament_thread_id.value = thread_id
+    user_id, chat_id, message_id = get_ids(message)
     bot.delete_message(chat_id=chat_id, message_id=message_id)
+    if not admins_db.is_admin(user_id):
+        bot.send_message(user_id, "Только администратор может менять настройки бота")
+        return
+
+    thread_id = message.message_thread_id
+    nmd_logger.info(f"Register chat {chat_id}::{thread_id} as tournament")
+
+    settings = settings_db.settings
+    settings.chat_id.value = chat_id
+    settings.tournament_thread_id.value = thread_id
+    settings_db.settings = settings
+    bot.send_message(
+        user_id, f"Чат {chat_id}::{thread_id} зарегистрирован как турнирный"
+    )
 
 
 def register_handlers(bot: TeleBot):
@@ -50,7 +58,6 @@ def register_handlers(bot: TeleBot):
     bot.register_message_handler(
         register_chat_id,
         commands=["mark_as_tournament_thread"],
-        is_admin=True,
         pass_bot=True,
     )
 

@@ -1,6 +1,6 @@
 from typing import Set
 
-from db.tournament_structures import RegistrationRow
+from db.tournament_structures import RegistrationRow, Result
 
 
 class Player:
@@ -23,3 +23,17 @@ class Player:
             registration.rating.value,
         )
         return player
+
+    def to_result(self, place: int, user: RegistrationRow) -> Result:
+        res = Result.from_row(
+            [
+                place,
+                user.tg_username,
+                user.nmd_username,
+                self.rating,
+                self.mm,
+                self.sos,
+                self.sodos,
+            ]
+        )
+        return res

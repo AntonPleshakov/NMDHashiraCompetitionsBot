@@ -1,40 +1,16 @@
-from typing import List
-
 from telebot import TeleBot
 from telebot.types import InlineKeyboardMarkup, CallbackQuery
 
 from db.admins import admins_db
-from db.global_settings import settings_db
-from db.tournament_structures import Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import MatchResultTryingToBeChanged
 from tg.utils import (
     Button,
     empty_filter,
     get_ids,
-    get_next_tour_message,
     report_to_admins,
 )
 from tournament.tournament_manager import tournament_manager
-
-
-def announce_new_tour(bot: TeleBot, pairs: List[Match]):
-    nmd_logger.info("New tour announcement")
-    chat_id = settings_db.settings.chat_id.value
-    message_thread_id = settings_db.settings.tournament_thread_id.value
-    db = tournament_manager.tournament.db
-    tours_number = db.get_tours_number()
-    settings = tournament_manager.tournament.db.settings
-    tournament_url = tournament_manager.tournament.db.get_url()
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(Button("Объявить результат", "tournament/apply_result").inline())
-    message = bot.send_message(
-        chat_id,
-        get_next_tour_message(settings, pairs, tours_number, tournament_url),
-        reply_markup=keyboard,
-        message_thread_id=message_thread_id,
-    )
-    bot.pin_chat_message(chat_id, message.id)
 
 
 def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):

@@ -8,6 +8,7 @@ from telebot.types import (
 )
 
 from logger.NMDLogger import nmd_logger
+from tg import global_settings
 from . import admins, dev, ratings, tournament, users
 from .utils import empty_filter, Button, get_ids
 
@@ -16,6 +17,7 @@ def main_menu_keyboard():
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Администраторы", "admins").inline())
     keyboard.add(Button("Рейтинги", "ratings").inline())
+    keyboard.add(Button("Глобальные настройки", "global_settings").inline())
     keyboard.add(Button("Турнир", "tournament").inline())
     keyboard.add(Button("Служебные", "dev").inline())
     keyboard.add(Button("Пользовательские", "users").inline())
@@ -57,6 +59,7 @@ def register_handlers(bot: TeleBot):
 
     admins.register_handlers(bot)
     dev.register_handlers(bot)
+    global_settings.register_handlers(bot)
     ratings.register_handlers(bot)
     tournament.register_handlers(bot)
     users.register_handlers(bot)

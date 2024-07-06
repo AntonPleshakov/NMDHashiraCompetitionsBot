@@ -1,9 +1,8 @@
 import logging
+import sys
 
 from config.config import getconf
 from .RotatingGDriveHandler import RotatingGDriveHandler
-
-logging.basicConfig(level=logging.INFO)
 
 fmt = getconf("LOG_FORMAT")
 date_fmt = getconf("LOG_DATE_FORMAT")
@@ -14,7 +13,7 @@ gdrive_handler = RotatingGDriveHandler(
 gdrive_handler.setLevel(logging.DEBUG)
 gdrive_handler.setFormatter(logging.Formatter(fmt, date_fmt))
 
-stream_handler = logging.StreamHandler()
+stream_handler = logging.StreamHandler(sys.stdout)
 stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(logging.Formatter(fmt, date_fmt))
 

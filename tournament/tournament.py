@@ -3,7 +3,7 @@ from typing import List
 
 from db.ratings import ratings_db, Rating
 from db.tournament import TournamentDB
-from db.tournament_structures import RegistrationRow, Match, Result
+from db.tournament_structures import RegistrationRow, Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import (
     TournamentStartedError,
@@ -134,7 +134,7 @@ class Tournament:
         tournament_table = []
         for i, player in enumerate(players):
             user = self._pairing.get_user(player)
-            result = Result.create(i, player, user)
+            result = player.to_result(i, user)
             new_rating = new_ratings[player.tg_id].rating.value
             result.rating.value = f"{player.rating} -> {new_rating}"
             tournament_table.append(result)

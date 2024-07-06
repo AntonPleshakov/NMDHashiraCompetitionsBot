@@ -1,7 +1,6 @@
-from configparser import NoOptionError
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
 
 from db.global_settings import settings_db
 from db.ratings import Rating
@@ -9,7 +8,6 @@ from parameters import Parameters
 from parameters.bool_param import BoolParam
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
-from tournament.player import Player
 
 
 class RegistrationRow(Parameters):
@@ -105,21 +103,6 @@ class Result(Parameters):
         self.sos: IntParam = IntParam("SOS")
         self.sodos: IntParam = IntParam("SODOS")
 
-    @classmethod
-    def create(cls, place: int, player: Player, user: RegistrationRow):
-        res = cls.from_row(
-            [
-                place,
-                user.tg_username,
-                user.nmd_username,
-                player.rating,
-                player.mm,
-                player.sos,
-                player.sodos,
-            ]
-        )
-        return res
-
 
 class TournamentSettings(Parameters):
     DATETIME_FORMAT = "%d/%m/%Y, %H:%M"
@@ -137,6 +120,10 @@ class TournamentSettings(Parameters):
             "ID сообщения зарегистрированных игроков"
         )
         self._tournament_start_date = StrParam("Время начала турнира")
+
+    @staticmethod
+    def private_parameters() -> List[str]:
+        return ["registration_list_message_id", "_tournament_start_date"]
 
     @property
     def round_duration_seconds(self) -> float:
@@ -170,6 +157,6 @@ class TournamentSettings(Parameters):
         for name, param in settings.params().items():
             try:
                 param.set_value(settings_db.settings.get_value(name))
-            except NoOptionError:
+            except AttributeError:
                 pass
         return settings

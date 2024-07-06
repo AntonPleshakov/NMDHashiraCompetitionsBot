@@ -43,6 +43,7 @@ class AdminsDB:
         return None
 
     def is_admin(self, user_id: int):
+        nmd_logger.info(f"DB: Check if {user_id} is admin")
         return user_id in self._admins_id_set
 
     def del_admin(self, user_id: int):

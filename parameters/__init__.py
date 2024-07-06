@@ -61,7 +61,8 @@ class Parameters:
     def from_matrix(cls, matrix: Matrix):
         parameters = cls()
         for attr, row in zip(parameters.params(), matrix):
-            parameters.set_value(attr, row[1])
+            if len(row) == 2:
+                parameters.set_value(attr, row[1])
         return parameters
 
     def to_row(self) -> List[str]:
@@ -83,7 +84,7 @@ class Parameters:
     def set_value(self, attr_name: str, value: any):
         if isinstance(value, str):
             getattr(self, attr_name).set_value(value)
-        if isinstance(value, Param):
+        elif isinstance(value, Param):
             getattr(self, attr_name).set_value(value.value_repr())
         else:
             getattr(self, attr_name).value = value
