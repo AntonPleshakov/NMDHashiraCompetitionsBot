@@ -1,142 +1,60 @@
 import threading
 from datetime import datetime
 
-from telebot import TeleBot, formatting
+from telebot import TeleBot
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
 
-from db.global_settings import settings_db
+import tg.common.settings
 from db.tournament_structures import TournamentSettings
 from logger.NMDLogger import nmd_logger
-from parameters import Param
-from parameters.bool_param import BoolParam
-from tg.utils import Button, empty_filter, get_tournament_welcome_message, get_ids
-from tournament.tournament_manager import tournament_manager
+from tg import common
+from tg.utils import Button, empty_filter, get_ids
+from tournament.tournament_manager import tournament_manager, TournamentManager
 
-CANCEL_BTN = Button("Отменить изменение параметра", "tournament/start_new").inline()
+MENU_BTN = Button("Назад в турнир", "tournament/start_new").inline()
 DATETIME_FORMAT = "%d/%m, %H:%M"
 
 
-def start_new_tournament(bot: TeleBot, settings: TournamentSettings):
-    nmd_logger.info("Start new tournament")
-    tournament_manager.start_tournament(settings)
-    keyboard = InlineKeyboardMarkup()
-    keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
-    chat_id = settings_db.settings.chat_id.value
-    message_thread_id = settings_db.settings.tournament_thread_id.value
-    message = bot.send_message(
-        chat_id=chat_id,
-        text=get_tournament_welcome_message(
-            settings, tournament_manager.tournament.db.get_url()
-        ),
-        message_thread_id=message_thread_id,
-        reply_markup=keyboard,
-    )
-    bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
-
-
 class TournamentStartStates(StatesGroup):
+    main_menu = State()
+    delayed_start = State()
+    settings = State()
     edit_param = State()
     new_value = State()
-    delayed_start = State()
 
 
-def tournament_start_keyboard(settings: TournamentSettings) -> InlineKeyboardMarkup:
+def tournament_start_keyboard() -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(Button("Запустить с выбранными настройками", "start").inline())
+    keyboard.add(Button("Запустить с текущими настройками", "start").inline())
     keyboard.add(Button("Запланировать запуск", "delayed_start").inline())
-    for attr_name, param in settings.params().items():
-        keyboard.add(
-            Button(
-                f"Изменить {param.view}",
-                f"{attr_name.lower()}",
-            ).inline()
-        )
+    keyboard.add(Button("Изменить настройки", "edit_settings").inline())
     keyboard.add(Button("Отмена", "tournament").inline())
     return keyboard
 
 
-def offer_to_start_new_tournament(cb_query: CallbackQuery, bot: TeleBot):
+def new_tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info(f"Offer to start new tournament for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     settings = TournamentSettings.default_settings()
-    bot.set_state(user_id, TournamentStartStates.edit_param)
+    bot.set_state(user_id, TournamentStartStates.main_menu)
     bot.add_data(user_id, settings=settings)
     bot.edit_message_text(
         text="*Настройки турнира:*\n" + settings.view(),
         chat_id=chat_id,
         message_id=message_id,
-        reply_markup=tournament_start_keyboard(settings),
+        reply_markup=tournament_start_keyboard(),
     )
 
 
-def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info("Offer to edit tournament settings")
-    attr_name = cb_query.data
-    user_id, chat_id, _ = get_ids(cb_query)
+def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"Start tournament immediately")
+    user_id = cb_query.from_user.id
     with bot.retrieve_data(user_id) as data:
         settings = data["settings"]
-        data["param_to_update"] = attr_name
-    bot.set_state(user_id, TournamentStartStates.new_value)
+    bot.delete_state(user_id)
 
-    param: Param = settings.params()[attr_name]
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    if isinstance(param, BoolParam):
-        keyboard.add(Button("Включить", "on").inline())
-        keyboard.add(Button("Выключить", "off").inline())
-    keyboard.add(CANCEL_BTN)
-    bot.send_message(
-        chat_id=chat_id,
-        text=f"Введите новое значение для '{formatting.escape_markdown(param.view)}'",
-        reply_markup=keyboard,
-    )
-
-
-def edit_bool_tournament_param(cb_query: CallbackQuery, bot: TeleBot):
-    value = cb_query.data
-    user_id, chat_id, message_id = get_ids(cb_query)
-    with bot.retrieve_data(user_id) as data:
-        settings = data["settings"]
-        param_to_update = data["param_to_update"]
-        settings.set_value(param_to_update, value == "on")
-        data["settings"] = settings
-    nmd_logger.info(f"Edit bool param {param_to_update} to {value == "on"}")
-    bot.set_state(user_id, TournamentStartStates.edit_param)
-    bot.edit_message_text(
-        text="*Настройки турнира:*\n" + settings.view(),
-        chat_id=chat_id,
-        message_id=message_id,
-        reply_markup=tournament_start_keyboard(settings),
-    )
-
-
-def edit_tournament_param(message: Message, bot: TeleBot):
-    user_id, chat_id, _ = get_ids(message)
-    if not message.text.isdigit():
-        nmd_logger.info(f"Edit param, but message not digit: {message.text}")
-        keyboard = InlineKeyboardMarkup(row_width=1)
-        keyboard.add(CANCEL_BTN)
-        bot.send_message(
-            chat_id=chat_id,
-            text="Неверный формат нового значения\.\n"
-            "Значение может быть только числом\.\n"
-            "Повторите еще раз",
-            reply_markup=keyboard,
-        )
-
-    with bot.retrieve_data(user_id) as data:
-        settings = data["settings"]
-        param_to_update = data["param_to_update"]
-        settings.params()[param_to_update].set_value(message.text)
-        data["settings"] = settings
-
-    nmd_logger.info(f"Edit param {param_to_update} to {message.text}")
-    bot.set_state(user_id, TournamentStartStates.edit_param)
-    bot.send_message(
-        chat_id=chat_id,
-        text="*Настройки турнира:*\n" + settings.view(),
-        reply_markup=tournament_start_keyboard(settings),
-    )
+    tournament_manager.start_tournament(settings)
 
 
 def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
@@ -145,7 +63,7 @@ def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
     bot.set_state(user_id, TournamentStartStates.delayed_start)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(CANCEL_BTN)
+    keyboard.add(MENU_BTN)
     bot.send_message(
         chat_id=chat_id,
         text=f"Введите дату старта в формате ({DATETIME_FORMAT})\n"
@@ -166,12 +84,14 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
         bot.delete_state(user_id)
 
         threading.Timer(
-            time_to_start.total_seconds(), start_new_tournament, [bot, settings]
+            time_to_start.total_seconds(),
+            TournamentManager.start_tournament,
+            [tournament_manager, settings],
         )
     except Exception as e:
         nmd_logger.exception("Exception in delayed start")
         keyboard = InlineKeyboardMarkup(row_width=1)
-        keyboard.add(CANCEL_BTN)
+        keyboard.add(MENU_BTN)
         bot.send_message(
             chat_id=chat_id,
             text=f"Неудалось обработать сообщение\n{e}\nПовторите еще раз",
@@ -179,50 +99,53 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
         )
 
 
-def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Start tournament immediately")
-    user_id = cb_query.from_user.id
-    with bot.retrieve_data(user_id) as data:
+def edit_tournament_settings(cb_query: CallbackQuery, bot: TeleBot):
+    with bot.retrieve_data(cb_query.from_user.id) as data:
         settings = data["settings"]
-    bot.delete_state(user_id)
+    common.settings.settings_main_menu(
+        cb_query, settings, TournamentStartStates.settings, MENU_BTN, bot
+    )
 
-    start_new_tournament(bot, settings)
+
+def offer_to_edit_param(cb_query: CallbackQuery, bot: TeleBot):
+    cancel_btn = Button("Отменить изменение параметра", "edit_settings").inline()
+    common.settings.offer_to_edit_param(
+        cb_query, TournamentStartStates.new_value, cancel_btn, bot
+    )
+
+
+def edit_bool_param(cb_query: CallbackQuery, bot: TeleBot):
+    common.settings.edit_bool_param(
+        cb_query, TournamentStartStates.settings, MENU_BTN, bot
+    )
+
+
+def edit_int_param(message: Message, bot: TeleBot):
+    common.settings.edit_int_param(
+        message, TournamentStartStates.settings, MENU_BTN, bot
+    )
 
 
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
-        offer_to_start_new_tournament,
+        new_tournament_main_menu,
         func=empty_filter,
         button="tournament/start_new",
         is_private=True,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        edit_tournament_settings,
+        start_new_tournament_option,
         func=empty_filter,
-        state=TournamentStartStates.edit_param,
-        button=f"\w+",
+        state=TournamentStartStates.main_menu,
+        button=f"start",
         is_private=True,
-        pass_bot=True,
-    )
-    bot.register_callback_query_handler(
-        edit_bool_tournament_param,
-        func=empty_filter,
-        state=TournamentStartStates.new_value,
-        button=f"(on|off)",
-        is_private=True,
-        pass_bot=True,
-    )
-    bot.register_message_handler(
-        edit_tournament_param,
-        chat_types=["private"],
-        state=TournamentStartStates.new_value,
         pass_bot=True,
     )
     bot.register_callback_query_handler(
         delayed_start,
         func=empty_filter,
-        state=TournamentStartStates.edit_param,
+        state=TournamentStartStates.main_menu,
         button=f"delayed_start",
         is_private=True,
         pass_bot=True,
@@ -234,10 +157,32 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
     bot.register_callback_query_handler(
-        start_new_tournament_option,
+        edit_tournament_settings,
         func=empty_filter,
-        state=TournamentStartStates.edit_param,
-        button=f"start",
+        state=TournamentStartStates.main_menu,
+        button="edit_settings",
         is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        offer_to_edit_param,
+        func=empty_filter,
+        state=TournamentStartStates.settings,
+        button=f"\w+",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        edit_bool_param,
+        func=empty_filter,
+        state=TournamentStartStates.new_value,
+        button=f"(on|off)",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_message_handler(
+        edit_int_param,
+        chat_types=["private"],
+        state=TournamentStartStates.new_value,
         pass_bot=True,
     )

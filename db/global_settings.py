@@ -1,3 +1,5 @@
+from typing import List
+
 from config.config import getconf
 from logger.NMDLogger import nmd_logger
 from parameters import Parameters
@@ -16,10 +18,10 @@ class GlobalSettings(Parameters):
             "Периодичность турниров в днях"
         )
         self.tournament_start_time_hours: IntParam = IntParam(
-            "Время начала турнира по Москве (часы)"
+            "Время начала турнира по Москве \(часы\)"
         )
         self.tournament_start_time_minutes: IntParam = IntParam(
-            "Время начала турнира по Москве (минуты)"
+            "Время начала турнира по Москве \(минуты\)"
         )
         # default settings
         self.rounds_number: IntParam = IntParam("Количество раундов")
@@ -32,6 +34,10 @@ class GlobalSettings(Parameters):
         self.element_effect_map: BoolParam = BoolParam("Элементные слабости на поле")
         self.chat_id: IntParam = IntParam("Tournament chat id")
         self.tournament_thread_id: IntParam = IntParam("Tournament thread id")
+
+    @staticmethod
+    def private_parameters() -> List[str]:
+        return ["chat_id", "tournament_thread_id"]
 
 
 class SettingsDB:
