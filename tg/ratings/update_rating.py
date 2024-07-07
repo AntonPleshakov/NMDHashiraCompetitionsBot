@@ -4,7 +4,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup, Message
 
 from db.ratings import ratings_db, Rating
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids
+from tg.utils import Button, empty_filter, get_ids, get_like_emoji, home
 
 
 class UpdateRatingStates(StatesGroup):
@@ -64,18 +64,19 @@ def update_rating_enter_value(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info(f"Offer to update {cb_query.data}")
     param_to_update = cb_query.data
 
-    user_id, chat_id, _ = get_ids(cb_query)
-    bot.send_message(
-        chat_id=chat_id,
-        text=f"Введите новое значение для параметра '{Rating().params()[param_to_update].view}'",
-    )
+    user_id, chat_id, message_id = get_ids(cb_query)
     bot.add_data(user_id, param_to_update=param_to_update)
     bot.set_state(user_id, UpdateRatingStates.new_value)
+    bot.edit_message_text(
+        f"Введите новое значение для параметра '{Rating().params()[param_to_update].view}'",
+        chat_id,
+        message_id,
+    )
 
 
 def update_player_parameter(message: Message, bot: TeleBot):
     nmd_logger.info(f"New value for param = {message.text}")
-    user_id = message.from_user.id
+    user_id, chat_id, message_id = get_ids(message)
     with bot.retrieve_data(user_id) as data:
         tg_id = data["tg_id"]
         param_to_update = data["param_to_update"]
@@ -85,7 +86,8 @@ def update_player_parameter(message: Message, bot: TeleBot):
     player = ratings_db.get_rating(tg_id)
     player.set_value(param_to_update, new_value)
     ratings_db.update_user_rating(tg_id, player)
-    bot.reply_to(message, "Параметр успешно обновлен")
+    bot.set_message_reaction(chat_id, message_id, get_like_emoji())
+    home(message, bot)
 
 
 def register_handlers(bot: TeleBot):

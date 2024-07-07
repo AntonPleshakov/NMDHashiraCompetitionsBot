@@ -1,4 +1,3 @@
-import threading
 from datetime import timedelta, datetime
 from typing import Optional
 
@@ -13,6 +12,7 @@ from tg.tournament.announcements import (
     announce_tournament_end,
     announce_new_tour,
 )
+from tg.utils import tournament_timer
 from .tournament import Tournament, TournamentState
 
 
@@ -43,7 +43,7 @@ class TournamentManager:
                     next_date += timedelta(days=days_period)
                 diff_to_next_date: timedelta = next_date - datetime.now()
                 seconds_to_next_date = diff_to_next_date.total_seconds()
-                threading.Timer(
+                tournament_timer.update_timer(
                     seconds_to_next_date,
                     start_new_tournament,
                     [bot, TournamentSettings.default_settings()],
@@ -62,12 +62,12 @@ class TournamentManager:
             last_date = self._settings.tournament_start_date
             next_date = last_date + timedelta(hours=registration_duration)
             if self._tournament.state != TournamentState.REGISTRATION:
-                for i in range(self._settings.rounds_number.value):
+                for i in range(self._tournament.db.get_tours_number()):
                     round_duration = self._settings.round_duration_hours.value
                     next_date += timedelta(hours=round_duration)
             if next_date > datetime.now():
                 diff: timedelta = next_date - datetime.now()
-                threading.Timer(
+                tournament_timer.update_timer(
                     diff.total_seconds(),
                     TournamentManager.next_tour,
                     [self],
@@ -91,7 +91,7 @@ class TournamentManager:
         self._tournament = Tournament(TournamentDB.create_new_tournament(settings))
         self._settings = settings
         start_new_tournament(settings, self._tournament.db, bot)
-        threading.Timer(
+        tournament_timer.update_timer(
             settings.registration_duration_seconds, TournamentManager.next_tour, [self]
         ).start()
         nmd_logger.info(
@@ -109,7 +109,9 @@ class TournamentManager:
             pairs = self._tournament.new_round()
             announce_new_tour(pairs, self._tournament.db, bot)
             round_duration = self._settings.round_duration_seconds
-            threading.Timer(round_duration, TournamentManager.next_tour, [self]).start()
+            tournament_timer.update_timer(
+                round_duration, TournamentManager.next_tour, [self]
+            ).start()
             nmd_logger.info(f"Next tour will start in {round_duration} seconds")
         else:
             nmd_logger.info("Last tour finished")
@@ -131,7 +133,7 @@ class TournamentManager:
             )
 
             next_tournament_duration = next_tournament_day - datetime.now()
-            threading.Timer(
+            tournament_timer.update_timer(
                 next_tournament_duration.total_seconds(),
                 start_new_tournament,
                 [bot, TournamentSettings.default_settings()],

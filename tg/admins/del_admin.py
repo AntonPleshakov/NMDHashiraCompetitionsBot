@@ -4,7 +4,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.admins import admins_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids
+from tg.utils import Button, empty_filter, get_ids, home
 
 
 class DelAdminStates(StatesGroup):
@@ -64,14 +64,15 @@ def del_admin_approved(cb_query: CallbackQuery, bot: TeleBot):
 
     user_id, chat_id, _ = get_ids(cb_query)
     bot.delete_state(user_id)
-    bot.send_message(
-        chat_id=chat_id,
-        text=f'Пользователь <a href="tg://user?id={admin_id}">{admin_name}</a> лишен администраторских прав',
+    bot.answer_callback_query(
+        cb_query.id,
+        text=f"Пользователь {admin_name} лишен администраторских прав",
     )
     bot.send_message(
         chat_id=admin_id,
         text="Сожалею, но вы только что были лишены администраторских прав",
     )
+    home(cb_query, bot)
 
 
 def register_handlers(bot: TeleBot):

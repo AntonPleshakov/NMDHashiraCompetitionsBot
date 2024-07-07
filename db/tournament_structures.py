@@ -5,7 +5,6 @@ from typing import Optional, List
 from db.global_settings import settings_db
 from db.ratings import Rating
 from parameters import Parameters
-from parameters.bool_param import BoolParam
 from parameters.int_param import IntParam
 from parameters.str_param import StrParam
 
@@ -42,13 +41,12 @@ class Match(Parameters):
 
     def __init__(self):
         self.first: StrParam = StrParam("Первый игрок")
-        self.first_id: int = 0
+        self.first_id: IntParam = IntParam("ТГ ID")
         self._result: StrParam = StrParam("Результат")
         self._result_enum: Match.MatchResult = Match.MatchResult.NotPlayed
-        self.second_id: int = 0
         self.second: StrParam = StrParam("Второй игрок")
+        self.second_id: IntParam = IntParam("ТГ ID")
         self.map: StrParam = StrParam("Карта")
-        self.battleground_effect: StrParam = StrParam("Эффект поля")
 
     def to_string(self):
         return f"{self.first.value} {self._result.value} {self.second.value}"
@@ -88,7 +86,10 @@ class Match(Parameters):
             opponent_name = opponent.nmd_username.value
             if opponent.nmd_username.value:
                 opponent_name = opponent_name + f"({opponent.nmd_username.value})"
-        match = cls.from_row([player_name, "", opponent_name])
+        opponent_id = opponent.tg_id.value if opponent else 0
+        match = cls.from_row(
+            [player_name, player.tg_id.value, "", opponent_name, opponent_id]
+        )
         match.result = cls.MatchResult.NotPlayed
         return match
 
@@ -115,7 +116,6 @@ class TournamentSettings(Parameters):
         self.round_duration_hours: IntParam = IntParam("Длительность раунда в часах")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
-        self.element_effect_map: BoolParam = BoolParam("Элементные слабости на поле")
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )

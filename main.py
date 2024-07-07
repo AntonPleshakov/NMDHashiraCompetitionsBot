@@ -25,13 +25,13 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
         self._ignore_data = {"tournament/register", "tournament/(won|lose)"}
 
     def pre_process(self, message: CallbackQuery, data: dict):
-        if message.data not in self._ignore_data:
-            bot.answer_callback_query(message.id)
+        pass
 
     def post_process(
         self, message: CallbackQuery, data: dict, exception: BaseException
     ):
-        pass
+        # if message.data not in self._ignore_data:
+        bot.answer_callback_query(message.id)
 
 
 def permission_denied_message(message: Union[Message, CallbackQuery]):

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from config.config import getconf
 from logger.NMDLogger import nmd_logger
@@ -22,12 +22,13 @@ class TournamentDB:
         self._settings: TournamentSettings = TournamentSettings.from_matrix(
             self._settings_page.get_all_values()
         )
-        self._settings.tournament_start_date = datetime.now()
         self._registration_page: WorksheetManager = self._manager.get_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
         )
         self._tours: List[WorksheetManager] = []
         self._results_page: Optional[WorksheetManager] = None
+        self._registered_players: Set[int] = set()
+        self._restore_tournament()
 
     @classmethod
     def create_new_tournament(cls, settings: TournamentSettings):
@@ -39,6 +40,7 @@ class TournamentDB:
         settings_page = manager.rename_worksheet(
             getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
         )
+        settings.tournament_start_date = datetime.now()
         settings_page.update_values(settings.to_matrix())
         registration_page = manager.add_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
@@ -68,6 +70,18 @@ class TournamentDB:
         ss = manager.open(latest_ss.id)
         return TournamentDB(ss)
 
+    def _restore_tournament(self):
+        for player in self.get_registered_players():
+            self._registered_players.add(player.tg_id.value)
+
+        tour_number = 1
+        tour_title = getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(tour_number)
+        while self._manager.is_worksheet_exist(tour_title):
+            tour_page = self._manager.get_worksheet(tour_title)
+            self._tours.append(tour_page)
+            tour_number += 1
+            tour_title = getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(tour_number)
+
     def get_url(self):
         return self._manager.get_url()
 
@@ -75,11 +89,15 @@ class TournamentDB:
         nmd_logger.info(f"DB: register player {player.tg_username.value}")
         self._registration_page.add_row(player.to_row())
         self._registration_page.sort_table(player.rating.index)
+        self._registered_players.add(player.tg_id.value)
 
     def get_registered_players(self) -> List[RegistrationRow]:
         matrix = self._registration_page.get_all_values()
         players = [RegistrationRow.from_row(row) for row in matrix]
         return players
+
+    def is_player_registered(self, player_tg_id: int) -> bool:
+        return player_tg_id in self._registered_players
 
     def update_player_info(self, player: RegistrationRow):
         nmd_logger.info(f"DB: update player info to: {', '.join(player.to_row())}")

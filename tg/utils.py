@@ -1,5 +1,7 @@
+import os
+import threading
 from textwrap import dedent
-from typing import Union, Tuple, List
+from typing import Union, Tuple, List, Optional
 
 from telebot import TeleBot
 from telebot.types import (
@@ -9,6 +11,7 @@ from telebot.types import (
     CallbackQuery,
     ReactionType,
     ReactionTypeEmoji,
+    InlineKeyboardMarkup,
 )
 
 from db.admins import admins_db
@@ -91,8 +94,8 @@ def get_next_tour_message(
     tour_hours = settings.round_duration_hours.value
     pairs_str = ""
     for match in pairs:
-        first = f'<a href="{match.first_id}">{match.first.value}</a>'
-        second = f'<a href="{match.second_id}">{match.second.value}</a>'
+        first = f'<a href="{match.first_id.value}">{match.first.value}</a>'
+        second = f'<a href="{match.second_id.value}">{match.second.value}</a>'
         pairs_str += f"{first} vs {second}"
     return dedent(
         f"""
@@ -184,3 +187,61 @@ def empty_filter(_):
 
 def get_like_emoji() -> List[ReactionType]:
     return [ReactionTypeEmoji("👍")]
+
+
+def get_dislike_emoji() -> List[ReactionType]:
+    return [ReactionTypeEmoji("👎")]
+
+
+def main_menu_keyboard():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(Button("Администраторы", "admins").inline())
+    keyboard.add(Button("Рейтинги", "ratings").inline())
+    keyboard.add(Button("Глобальные настройки", "global_settings").inline())
+    keyboard.add(Button("Турнир", "tournament").inline())
+    keyboard.add(Button("Служебные", "dev").inline())
+    keyboard.add(Button("Пользовательские", "users").inline())
+    return keyboard
+
+
+def home(message: Union[Message, CallbackQuery], bot: TeleBot):
+    nmd_logger.info(f"Home for {message.from_user.username}")
+    keyboard = main_menu_keyboard()
+    text = "Выберите раздел управления"
+    user_id, chat_id, message_id = get_ids(message)
+    if isinstance(message, CallbackQuery):
+        bot.edit_message_text(
+            text=text,
+            chat_id=chat_id,
+            message_id=message_id,
+            reply_markup=keyboard,
+        )
+    else:
+        bot.send_message(
+            chat_id=chat_id,
+            text=text,
+            reply_markup=keyboard,
+        )
+    bot.delete_state(user_id)
+
+
+class TournamentTimer:
+    def __init__(self):
+        self._timer: Optional[threading.Timer] = None
+
+    def update_timer(self, interval, function, args=None, kwargs=None):
+        if os.getenv("MODE", "Release"):
+            interval = interval / 60  # hours to minutes for debug mode
+        self._timer = threading.Timer(interval, function, args, kwargs)
+        return self
+
+    def start(self):
+        if self._timer:
+            self._timer.start()
+
+    def cancel(self):
+        if self._timer:
+            self._timer.cancel()
+
+
+tournament_timer = TournamentTimer()

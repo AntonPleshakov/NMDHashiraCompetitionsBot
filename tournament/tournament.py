@@ -39,7 +39,7 @@ class Tournament:
 
         players_list = self.db.get_registered_players()
         previous_tours = []
-        for i in range(self.db.get_tours_number() - 1):
+        for i in range(self.db.get_tours_number()):
             previous_tours.append(self.db.get_results(i))
         self._pairing: McMahonPairing = McMahonPairing(players_list, previous_tours)
 
@@ -56,6 +56,16 @@ class Tournament:
             nmd_logger.info("Update coefficients with results of last round")
             self._pairing.update_coefficients(self.db.get_results())
         pairs = self._pairing.gen_pairs()
+        nightmares = self.db.settings.nightmare_matches.value
+        dangerous = self.db.settings.dangerous_matches.value
+        for p in pairs:
+            if nightmares:
+                p.map.set_value("Nightmare")
+                nightmares -= 1
+            elif dangerous:
+                p.map.set_value("Dangerous")
+                dangerous -= 1
+
         self.db.start_new_tour(pairs)
         self._state = TournamentState.IN_PROGRESS
         return pairs
@@ -70,7 +80,9 @@ class Tournament:
             nmd_logger.error("Rating not found, exception")
             raise PlayerNotFoundError
         nmd_logger.info(f"Player rating {get_player_rating_view(rating)}")
-        self.db.register_player(RegistrationRow.from_rating(rating))
+        registration_row = RegistrationRow.from_rating(rating)
+        self.db.register_player(registration_row)
+        self._pairing.add_player(registration_row)
 
     def update_player_info(self, player: RegistrationRow):
         nmd_logger.info(f"Update player info {get_player_rating_view(player)}")
@@ -91,20 +103,22 @@ class Tournament:
         match_index = None
         match = None
         for i, result in enumerate(self.db.get_results()):
-            if (result.first_id == user_id) or (result.second_id == user_id):
+            if (result.first_id.value == user_id) or (
+                result.second_id.value == user_id
+            ):
                 match_index = i
                 match = result
                 break
-        if not match_index:
+        if match_index is None:
             nmd_logger.error("No match found with the user, exception")
             raise MatchWithPlayersNotFound
         # swap result in case of players swapped
         new_result = Match.MatchResult.SecondWon
-        if match.first_id == user_id and won:
+        if match.first_id.value == user_id and won:
             new_result = Match.MatchResult.FirstWon
-        elif match.second_id == user_id and not won:
+        elif match.second_id.value == user_id and not won:
             new_result = Match.MatchResult.FirstWon
-        old_result: Match.MatchResult = Match.STR_TO_MATCH_RESULT[match.result.value]
+        old_result: Match.MatchResult = Match.STR_TO_MATCH_RESULT[match.result_str]
         if old_result != Match.MatchResult.NotPlayed:
             if old_result == new_result:
                 nmd_logger.info("Same result was already registered")

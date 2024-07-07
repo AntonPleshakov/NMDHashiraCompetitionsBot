@@ -1,4 +1,3 @@
-import threading
 from datetime import datetime
 
 from telebot import TeleBot
@@ -9,11 +8,18 @@ import tg.common.settings
 from db.tournament_structures import TournamentSettings
 from logger.NMDLogger import nmd_logger
 from tg import common
-from tg.utils import Button, empty_filter, get_ids, get_like_emoji
+from tg.utils import (
+    Button,
+    empty_filter,
+    get_ids,
+    get_like_emoji,
+    home,
+    tournament_timer,
+)
 from tournament.tournament_manager import tournament_manager, TournamentManager
 
 MENU_BTN = Button("Назад в турнир", "tournament/start_new").inline()
-DATETIME_FORMAT = "%d/%m %H:%M"
+DATETIME_FORMAT = "%d.%m %H:%M"
 
 
 class TournamentStartStates(StatesGroup):
@@ -49,27 +55,31 @@ def new_tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info(f"Start tournament immediately")
-    user_id = cb_query.from_user.id
+    user_id, _, _ = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
         settings = data["settings"]
     bot.delete_state(user_id)
 
     tournament_manager.start_tournament(settings)
+    bot.answer_callback_query(cb_query.id, "Турнир начался")
+    home(cb_query, bot)
 
 
 def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Delayed start")
-    user_id, chat_id, _ = get_ids(cb_query)
+    user_id, chat_id, message_id = get_ids(cb_query)
     bot.set_state(user_id, TournamentStartStates.delayed_start)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(MENU_BTN)
-    bot.send_message(
+    bot.edit_message_text(
         chat_id=chat_id,
+        message_id=message_id,
         text=f"Введите дату старта в формате '{DATETIME_FORMAT}'\n"
         f"Например: {datetime.now().strftime(DATETIME_FORMAT)}",
         reply_markup=keyboard,
     )
+    bot.add_data(user_id, message_id=message_id)
 
 
 def delayed_start_confirmed(message: Message, bot: TeleBot):
@@ -83,18 +93,26 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
             settings = data["settings"]
         bot.delete_state(user_id)
 
-        threading.Timer(
+        tournament_timer.update_timer(
             time_to_start.total_seconds(),
             TournamentManager.start_tournament,
             [tournament_manager, settings],
+        ).start()
+        nmd_logger.info(
+            f"Tournament will start in {time_to_start.total_seconds()} seconds"
         )
         bot.set_message_reaction(chat_id, message_id, get_like_emoji())
+        home(message, bot)
     except Exception as e:
-        nmd_logger.exception("Exception in delayed start")
+        nmd_logger.info("Exception in delayed start")
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(MENU_BTN)
-        bot.send_message(
+        with bot.retrieve_data(user_id) as data:
+            offer_message_id = data["offer_message_id"]
+        bot.delete_message(chat_id, message_id)
+        bot.edit_message_text(
             chat_id=chat_id,
+            message_id=offer_message_id,
             text=f"Неудалось обработать сообщение\n{e}\nПовторите еще раз",
             reply_markup=keyboard,
         )

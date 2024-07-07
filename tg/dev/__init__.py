@@ -31,14 +31,13 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 def upload_logs(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Update logs")
-    chat_id = cb_query.message.chat.id
     try:
         logs_db = db.gapi.gdrive_manager.GDriveManager()
         logs_db.upload_file(os.path.abspath(os.fspath(getconf("LOG_FILE_NAME"))))
-        bot.send_message(chat_id, "Логи успешно загружены")
+        bot.answer_callback_query(cb_query.id, "Логи успешно загружены")
     except FileNotFoundError:
         nmd_logger.exception("File not found")
-        bot.send_message(chat_id, "Лог файл отсутствует")
+        bot.answer_callback_query(cb_query.id, "Лог файл отсутствует")
 
 
 def update_config(cb_query: CallbackQuery, bot: TeleBot):
@@ -46,19 +45,19 @@ def update_config(cb_query: CallbackQuery, bot: TeleBot):
     files_db = db.gapi.gdrive_manager.GDriveManager()
     files_db.download_file("config.ini", "config/config.ini")
     reset_config("config/config.ini")
-    bot.send_message(cb_query.message.chat.id, "Конфигурационный файл обновлен")
+    bot.answer_callback_query(cb_query.id, "Конфигурационный файл обновлен")
 
 
 def fetch_admins(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Fetch admins")
     admins_db.fetch_admins()
-    bot.send_message(cb_query.message.chat.id, "Администраторы обновлены")
+    bot.answer_callback_query(cb_query.id, "Администраторы обновлены")
 
 
 def fetch_ratings(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Fetch ratings")
     ratings_db.fetch_ratings()
-    bot.send_message(cb_query.message.chat.id, "Рейтинг лист обновлен")
+    bot.answer_callback_query(cb_query.id, "Рейтинг лист обновлен")
 
 
 def register_handlers(bot: TeleBot):

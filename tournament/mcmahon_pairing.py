@@ -26,10 +26,14 @@ class McMahonPairing:
         for match in matches:
             if not match.second.value:
                 continue
-            first_player = self._players[match.first_id]
-            second_player = self._players[match.second_id]
-            first_player.opponents.add(match.second_id)
-            second_player.opponents.add(match.first_id)
+            first_player = self._players[match.first_id.value]
+            second_player = self._players[match.second_id.value]
+            first_player.opponents.add(match.second_id.value)
+            second_player.opponents.add(match.first_id.value)
+
+    def add_player(self, player: RegistrationRow):
+        self._players[player.tg_id.value] = Player.from_registration(player)
+        self._registrations[player.tg_id.value] = player
 
     def get_players(self) -> List[Player]:
         players = list(self._players.values())
@@ -45,8 +49,10 @@ class McMahonPairing:
         second_won = Match.MatchResult.SecondWon
         # calculate mm score first
         for match in tour_result:
-            first = self._players[match.first_id]
-            second = self._players[match.second_id]
+            if not match.second.value:
+                continue
+            first = self._players[match.first_id.value]
+            second = self._players[match.second_id.value]
 
             if match.result == first_won:
                 first.mm += 1
@@ -55,8 +61,10 @@ class McMahonPairing:
 
         # calculate SOS and SODOS
         for match in tour_result:
-            first = self._players[match.first_id]
-            second = self._players[match.second_id]
+            if not match.second.value:
+                continue
+            first = self._players[match.first_id.value]
+            second = self._players[match.second_id.value]
 
             first.sos += second.mm
             second.sos += first.mm

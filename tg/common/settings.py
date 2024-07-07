@@ -59,7 +59,7 @@ def offer_to_edit_param(
 ):
     attr_name = cb_query.data
     nmd_logger.info(f"Offer to edit parameter {attr_name}")
-    user_id, chat_id, _ = get_ids(cb_query)
+    user_id, chat_id, message_id = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
         settings = data["settings"]
         data["param_to_update"] = attr_name
@@ -71,9 +71,10 @@ def offer_to_edit_param(
         keyboard.add(Button("Включить", "on").inline())
         keyboard.add(Button("Выключить", "off").inline())
     keyboard.add(back_button)
-    bot.send_message(
+    bot.edit_message_text(
         chat_id=chat_id,
-        text=f"Введите новое значение для '{formatting.escape_markdown(param.view)}'",
+        message_id=message_id,
+        text=f"Введите новое значение для '{formatting.escape_html(param.view)}'",
         reply_markup=keyboard,
     )
 
@@ -101,13 +102,14 @@ def edit_bool_param(
 def edit_int_param(
     message: Message, state, back_button: InlineKeyboardButton, bot: TeleBot
 ):
-    user_id, chat_id, _ = get_ids(message)
+    user_id, chat_id, message_id = get_ids(message)
     if not message.text.isdigit():
         nmd_logger.info(f"Edit param failed, value not digit: {message.text}")
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(back_button)
-        bot.send_message(
+        bot.edit_message_text(
             chat_id=chat_id,
+            message_id=message_id,
             text="Неверный формат нового значения.\n"
             "Значение может быть только числом.\n"
             "Повторите еще раз",
@@ -122,8 +124,9 @@ def edit_int_param(
 
     nmd_logger.info(f"Edit param {param_to_update} to {message.text}")
     bot.set_state(user_id, state)
-    bot.send_message(
+    bot.edit_message_text(
         chat_id=chat_id,
+        message_id=message_id,
         text="*Настройки турнира:*\n" + settings.view(),
         reply_markup=edit_settings_keyboard(settings, back_button),
     )

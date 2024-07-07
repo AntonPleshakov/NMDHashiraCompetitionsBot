@@ -9,7 +9,14 @@ from db.admins import admins_db
 from db.global_settings import settings_db
 from logger.NMDLogger import nmd_logger
 from tg.tournament import start_new, update_match_result, new_tour, register
-from tg.utils import Button, empty_filter, get_ids, get_like_emoji
+from tg.utils import (
+    Button,
+    empty_filter,
+    get_ids,
+    get_like_emoji,
+    tournament_timer,
+    get_dislike_emoji,
+)
 
 
 def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
@@ -22,6 +29,9 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(
         Button("Изменить результат матча", "tournament/update_match_result").inline()
     )
+    keyboard.add(
+        Button("Остановить турнирный таймер", "tournament/stop_timer").inline()
+    )
     keyboard.add(Button("Назад в меню", "home").inline())
 
     bot.edit_message_text(
@@ -32,10 +42,16 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     )
 
 
+def stop_timer(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info(f"{cb_query.from_user.username} stopped the tournament timer")
+    tournament_timer.cancel()
+    bot.answer_callback_query(cb_query.id, "Таймер остановлен")
+
+
 def register_chat_id(message: Message, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(message)
-    bot.set_message_reaction(chat_id, message_id, get_like_emoji())
     if not admins_db.is_admin(user_id):
+        bot.set_message_reaction(chat_id, message_id, get_dislike_emoji())
         bot.send_message(user_id, "Только администратор может менять настройки бота")
         return
 
@@ -46,6 +62,7 @@ def register_chat_id(message: Message, bot: TeleBot):
     settings.chat_id.value = chat_id
     settings.tournament_thread_id.value = thread_id
     settings_db.settings = settings
+    bot.set_message_reaction(chat_id, message_id, get_like_emoji())
     bot.send_message(
         user_id, f"Чат {chat_id}::{thread_id} зарегистрирован как турнирный"
     )
@@ -56,6 +73,13 @@ def register_handlers(bot: TeleBot):
         tournament_main_menu,
         func=empty_filter,
         button="tournament",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        stop_timer,
+        func=empty_filter,
+        button="tournament/stop_timer",
         is_private=True,
         pass_bot=True,
     )

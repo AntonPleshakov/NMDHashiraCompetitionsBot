@@ -5,7 +5,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 from db.tournament_structures import Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError
-from tg.utils import Button, empty_filter, get_ids
+from tg.utils import Button, empty_filter, get_ids, home
 from tournament.tournament_manager import tournament_manager
 
 
@@ -78,8 +78,9 @@ def update_result(cb_query: CallbackQuery, bot: TeleBot):
         match_index = data["match_index"]
     new_result = cb_query.data
     tournament_manager.tournament.db.register_result(match_index, new_result)
-    bot.send_message(chat_id=chat_id, text="Результат успешно изменен")
+    bot.answer_callback_query(cb_query.id, text="Результат успешно изменен")
     bot.delete_state(user_id)
+    home(cb_query, bot)
 
 
 def register_handlers(bot: TeleBot):
@@ -94,7 +95,7 @@ def register_handlers(bot: TeleBot):
         chose_result_to_update_match,
         func=empty_filter,
         state=UpdateMatchStates.match_to_update,
-        button="\d+",
+        button=r"\d+",
         is_private=True,
         pass_bot=True,
     )
@@ -102,7 +103,7 @@ def register_handlers(bot: TeleBot):
         update_result,
         func=empty_filter,
         state=UpdateMatchStates.new_result,
-        button="\w+",
+        button=r"\w+",
         is_private=True,
         pass_bot=True,
     )

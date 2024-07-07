@@ -33,8 +33,8 @@ def calc_new_ratings(
     match_results = {}
     for matches in tours:
         for match in matches:
-            match_results[match.first_id] = match.result
-            match_results[match.second_id] = match.result.reversed()
+            match_results[match.first_id.value] = match.result
+            match_results[match.second_id.value] = match.result.reversed()
 
     for player in players:
         for opponent in player.opponents:

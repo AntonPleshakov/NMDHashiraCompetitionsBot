@@ -4,7 +4,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.ratings import ratings_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids
+from tg.utils import Button, empty_filter, get_ids, home
 
 
 class DelRatingStates(StatesGroup):
@@ -62,12 +62,13 @@ def delete_rating_approved(cb_query: CallbackQuery, bot: TeleBot):
     tg_username = ratings_db.get_rating(tg_id).tg_username.value
     ratings_db.delete_rating(tg_id)
 
-    user_id, chat_id, _ = get_ids(cb_query)
+    user_id, _, _ = get_ids(cb_query)
     bot.delete_state(user_id)
-    bot.send_message(
-        chat_id=chat_id,
+    bot.answer_callback_query(
+        cb_query.id,
         text=f"Игрок {tg_username} удален из списка рейтингов",
     )
+    home(cb_query, bot)
 
 
 def register_handlers(bot: TeleBot):

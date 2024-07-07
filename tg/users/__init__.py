@@ -9,7 +9,7 @@ from db.tournament_structures import RegistrationRow
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError, TournamentStartedError
 from tg.tournament.register import add_or_update_registration_list
-from tg.utils import get_ids, Button
+from tg.utils import get_ids, Button, empty_filter
 from tournament.tournament_manager import tournament_manager
 
 
@@ -56,8 +56,9 @@ def update_nmd_username(message: Message, bot: TeleBot):
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         users_main_menu,
-        func=lambda cb: ratings_db.get_rating(cb.from_user.id) is not None,
+        func=empty_filter,
         button="users",
+        is_admin=True,
         is_private=True,
         pass_bot=True,
     )
@@ -74,5 +75,4 @@ def register_handlers(bot: TeleBot):
         func=lambda cb: ratings_db.get_rating(cb.from_user.id) is not None,
         chat_types=["private"],
         pass_bot=True,
-        is_admin=False,
     )

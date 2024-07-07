@@ -122,7 +122,7 @@ def calc_new_deviation(
     max_dev = _max_deviation(rating)
     opponents = [all_ratings[opponent] for opponent in player.opponents]
     results_dispersion = _calculate_results_dispersion(rating, opponents)
-    k_din = _calculate_K_dyn(deviation, max_dev, results_dispersion)
+    k_din = _calculate_K_dyn(rating, deviation, max_dev, results_dispersion)
 
     new_dev = (k_din * max_dev) ** 0.5
     nmd_logger.info(f"Calc new deviation for player {player.tg_id} = {new_dev}")

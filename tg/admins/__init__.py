@@ -16,7 +16,7 @@ def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     bot.delete_state(user_id)
 
     keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(Button("Добавить администратора", "admins/add_admin").inline())
+    keyboard.add(Button("Добавить администраторов", "admins/add_admins").inline())
     keyboard.add(Button("Удалить администратора", "admins/del_admin").inline())
     keyboard.add(Button("Список администраторов", "admins/admins_list").inline())
     keyboard.add(Button("Назад в меню", "home").inline())

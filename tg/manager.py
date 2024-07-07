@@ -3,46 +3,16 @@ from typing import Union
 from telebot import TeleBot
 from telebot.types import (
     Message,
-    InlineKeyboardMarkup,
     CallbackQuery,
 )
 
-from logger.NMDLogger import nmd_logger
 from tg import global_settings
 from . import admins, dev, ratings, tournament, users
-from .utils import empty_filter, Button, get_ids
-
-
-def main_menu_keyboard():
-    keyboard = InlineKeyboardMarkup(row_width=1)
-    keyboard.add(Button("Администраторы", "admins").inline())
-    keyboard.add(Button("Рейтинги", "ratings").inline())
-    keyboard.add(Button("Глобальные настройки", "global_settings").inline())
-    keyboard.add(Button("Турнир", "tournament").inline())
-    keyboard.add(Button("Служебные", "dev").inline())
-    keyboard.add(Button("Пользовательские", "users").inline())
-    return keyboard
+from .utils import empty_filter, home
 
 
 def home_command(message: Union[Message, CallbackQuery], bot: TeleBot):
-    nmd_logger.info(f"Home for {message.from_user.username}")
-    keyboard = main_menu_keyboard()
-    text = "Выберите раздел управления"
-    user_id, chat_id, message_id = get_ids(message)
-    if isinstance(message, CallbackQuery):
-        bot.edit_message_text(
-            text=text,
-            chat_id=chat_id,
-            message_id=message_id,
-            reply_markup=keyboard,
-        )
-    else:
-        bot.send_message(
-            chat_id=chat_id,
-            text=text,
-            reply_markup=keyboard,
-        )
-    bot.delete_state(user_id)
+    home(message, bot)
 
 
 def register_handlers(bot: TeleBot):

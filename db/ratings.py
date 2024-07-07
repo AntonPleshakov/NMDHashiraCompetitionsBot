@@ -72,7 +72,7 @@ class RatingsDB:
         )
         rows = self._manager.get_all_values()
         for i, row in enumerate(rows):
-            if row[rating.tg_id.index] == tg_id:
+            if row[rating.tg_id.index] == str(tg_id):
                 rows[i] = rating.to_row()
         self._manager.update_values(rows)
         self._manager.sort_table(rating.rating.index)
