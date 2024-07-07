@@ -10,6 +10,7 @@ Matrix = List[List[str]]
 class WorksheetManager:
     def __init__(self, worksheet: Worksheet):
         self._ws: Worksheet = worksheet
+        self.adjust_columns_width()
         self._cache: Optional[Matrix] = None
         self._header_range: Tuple[int, int] = (self._ws.frozen_rows, 0)
 
@@ -54,6 +55,7 @@ class WorksheetManager:
         nmd_logger.info(f"GAPI: add row: {row}")
         row_index = len(self.cache())
         self._ws.insert_rows(row=row_index, values=row)
+        self.adjust_columns_width()
         self.cache().append(row)
 
     def sort_table(
@@ -81,4 +83,16 @@ class WorksheetManager:
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)
+        self.adjust_columns_width()
         self.fetch()
+
+    def hide_column(self, column: int):
+        self._ws.hide_dimensions(column + 1, dimension="COLUMNS")
+
+    def hide_worksheet(self):
+        self._ws.hidden = True
+
+    def adjust_columns_width(self):
+        values = self.cache()
+        columns = len(values[0]) if values else 0
+        self._ws.adjust_column_width(1, columns)

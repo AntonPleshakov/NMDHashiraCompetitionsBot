@@ -19,6 +19,9 @@ class SpreadsheetManager:
             self._cache[worksheet_title] = self._ss.worksheet_by_title(worksheet_title)
         return self._cache[worksheet_title]
 
+    def make_public(self):
+        self._ss.share("", "reader", "user")
+
     def get_worksheet(self, worksheet_title: str) -> WorksheetManager:
         ws_manager = WorksheetManager(self._get_cached_ws(worksheet_title))
         return ws_manager

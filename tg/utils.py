@@ -230,7 +230,7 @@ class TournamentTimer:
         self._timer: Optional[threading.Timer] = None
 
     def update_timer(self, interval, function, args=None, kwargs=None):
-        if os.getenv("MODE", "Release"):
+        if os.getenv("MODE", "Release") == "Debug":
             interval = interval / 60  # hours to minutes for debug mode
         self._timer = threading.Timer(interval, function, args, kwargs)
         return self

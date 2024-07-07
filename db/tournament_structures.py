@@ -99,7 +99,7 @@ class Result(Parameters):
         self.place: IntParam = IntParam("Место")
         self.tg_username: StrParam = StrParam("ТГ Username")
         self.nmd_username: StrParam = StrParam("NMD Username")
-        self.rating: IntParam = IntParam("Рейтинг")
+        self.rating: StrParam = StrParam("Рейтинг")
         self.mm: IntParam = IntParam("Очки")
         self.sos: IntParam = IntParam("SOS")
         self.sodos: IntParam = IntParam("SODOS")

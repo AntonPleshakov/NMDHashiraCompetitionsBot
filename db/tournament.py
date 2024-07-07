@@ -1,3 +1,4 @@
+import os
 from datetime import date, datetime
 from typing import List, Optional, Set
 
@@ -37,6 +38,8 @@ class TournamentDB:
             getconf("TOURNAMENT_GTABLE_NAME") + " " + date.today().strftime("%d.%m.%Y")
         )
         manager = GSheetsManager().create(spreadsheet_name)
+        if os.getenv("MODE") == "Release":
+            manager.make_public()
         settings_page = manager.rename_worksheet(
             getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
         )
@@ -46,6 +49,8 @@ class TournamentDB:
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")
         )
         registration_page.set_header([RegistrationRow().params_views()])
+        registration_page.hide_column(RegistrationRow().tg_id.index)
+        settings_page.hide_worksheet()
         return cls(manager)
 
     @classmethod
@@ -121,6 +126,8 @@ class TournamentDB:
         tour_title = getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(tour_number)
         tour_page = self._manager.add_worksheet(tour_title)
         tour_page.set_header([Match().params_views()])
+        tour_page.hide_column(Match().first_id.index)
+        tour_page.hide_column(Match().second_id.index)
         matrix = [match.to_row() for match in pairs]
         tour_page.update_values(matrix)
         self._tours.append(tour_page)
