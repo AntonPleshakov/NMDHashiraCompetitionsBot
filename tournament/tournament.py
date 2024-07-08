@@ -12,6 +12,7 @@ from nmd_exceptions import (
     MatchResultWasAlreadyRegistered,
     PlayerNotFoundError,
     MatchResultTryingToBeChanged,
+    TechWinCannotBeChanged,
 )
 from tg.utils import get_player_rating_view
 from .deviation_math import recalc_deviation_by_time, calc_new_deviation
@@ -112,6 +113,9 @@ class Tournament:
         if match_index is None:
             nmd_logger.error("No match found with the user, exception")
             raise MatchWithPlayersNotFound
+        if not match.second:
+            nmd_logger.info("Match of one player, raise exception")
+            raise TechWinCannotBeChanged
         # swap result in case of players swapped
         new_result = Match.MatchResult.SecondWon
         if match.first_id.value == user_id and won:

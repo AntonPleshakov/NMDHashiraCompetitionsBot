@@ -10,6 +10,10 @@ class MatchWithPlayersNotFound(Exception):
     pass
 
 
+class TechWinCannotBeChanged(Exception):
+    pass
+
+
 class MatchResultWasAlreadyRegistered(Exception):
     pass
 

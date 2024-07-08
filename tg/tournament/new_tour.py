@@ -6,6 +6,7 @@ from nmd_exceptions import (
     MatchResultTryingToBeChanged,
     MatchResultWasAlreadyRegistered,
     MatchWithPlayersNotFound,
+    TechWinCannotBeChanged,
 )
 from tg.utils import (
     Button,
@@ -19,6 +20,17 @@ from tournament.tournament_manager import tournament_manager
 def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info(f"Offer to apply result for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
+
+    for result in tournament_manager.tournament.db.get_results():
+        if result.second_id.value == user_id:
+            break
+        if result.first_id.value == user_id:
+            if not result.second:
+                nmd_logger.info(f"Offer not shown, user has a technical win")
+                bot.answer_callback_query(cb_query.id, text="У вас техническая победа")
+                return
+            break
+
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Выиграл", "tournament/won").inline())
     keyboard.add(Button("Проиграл", "tournament/lose").inline())
@@ -55,6 +67,11 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
             f"{cb_query.from_user.username} пытается зарегистрировать результат, отличный от зарегистрированного.\n"
             + f"Data: {cb_query.data}",
         )
+    except TechWinCannotBeChanged:
+        nmd_logger.info(
+            f"TechWinCannotBeChanged exception for user {cb_query.from_user.username}"
+        )
+        bot.answer_callback_query(cb_query.id, text="У вас техническая победа")
     except MatchResultWasAlreadyRegistered:
         nmd_logger.info(
             f"MatchResultWasAlreadyRegistered exception for user {cb_query.from_user.username}"
