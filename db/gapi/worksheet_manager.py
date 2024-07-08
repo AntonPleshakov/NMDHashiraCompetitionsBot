@@ -10,9 +10,9 @@ Matrix = List[List[str]]
 class WorksheetManager:
     def __init__(self, worksheet: Worksheet):
         self._ws: Worksheet = worksheet
-        self.adjust_columns_width()
         self._cache: Optional[Matrix] = None
         self._header_range: Tuple[int, int] = (self._ws.frozen_rows, 0)
+        self.adjust_columns_width()
 
     def fetch(self):
         nmd_logger.info("GAPI: fetch ws")
