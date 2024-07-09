@@ -11,6 +11,7 @@ from tg.tournament.announcements import (
     start_new_tournament,
     announce_tournament_end,
     announce_new_tour,
+    announce_tournament_end_without_players,
 )
 from tg.utils import tournament_timer
 from .tournament import Tournament, TournamentState
@@ -107,6 +108,10 @@ class TournamentManager:
             raise TournamentNotStartedError
         if self._tournament.db.get_tours_number() < self._settings.rounds_number.value:
             pairs = self._tournament.new_round()
+            if not pairs or not pairs[0].second.value:
+                nmd_logger.info("Not enough players to continue. Finish tournament")
+                self._finish_tournament()
+                return
             announce_new_tour(pairs, self._tournament.db, bot)
             round_duration = self._settings.round_duration_seconds
             tournament_timer.update_timer(
@@ -119,8 +124,11 @@ class TournamentManager:
 
     def _finish_tournament(self):
         nmd_logger.info("Finish tournament")
-        self._tournament.finish_tournament()
-        announce_tournament_end(self._tournament.db, bot)
+        try:
+            self.tournament.finish_tournament()
+            announce_tournament_end(self.tournament.db, bot)
+        except TournamentNotStartedError:
+            announce_tournament_end_without_players(self.tournament.db, bot)
         self._tournament = None
         settings = settings_db.settings
         if settings.auto_tournament_enabled.value:

@@ -91,10 +91,9 @@ def edit_bool_param(
         data["settings"] = settings
     nmd_logger.info(f"Edit bool param {param_to_update} to {value == "on"}")
     bot.set_state(user_id, state)
-    bot.edit_message_text(
+    bot.send_message(
         text="*Настройки турнира:*\n" + settings.view(),
         chat_id=chat_id,
-        message_id=message_id,
         reply_markup=edit_settings_keyboard(settings, back_button),
     )
 
@@ -107,9 +106,8 @@ def edit_int_param(
         nmd_logger.info(f"Edit param failed, value not digit: {message.text}")
         keyboard = InlineKeyboardMarkup(row_width=1)
         keyboard.add(back_button)
-        bot.edit_message_text(
+        bot.send_message(
             chat_id=chat_id,
-            message_id=message_id,
             text="Неверный формат нового значения.\n"
             "Значение может быть только числом.\n"
             "Повторите еще раз",
@@ -124,9 +122,8 @@ def edit_int_param(
 
     nmd_logger.info(f"Edit param {param_to_update} to {message.text}")
     bot.set_state(user_id, state)
-    bot.edit_message_text(
+    bot.send_message(
         chat_id=chat_id,
-        message_id=message_id,
         text="*Настройки турнира:*\n" + settings.view(),
         reply_markup=edit_settings_keyboard(settings, back_button),
     )

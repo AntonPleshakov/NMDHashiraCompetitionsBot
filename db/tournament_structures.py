@@ -83,7 +83,7 @@ class Match(Parameters):
             player_name = player_name + f"({player.nmd_username.value})"
         opponent_name = ""
         if opponent:
-            opponent_name = opponent.nmd_username.value
+            opponent_name = opponent.tg_username.value
             if opponent.nmd_username.value:
                 opponent_name = opponent_name + f"({opponent.nmd_username.value})"
         opponent_id = opponent.tg_id.value if opponent else 0

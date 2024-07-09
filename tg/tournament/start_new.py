@@ -43,6 +43,10 @@ def new_tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info(f"Offer to start new tournament for {cb_query.from_user.username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     settings = TournamentSettings.default_settings()
+    if bot.current_states.get_data(chat_id, user_id):
+        with bot.retrieve_data(user_id) as data:
+            if "settings" in data:
+                settings = data["settings"]
     bot.set_state(user_id, TournamentStartStates.main_menu)
     bot.add_data(user_id, settings=settings)
     bot.edit_message_text(
@@ -60,8 +64,10 @@ def start_new_tournament_option(cb_query: CallbackQuery, bot: TeleBot):
         settings = data["settings"]
     bot.delete_state(user_id)
 
+    bot.answer_callback_query(
+        cb_query.id, "Запущен старт турнира, это может занять пару минут"
+    )
     tournament_manager.start_tournament(settings)
-    bot.answer_callback_query(cb_query.id, "Турнир начался")
     home(cb_query, bot)
 
 

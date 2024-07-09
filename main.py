@@ -1,5 +1,6 @@
 from typing import Union
 
+import telebot.apihelper
 from telebot import TeleBot
 from telebot.handler_backends import BaseMiddleware
 from telebot.types import CallbackQuery, Message
@@ -22,7 +23,6 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
     def __init__(self):
         super().__init__()
         self.update_types = ["callback_query"]
-        self._ignore_data = {"tournament/register", "tournament/(won|lose)"}
 
     def pre_process(self, message: CallbackQuery, data: dict):
         pass
@@ -30,8 +30,11 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
     def post_process(
         self, message: CallbackQuery, data: dict, exception: BaseException
     ):
-        # if message.data not in self._ignore_data:
-        bot.answer_callback_query(message.id)
+        try:
+            bot.answer_callback_query(message.id)
+        except telebot.apihelper.ApiTelegramException as e:
+            nmd_logger.info(f"Error while answer_callback_query in middleware: {e}")
+            pass
 
 
 def permission_denied_message(message: Union[Message, CallbackQuery]):

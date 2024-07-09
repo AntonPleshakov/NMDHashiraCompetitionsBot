@@ -92,7 +92,14 @@ class TournamentDB:
 
     def register_player(self, player: RegistrationRow):
         nmd_logger.info(f"DB: register player {player.tg_username.value}")
-        self._registration_page.add_row(player.to_row())
+        if player.tg_id.value in self._registered_players:
+            values = self._registration_page.get_all_values()
+            for i, v in enumerate(values):
+                if v[RegistrationRow().tg_id.index] == str(player.tg_id.value):
+                    values[i] = player.to_row()
+            self._registration_page.update_values(values)
+        else:
+            self._registration_page.add_row(player.to_row())
         self._registration_page.sort_table(player.rating.index)
         self._registered_players.add(player.tg_id.value)
 

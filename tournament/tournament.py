@@ -13,6 +13,7 @@ from nmd_exceptions import (
     PlayerNotFoundError,
     MatchResultTryingToBeChanged,
     TechWinCannotBeChanged,
+    TournamentNotStartedError,
 )
 from tg.utils import get_player_rating_view
 from .deviation_math import recalc_deviation_by_time, calc_new_deviation
@@ -57,6 +58,9 @@ class Tournament:
             nmd_logger.info("Update coefficients with results of last round")
             self._pairing.update_coefficients(self.db.get_results())
         pairs = self._pairing.gen_pairs()
+        if not pairs or not pairs[0].second.value:
+            nmd_logger.info("Not enough players to continue. Tour won't be started")
+            return pairs
         nightmares = self.db.settings.nightmare_matches.value
         dangerous = self.db.settings.dangerous_matches.value
         for p in pairs:
@@ -66,6 +70,8 @@ class Tournament:
             elif dangerous:
                 p.map.set_value("Dangerous")
                 dangerous -= 1
+            else:
+                p.map.set_value("Hard")
 
         self.db.start_new_tour(pairs)
         self._state = TournamentState.IN_PROGRESS
@@ -113,7 +119,7 @@ class Tournament:
         if match_index is None:
             nmd_logger.error("No match found with the user, exception")
             raise MatchWithPlayersNotFound
-        if not match.second:
+        if not match.second.value:
             nmd_logger.info("Match of one player, raise exception")
             raise TechWinCannotBeChanged
         # swap result in case of players swapped
@@ -136,7 +142,12 @@ class Tournament:
 
     def finish_tournament(self):
         nmd_logger.info("Finish tournament")
-        self._pairing.update_coefficients(self.db.get_results())
+        self._state = TournamentState.FINISHED
+        try:
+            self._pairing.update_coefficients(self.db.get_results())
+        except TournamentNotStartedError:
+            self.db.finish_tournament([])
+            raise
         players = self._pairing.get_players()
         ratings = ratings_db.get_ratings()
         for player in ratings:
@@ -176,5 +187,3 @@ class Tournament:
 
         self.db.finish_tournament(tournament_table)
         ratings_db.update_all_user_ratings(ratings)
-
-        self._state = TournamentState.FINISHED

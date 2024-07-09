@@ -88,6 +88,8 @@ class McMahonPairing:
                     break
             if opponent:
                 players.remove(opponent)
-            result.append(Match.new_match(self.get_user(player), opponent))
+            result.append(
+                Match.new_match(self.get_user(player), self.get_user(opponent))
+            )
         self._populate_opponents(result)
         return result

@@ -77,9 +77,13 @@ class WorksheetManager:
         values: Matrix,
         start_range: Optional[tuple] = None,
     ):
-        nmd_logger.info(f"GAPI: update values since {start_range} to {values}")
+        nmd_logger.info(
+            f"GAPI: update values with start range {start_range} to {values}"
+        )
         if not start_range:
             start_range = (self._header_range[0] + 1, 1)
+        else:
+            start_range = (self._header_range[0] + start_range[0], start_range[1])
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)
