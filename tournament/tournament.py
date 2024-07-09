@@ -97,6 +97,7 @@ class Tournament:
             nmd_logger.error("Can't update player info not in registration, exception")
             raise TournamentStartedError
         self.db.register_player(player)
+        self._pairing.add_player(player)
 
     def add_result(
         self,
@@ -156,7 +157,7 @@ class Tournament:
         ratings_id_to_index = {r.tg_id.value: i for i, r in enumerate(ratings)}
 
         tours = []
-        for i in range(self.db.get_tours_number() - 1):
+        for i in range(self.db.get_tours_number()):
             tours.append(self.db.get_results(i))
         new_ratings = calc_new_ratings(players, tours)
 

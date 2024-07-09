@@ -83,13 +83,10 @@ class McMahonPairing:
             player = players.pop(0)
             opponent = None
             for second_player in players:
-                if second_player not in player.opponents:
-                    opponent = second_player
+                if second_player.tg_id not in player.opponents:
+                    opponent = self.get_user(second_player)
+                    players.remove(second_player)
                     break
-            if opponent:
-                players.remove(opponent)
-            result.append(
-                Match.new_match(self.get_user(player), self.get_user(opponent))
-            )
+            result.append(Match.new_match(self.get_user(player), opponent))
         self._populate_opponents(result)
         return result

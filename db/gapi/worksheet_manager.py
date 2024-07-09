@@ -82,8 +82,6 @@ class WorksheetManager:
         )
         if not start_range:
             start_range = (self._header_range[0] + 1, 1)
-        else:
-            start_range = (self._header_range[0] + start_range[0], start_range[1])
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
         self._ws.update_values(start_range, values, extend=True)

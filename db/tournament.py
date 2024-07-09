@@ -144,8 +144,10 @@ class TournamentDB:
         if not self._tours:
             raise TournamentNotStartedError
         tour = self._tours[-1]
-        start_range = (pair_index + 2, Match()._result.index + 1)
-        tour.update_values([[result]], start_range=start_range)
+        match = tour.get_all_values()[pair_index]
+        match[Match()._result.index] = result
+        start_range = (pair_index + 2, 1)
+        tour.update_values([match], start_range=start_range)
 
     def get_results(self, tour_idx: int = -1) -> List[Match]:
         if not self._tours:
