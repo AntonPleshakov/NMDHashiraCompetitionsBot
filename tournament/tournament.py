@@ -1,3 +1,4 @@
+from copy import deepcopy
 from enum import Enum
 from typing import List
 
@@ -54,13 +55,15 @@ class Tournament:
         if self._state == TournamentState.FINISHED:
             nmd_logger.error("Tournament state is Finished, exception")
             raise TournamentFinishedError
+        pairing_copy = deepcopy(self._pairing)
         if self._state == TournamentState.IN_PROGRESS:
             nmd_logger.info("Update coefficients with results of last round")
-            self._pairing.update_coefficients(self.db.get_results())
-        pairs = self._pairing.gen_pairs()
+            pairing_copy.update_coefficients(self.db.get_results())
+        pairs = pairing_copy.gen_pairs()
         if not pairs or not pairs[0].second.value:
             nmd_logger.info("Not enough players to continue. Tour won't be started")
             return pairs
+        self._pairing = deepcopy(pairing_copy)
         nightmares = self.db.settings.nightmare_matches.value
         dangerous = self.db.settings.dangerous_matches.value
         for p in pairs:
@@ -141,14 +144,15 @@ class Tournament:
                 raise MatchResultTryingToBeChanged
         self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[new_result])
 
-    def finish_tournament(self):
+    def finish_tournament(self, should_update_coefficients):
         nmd_logger.info("Finish tournament")
         self._state = TournamentState.FINISHED
-        try:
-            self._pairing.update_coefficients(self.db.get_results())
-        except TournamentNotStartedError:
-            self.db.finish_tournament([])
-            raise
+        if should_update_coefficients:
+            try:
+                self._pairing.update_coefficients(self.db.get_results())
+            except TournamentNotStartedError:
+                self.db.finish_tournament([])
+                raise
         players = self._pairing.get_players()
         ratings = ratings_db.get_ratings()
         for player in ratings:

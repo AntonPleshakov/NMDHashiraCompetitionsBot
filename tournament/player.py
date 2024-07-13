@@ -1,3 +1,4 @@
+from math import floor
 from typing import Set
 
 from db.tournament_structures import RegistrationRow, Result
@@ -12,7 +13,7 @@ class Player:
         self.tg_id: int = tg_id
         self.rating: int = rating
         self.opponents: Set[int] = set()
-        self.mm: float = rating / 100
+        self.mm: int = floor(rating / 100)
         self.sos: float = 0
         self.sodos: float = 0
 

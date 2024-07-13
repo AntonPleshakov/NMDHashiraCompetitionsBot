@@ -110,7 +110,7 @@ class TournamentManager:
             pairs = self._tournament.new_round()
             if not pairs or not pairs[0].second.value:
                 nmd_logger.info("Not enough players to continue. Finish tournament")
-                self._finish_tournament()
+                self._finish_tournament(False)
                 return
             announce_new_tour(pairs, self._tournament.db, bot)
             round_duration = self._settings.round_duration_seconds
@@ -120,12 +120,12 @@ class TournamentManager:
             nmd_logger.info(f"Next tour will start in {round_duration} seconds")
         else:
             nmd_logger.info("Last tour finished")
-            self._finish_tournament()
+            self._finish_tournament(True)
 
-    def _finish_tournament(self):
+    def _finish_tournament(self, should_update_coefficients):
         nmd_logger.info("Finish tournament")
         try:
-            self.tournament.finish_tournament()
+            self.tournament.finish_tournament(should_update_coefficients)
             announce_tournament_end(self.tournament.db, bot)
         except TournamentNotStartedError:
             announce_tournament_end_without_players(self.tournament.db, bot)

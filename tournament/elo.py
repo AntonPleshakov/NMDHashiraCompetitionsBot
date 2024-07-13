@@ -9,8 +9,8 @@ from tournament.player import Player
 def update_elo(winner_elo: int, loser_elo: int, k_winner: int, k_loser: int):
     expected_winner_win = expected_result(winner_elo, loser_elo)
     expected_loser_win = expected_result(loser_elo, winner_elo)
-    new_winner_elo = winner_elo + k_winner * (1 - expected_winner_win)
-    new_loser_elo = loser_elo + k_loser * (0 - expected_loser_win)
+    new_winner_elo = round(winner_elo + k_winner * (1 - expected_winner_win))
+    new_loser_elo = round(loser_elo + k_loser * (0 - expected_loser_win))
     nmd_logger.info(
         f"Update elo. Winner {winner_elo} -> {new_winner_elo}, Loser {loser_elo} -> {new_loser_elo}"
     )
@@ -33,14 +33,22 @@ def calc_new_ratings(
     match_results = {}
     for matches in tours:
         for match in matches:
-            match_results[match.first_id.value] = match.result
-            match_results[match.second_id.value] = match.result.reversed()
+            if not match.second.value:
+                continue
+            left = match.first_id.value
+            right = match.second_id.value
+            if left not in match_results:
+                match_results[left] = {}
+            match_results[left][right] = match.result
+            if right not in match_results:
+                match_results[right] = {}
+            match_results[right][left] = match.result.reversed()
 
     for player in players:
         for opponent in player.opponents:
             player_rating = ratings[player.tg_id]
             opponent_rating = ratings[opponent]
-            res = match_results[player.tg_id]
+            res = match_results[player.tg_id][opponent]
             if res == Match.MatchResult.FirstWon:
                 winner = player_rating
                 loser = opponent_rating

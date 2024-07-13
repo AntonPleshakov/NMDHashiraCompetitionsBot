@@ -60,6 +60,8 @@ class Match(Parameters):
 
     @property
     def result(self) -> MatchResult:
+        if Match.STR_TO_MATCH_RESULT[self._result.value] != self._result_enum:
+            self._result_enum = Match.STR_TO_MATCH_RESULT[self._result.value]
         return self._result_enum
 
     @result.setter
