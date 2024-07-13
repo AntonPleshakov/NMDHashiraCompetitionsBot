@@ -47,9 +47,12 @@ class RatingsDB:
         ss_name = getconf("RATING_LIST_GTABLE_KEY")
         ws_name = getconf("RATING_LIST_PAGE_NAME")
 
-        self._manager: WorksheetManager = (
-            GSheetsManager().open(ss_name).get_worksheet(ws_name)
-        )
+        ss = GSheetsManager().open(ss_name)
+        self._manager: WorksheetManager = ss.get_worksheet(ws_name)
+        self._url = ss.get_url()
+
+    def get_url(self):
+        return self._url
 
     def add_user_rating(self, user: Rating):
         nmd_logger.info(f"DB: add user rating for {user.tg_username}")
