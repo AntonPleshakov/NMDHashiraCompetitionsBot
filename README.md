@@ -17,7 +17,8 @@ The bot is only to manage tournaments privately for Hashira clan in "Ninja must 
 3. Add gapi_service_file.json with google service account token from https://console.cloud.google.com/
 4. Setup 2 required google sheets: admins (with 2 worksheets: admins and global settings) and ratings (with 1 worksheet)
 You can have some issues here, but read logs carefully and everything will be fine
-5. Start the bot
+5. Start the bot: `python3 main.py --MODE=Release`
+   * use `MODE=Debug` or `MODE=Test` to use appropriate id's from config file
 
 ## Usage
 * Only admins in the admin google sheet can use the bot menu
