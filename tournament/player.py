@@ -29,8 +29,9 @@ class Player:
         res = Result.from_row(
             [
                 place,
-                user.tg_username,
-                user.nmd_username,
+                user.tg_username.value,
+                user.tg_id.value,
+                user.nmd_username.value,
                 self.rating,
                 self.mm,
                 self.sos,

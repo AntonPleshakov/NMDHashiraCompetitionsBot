@@ -103,6 +103,7 @@ class Result(Parameters):
     def __init__(self):
         self.place: IntParam = IntParam("Место")
         self.tg_username: StrParam = StrParam("ТГ Username")
+        self.tg_id: IntParam = IntParam("ТГ ID")
         self.nmd_username: StrParam = StrParam("NMD Username")
         self.rating: StrParam = StrParam("Рейтинг")
         self.mm: IntParam = IntParam("Очки")

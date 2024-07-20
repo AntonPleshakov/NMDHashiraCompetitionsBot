@@ -157,6 +157,7 @@ def test_finish_tournament(tournament: TournamentDB):
             [
                 i + 1,
                 rating.tg_username.value_repr(),
+                rating.tg_id.value_repr(),
                 rating.nmd_username.value_repr(),
                 1,
                 1,

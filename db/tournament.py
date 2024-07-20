@@ -156,6 +156,7 @@ class TournamentDB:
         results_title = getconf("TOURNAMENT_RESULTS_PAGE_NAME")
         results_page = self._manager.add_worksheet(results_title)
         results_page.set_header([Result().params_views()])
+        results_page.hide_column(Result().tg_id.index)
         matrix = [player.to_row() for player in tournament_table]
         results_page.update_values(matrix)
         self._results_page = results_page
