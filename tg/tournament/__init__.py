@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from telebot import TeleBot
 from telebot.types import (
     CallbackQuery,
@@ -34,8 +36,17 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     )
     keyboard.add(Button("Назад в меню", "home").inline())
 
+    text = "Управление турниром"
+
+    remaining = tournament_timer.remaining()
+    print(f"Remaining time: {remaining}")
+    if remaining > 0:
+        text += f"\nТурнирный таймер: {str(timedelta(seconds=remaining))}"
+    else:
+        text += "\nТурнирный таймер не активен"
+
     bot.edit_message_text(
-        text="Управление администраторами",
+        text,
         chat_id=chat_id,
         message_id=message_id,
         reply_markup=keyboard,

@@ -1,5 +1,6 @@
 import os
 import threading
+import time
 from textwrap import dedent
 from typing import Union, Tuple, List, Optional
 
@@ -256,20 +257,34 @@ def home(message: Union[Message, CallbackQuery], bot: TeleBot):
 class TournamentTimer:
     def __init__(self):
         self._timer: Optional[threading.Timer] = None
+        self._started_at = None
+        self._interval = None
 
     def update_timer(self, interval, function, args=None, kwargs=None):
         if os.getenv("MODE", "Release") == "Debug":
             interval = interval / 60  # hours to minutes for debug mode
         self._timer = threading.Timer(interval, function, args, kwargs)
+        self._interval = interval
         return self
 
     def start(self):
         if self._timer:
             self._timer.start()
+            self._started_at = time.time()
+
+    def remaining(self) -> int:
+        if self._interval is None or self._started_at is None:
+            print("Remaining: Timer inactive")
+            return -1
+        print(
+            f"Remaining: timer is active: interval - {self._interval}; now - {time.time()}; started_at - {self._started_at}"
+        )
+        return self._interval - (time.time() - self._started_at)
 
     def cancel(self):
         if self._timer:
             self._timer.cancel()
+            self._started_at = None
 
 
 tournament_timer = TournamentTimer()
