@@ -29,6 +29,18 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
             "dev/update_reg_message",
         ).inline()
     )
+    keyboard.add(
+        Button(
+            "Обновить сообщение о начале турнира",
+            "dev/update_start_message",
+        ).inline()
+    )
+    keyboard.add(
+        Button(
+            "Обновить сообщение о новом туре",
+            "dev/update_tour_message",
+        ).inline()
+    )
     keyboard.add(Button("Назад в меню", "home").inline())
 
     user_id, chat_id, message_id = get_ids(cb_query)
@@ -86,6 +98,18 @@ def update_reg_message(cb_query: CallbackQuery, bot: TeleBot):
     bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
 
 
+def update_start_message(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Update start message")
+    # TODO
+    bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
+
+
+def update_tour_message(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Update tour message")
+    # TODO
+    bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
+
+
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         dev_main_menu,
@@ -133,6 +157,20 @@ def register_handlers(bot: TeleBot):
         update_reg_message,
         func=empty_filter,
         button="dev/update_reg_message",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        update_start_message,
+        func=empty_filter,
+        button="dev/update_start_message",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        update_tour_message,
+        func=empty_filter,
+        button="dev/update_tour_message",
         is_private=True,
         pass_bot=True,
     )
