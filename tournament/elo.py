@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from db.ratings import ratings_db, Rating
 from db.tournament_structures import Match
@@ -6,7 +6,9 @@ from logger.NMDLogger import nmd_logger
 from tournament.player import Player
 
 
-def update_elo(winner_elo: int, loser_elo: int, k_winner: int, k_loser: int):
+def update_elo(
+    winner_elo: int, loser_elo: int, k_winner: int, k_loser: int
+) -> Tuple[int, int]:
     expected_winner_win = expected_result(winner_elo, loser_elo)
     expected_loser_win = expected_result(loser_elo, winner_elo)
     new_winner_elo = round(winner_elo + k_winner * (1 - expected_winner_win))

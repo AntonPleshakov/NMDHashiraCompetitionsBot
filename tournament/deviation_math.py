@@ -104,7 +104,7 @@ def recalc_deviation_by_time(player: Rating) -> int:
         )
         return max_dev
     k = _k_by_time(rating, weeks_passed)
-    new_deviation = deviation * (1 + k * ((max_dev / deviation) ** 2 - 1) ** 0.5)
+    new_deviation = round(deviation * (1 + k * ((max_dev / deviation) ** 2 - 1) ** 0.5))
     nmd_logger.info(
         f"Calc deviation by time for {player.tg_username.value} = {new_deviation}"
     )
