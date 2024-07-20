@@ -1,7 +1,7 @@
 import configparser
 import os
 
-_MODE = os.getenv("MODE", "Release")
+_MODE = os.getenv("MODE", "Debug")
 _config = configparser.ConfigParser()
 _config.read("config/config.ini", encoding="utf-8")
 
