@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from pytz import timezone
 from telebot import TeleBot
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
@@ -81,8 +82,8 @@ def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
     bot.edit_message_text(
         chat_id=chat_id,
         message_id=message_id,
-        text=f"Введите дату старта в формате '{DATETIME_FORMAT}'\n"
-        f"Например: {datetime.now().strftime(DATETIME_FORMAT)}",
+        text=f"Введите дату старта в формате '{DATETIME_FORMAT}' по Московскому времени\n"
+        f"Например: {datetime.now(timezone("Europe/Moscow")).strftime(DATETIME_FORMAT)}",
         reply_markup=keyboard,
     )
     bot.add_data(user_id, message_id=message_id)
@@ -93,8 +94,9 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(message)
     try:
         start_date = datetime.strptime(message.text, DATETIME_FORMAT)
-        start_date = start_date.replace(year=datetime.now().year)
-        time_to_start = start_date - datetime.now()
+        now = datetime.now(timezone("Europe/Moscow"))
+        start_date = start_date.replace(year=now.year)
+        time_to_start = start_date - now
         with bot.retrieve_data(user_id) as data:
             settings = data["settings"]
         bot.delete_state(user_id)
