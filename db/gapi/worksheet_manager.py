@@ -14,6 +14,16 @@ class WorksheetManager:
         self._header_range: Tuple[int, int] = (self._ws.frozen_rows, 0)
         self.adjust_columns_width()
 
+    @staticmethod
+    def _validate_row(row: List[str]) -> List[str]:
+        FORMULA_SIGNS = ["=", "+"]
+        new_row = ["'" + v if v and v[0] in FORMULA_SIGNS else v for v in row]
+        return new_row
+
+    def _validate_values(self, values: Matrix) -> Matrix:
+        new_values = [self._validate_row(v) for v in values]
+        return new_values
+
     def fetch(self):
         nmd_logger.info("GAPI: fetch ws")
         self._cache = self._ws.get_all_values(
@@ -54,6 +64,7 @@ class WorksheetManager:
     def add_row(self, row: List[str]):
         nmd_logger.info(f"GAPI: add row: {row}")
         row_index = len(self.cache())
+        row = self._validate_row(row)
         self._ws.insert_rows(row=row_index, values=row)
         self.adjust_columns_width()
         self.cache().append(row)
@@ -84,6 +95,7 @@ class WorksheetManager:
             start_range = (self._header_range[0] + 1, 1)
         self._ws.clear(start_range, (self._ws.cols, self._ws.rows))
         values = [[]] if not values else values
+        values = self._validate_values(values)
         self._ws.update_values(start_range, values, extend=True)
         self.adjust_columns_width()
         self.fetch()
