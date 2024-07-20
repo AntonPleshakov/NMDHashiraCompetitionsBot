@@ -7,7 +7,7 @@ from telebot.types import (
 from db.admins import admins_db
 from logger.NMDLogger import nmd_logger
 from tg.admins import add_admin, del_admin
-from tg.utils import empty_filter, Button, get_ids, get_username
+from tg.utils import empty_filter, Button, get_ids, get_username, get_user_link
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
@@ -36,9 +36,7 @@ def admins_list(cb_query: CallbackQuery, bot: TeleBot):
     text = "Список администраторов:\n"
     admins_str = []
     for admin in current_admins:
-        admins_str.append(
-            f'<a href="tg://user?id={admin.user_id.value}">{admin.username.value}</a>'
-        )
+        admins_str.append(get_user_link(admin.user_id.value, admin.username.value))
     text += "\n".join(admins_str)
 
     keyboard = InlineKeyboardMarkup(row_width=1)

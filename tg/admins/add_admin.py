@@ -11,7 +11,7 @@ from telebot.types import (
 
 from db.admins import Admin, admins_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids, home, get_username
+from tg.utils import Button, empty_filter, get_ids, home, get_username, get_user_link
 
 
 class AddAdminStates(StatesGroup):
@@ -66,14 +66,14 @@ def add_admins_confirmation(message: Message, bot: TeleBot):
     bot.add_data(user_id, new_admins=new_admins)
 
     admins_links = [
-        f'<a href="tg://user?id={a.user_id}">{a.username}</a>\n' for a in new_admins
+        get_user_link(a.user_id.value, a.username.value) for a in new_admins
     ]
 
     bot.send_message(
         chat_id=chat_id,
         reply_to_message_id=message_id,
         text="Вы уверены что хотите добавить "
-        + f"{', '.join(admins_links)}\n"
+        + f"{'\n'.join(admins_links)}\n"
         + f" в качестве администратор{'а' if len(admins_links) == 1 else 'ов'}?\n"
         + "*Обратите внимание:*\n"
         + "Если имя пользователя в данном сообщении не является ссылкой на профиль, "

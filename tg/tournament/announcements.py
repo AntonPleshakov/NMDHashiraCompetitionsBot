@@ -13,6 +13,7 @@ from tg.utils import (
     Button,
     get_next_tour_message,
     get_tournament_end_without_players_message,
+    get_user_link,
 )
 
 
@@ -57,13 +58,13 @@ def announce_tournament_end(tournament_db: TournamentDB, bot: TeleBot):
     message_thread_id = settings_db.settings.tournament_thread_id.value
     settings = tournament_db.settings
     tournament_url = tournament_db.get_url()
-    results = tournament_db.get_final_results()
-    winners = [player.tg_username.value for player in results][:3]
+    winners = tournament_db.get_final_results()[:3]
+    winners_links = [get_user_link(p.tg_id.value, p.tg_username.value) for p in winners]
     if settings.registration_list_message_id.value:
         bot.delete_message(chat_id, settings.registration_list_message_id.value)
     bot.send_message(
         chat_id,
-        get_tournament_end_message(winners, tournament_url),
+        get_tournament_end_message(winners_links, tournament_url),
         message_thread_id=message_thread_id,
     )
 

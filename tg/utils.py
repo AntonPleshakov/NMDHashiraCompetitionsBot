@@ -21,10 +21,13 @@ from db.tournament_structures import Match, TournamentSettings, RegistrationRow
 from logger.NMDLogger import nmd_logger
 
 
+def get_user_link(user_id: int, name: str) -> str:
+    return f'<a href="tg://user?id={user_id}">{name}</a>'
+
+
 def get_permissions_denied_message(user_id: int):
     admins_list = [
-        f'<a href="tg://user?id={admin.user_id}">{admin.username}</a>'
-        for admin in admins_db.get_admins()
+        get_user_link(admin.user_id, admin.username) for admin in admins_db.get_admins()
     ]
     return (
         "Вы не являетесь администратором.\n"
@@ -99,10 +102,13 @@ def get_next_tour_message(
     tour_hours = settings.round_duration_hours.value
     pairs_list = []
     for match in pairs:
-        first = f'<a href="{match.first_id.value}">{match.first.value}</a>'
-        second = f'<a href="{match.second_id.value}">{match.second.value}</a>'
+        first = get_user_link(match.first_id.value, match.first.value)
+        if not match.second.value:
+            pairs_list.append(f"{first} - техническая победа")
+        second = get_user_link(match.second_id.value, match.second.value)
         pairs_list.append(f"{first} vs {second}")
     pairs_str = "\n        ".join(pairs_list)
+    print(pairs_list)
     return dedent(
         f"""\
         Внимание, трибуты!

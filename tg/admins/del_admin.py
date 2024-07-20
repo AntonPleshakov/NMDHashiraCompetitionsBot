@@ -4,7 +4,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.admins import admins_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids, home, get_username
+from tg.utils import Button, empty_filter, get_ids, home, get_username, get_user_link
 
 
 class DelAdminStates(StatesGroup):
@@ -48,7 +48,7 @@ def del_admin_confirmation(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.edit_message_text(
         text="Вы уверены что хотите лишить пользователя "
-        + f'<a href="tg://user?id={admin_id}">{admin_name}</a>\n'
+        + get_user_link(admin_id, admin_name)
         + " администраторских прав?",
         chat_id=chat_id,
         message_id=message_id,

@@ -5,7 +5,7 @@ from db.global_settings import settings_db
 from db.ratings import ratings_db, Rating
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import PlayerNotFoundError, TournamentStartedError
-from tg.utils import empty_filter, get_ids, get_username
+from tg.utils import empty_filter, get_ids, get_username, get_user_link
 from tournament.player import Player
 from tournament.tournament_manager import tournament_manager
 
@@ -27,7 +27,7 @@ def get_registration_list_message() -> str:
         tg_id = player.tg_id.value_repr()
         nmd_username = player.nmd_username.value
         rating = player.rating.value_repr()
-        message = message + f'<a href="tg://user?id={tg_id}">{tg_username}</a>'
+        message = message + get_user_link(tg_id, tg_username)
         if nmd_username:
             message = message + f" ({nmd_username})"
         message = message + f": Рейтинг {rating}\n"
