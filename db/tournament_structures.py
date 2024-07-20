@@ -2,6 +2,9 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Optional, List
 
+from pytz import timezone
+
+from config.config import getconf
 from db.global_settings import settings_db
 from db.ratings import Rating
 from parameters import Parameters
@@ -138,7 +141,9 @@ class TournamentSettings(Parameters):
     @property
     def tournament_start_date(self) -> datetime:
         datestr = self._tournament_start_date.value
-        return datetime.strptime(datestr, self.DATETIME_FORMAT)
+        return datetime.strptime(datestr, self.DATETIME_FORMAT).replace(
+            tzinfo=timezone(getconf("TIMEZONE"))
+        )
 
     @tournament_start_date.setter
     def tournament_start_date(self, new_date: datetime):
