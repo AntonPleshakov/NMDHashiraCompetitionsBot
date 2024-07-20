@@ -187,3 +187,12 @@ class TournamentDB:
     def settings(self, value: TournamentSettings):
         self._settings = value
         self._settings_page.update_values(value.to_matrix())
+
+    def fetch(self):
+        self._registration_page.fetch()
+        for tour in self._tours:
+            tour.fetch()
+        if self._results_page:
+            self._results_page.fetch()
+        for player in self.get_registered_players():
+            self._registered_players.add(player.tg_id.value)

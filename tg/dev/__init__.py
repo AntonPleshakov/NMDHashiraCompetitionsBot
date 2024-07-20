@@ -8,7 +8,10 @@ from config.config import getconf, reset_config
 from db.admins import admins_db
 from db.ratings import ratings_db
 from logger.NMDLogger import nmd_logger
+from nmd_exceptions import TournamentNotStartedError
+from tg.tournament.register import add_or_update_registration_list
 from tg.utils import empty_filter, Button, get_ids, get_username
+from tournament.tournament_manager import tournament_manager
 
 
 def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
@@ -19,6 +22,13 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Обновить файл конфигураций", "dev/update_config").inline())
     keyboard.add(Button("Обновить администраторов", "dev/fetch_admins").inline())
     keyboard.add(Button("Обновить рейтинг лист", "dev/fetch_ratings").inline())
+    keyboard.add(Button("Обновить турнирные таблицы", "dev/fetch_tournament").inline())
+    keyboard.add(
+        Button(
+            "Обновить сообщение с зарегистрированными игроками",
+            "dev/update_reg_message",
+        ).inline()
+    )
     keyboard.add(Button("Назад в меню", "home").inline())
 
     user_id, chat_id, message_id = get_ids(cb_query)
@@ -61,6 +71,21 @@ def fetch_ratings(cb_query: CallbackQuery, bot: TeleBot):
     bot.answer_callback_query(cb_query.id, "Рейтинг лист обновлен")
 
 
+def fetch_tournament(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Fetch ratings")
+    try:
+        tournament_manager.tournament.db.fetch()
+        bot.answer_callback_query(cb_query.id, "Турнирные таблицы обновлены")
+    except TournamentNotStartedError:
+        bot.answer_callback_query(cb_query.id, "Нет турнирной таблицы")
+
+
+def update_reg_message(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Update reg message")
+    add_or_update_registration_list(bot, False)
+    bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
+
+
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         dev_main_menu,
@@ -94,6 +119,20 @@ def register_handlers(bot: TeleBot):
         fetch_ratings,
         func=empty_filter,
         button="dev/fetch_ratings",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        fetch_tournament,
+        func=empty_filter,
+        button="dev/fetch_tournament",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        update_reg_message,
+        func=empty_filter,
+        button="dev/update_reg_message",
         is_private=True,
         pass_bot=True,
     )
