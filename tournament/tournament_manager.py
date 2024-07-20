@@ -1,6 +1,9 @@
 from datetime import timedelta, datetime
 from typing import Optional
 
+from pytz import timezone
+
+from config.config import getconf
 from db.global_settings import settings_db
 from db.tournament import TournamentDB
 from db.tournament_structures import TournamentSettings
@@ -31,6 +34,7 @@ class TournamentManager:
             nmd_logger.info("No tournaments exists")
             return
 
+        now = datetime.now(timezone(getconf("TIMEZONE")))
         if latest_tournament_db.is_finished():
             nmd_logger.info("No tournaments in progress")
             settings = settings_db.settings
@@ -40,9 +44,9 @@ class TournamentManager:
                     latest_tournament_db.settings.tournament_finish_datetime
                 )
                 next_date: datetime = last_date + timedelta(days=days_period)
-                while next_date < datetime.now():
+                while next_date < now:
                     next_date += timedelta(days=days_period)
-                diff_to_next_date: timedelta = next_date - datetime.now()
+                diff_to_next_date: timedelta = next_date - now
                 seconds_to_next_date = diff_to_next_date.total_seconds()
                 tournament_timer.update_timer(
                     seconds_to_next_date,
@@ -62,12 +66,15 @@ class TournamentManager:
             registration_duration = self._settings.registration_duration_hours.value
             last_date = self._settings.tournament_start_date
             next_date = last_date + timedelta(hours=registration_duration)
+            print(
+                f"next_date: {next_date}; registration_duration: {registration_duration}; last_date: {last_date}; timedelta: {timedelta(hours=registration_duration)}"
+            )
             if self._tournament.state != TournamentState.REGISTRATION:
                 for i in range(self._tournament.db.get_tours_number()):
                     round_duration = self._settings.round_duration_hours.value
                     next_date += timedelta(hours=round_duration)
-            if next_date > datetime.now():
-                diff: timedelta = next_date - datetime.now()
+            if next_date > now:
+                diff: timedelta = next_date - now
                 tournament_timer.update_timer(
                     diff.total_seconds(),
                     TournamentManager.next_tour,
@@ -132,7 +139,8 @@ class TournamentManager:
         self._tournament = None
         settings = settings_db.settings
         if settings.auto_tournament_enabled.value:
-            next_tournament_day = datetime.now() + timedelta(
+            now = datetime.now(timezone(getconf("TIMEZONE")))
+            next_tournament_day = now + timedelta(
                 days=settings.tournaments_days_period.value
             )
             next_tournament_day = next_tournament_day.replace(
@@ -140,7 +148,7 @@ class TournamentManager:
                 minute=settings.tournament_start_time_minutes.value,
             )
 
-            next_tournament_duration = next_tournament_day - datetime.now()
+            next_tournament_duration = next_tournament_day - now
             tournament_timer.update_timer(
                 next_tournament_duration.total_seconds(),
                 start_new_tournament,
