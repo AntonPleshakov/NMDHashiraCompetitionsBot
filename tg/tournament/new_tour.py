@@ -13,12 +13,14 @@ from tg.utils import (
     empty_filter,
     get_ids,
     report_to_admins,
+    get_username,
 )
 from tournament.tournament_manager import tournament_manager
 
 
 def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Offer to apply result for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Offer to apply result for {username}")
     user_id, chat_id, message_id = get_ids(cb_query)
 
     for result in tournament_manager.tournament.db.get_results():
@@ -43,9 +45,8 @@ def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def apply_result(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(
-        f"User {cb_query.from_user.username} applied result: {cb_query.data}"
-    )
+    username = get_username(cb_query)
+    nmd_logger.info(f"User {username} applied result: {cb_query.data}")
     user_id, chat_id, message_id = get_ids(cb_query)
     try:
         tournament_manager.tournament.add_result(
@@ -54,7 +55,7 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
         bot.answer_callback_query(cb_query.id, "Ваш результат зарегистрирован")
     except MatchResultTryingToBeChanged:
         nmd_logger.warning(
-            f"MatchResultTryingToBeChanged exception for user {cb_query.from_user.username}"
+            f"MatchResultTryingToBeChanged exception for user {username}"
         )
         bot.answer_callback_query(
             cb_query.id,
@@ -64,21 +65,19 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
         )
         report_to_admins(
             bot,
-            f"{cb_query.from_user.username} пытается зарегистрировать результат, отличный от зарегистрированного.\n"
+            f"{username} пытается зарегистрировать результат, отличный от зарегистрированного.\n"
             + f"Data: {cb_query.data}",
         )
     except TechWinCannotBeChanged:
-        nmd_logger.info(
-            f"TechWinCannotBeChanged exception for user {cb_query.from_user.username}"
-        )
+        nmd_logger.info(f"TechWinCannotBeChanged exception for user {username}")
         bot.answer_callback_query(cb_query.id, text="У вас техническая победа")
     except MatchResultWasAlreadyRegistered:
         nmd_logger.info(
-            f"MatchResultWasAlreadyRegistered exception for user {cb_query.from_user.username}"
+            f"MatchResultWasAlreadyRegistered exception for user {username}"
         )
         bot.answer_callback_query(cb_query.id, text="Ваш результат уже зарегистрирован")
     except MatchWithPlayersNotFound:
-        nmd_logger.warning(f"{cb_query.from_user.username} wasn't found in any match")
+        nmd_logger.warning(f"{username} wasn't found in any match")
         bot.answer_callback_query(
             cb_query.id,
             text="К сожалению мы не смогли найти вас среди участников. Возможна ошибка, свяжитесь с администратором",

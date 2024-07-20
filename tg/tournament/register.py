@@ -5,12 +5,12 @@ from db.global_settings import settings_db
 from db.ratings import ratings_db, Rating
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import PlayerNotFoundError, TournamentStartedError
-from tg.utils import empty_filter, get_ids
+from tg.utils import empty_filter, get_ids, get_username
 from tournament.player import Player
 from tournament.tournament_manager import tournament_manager
 
 
-def offer_to_add_info(tg_id: int, bot: TeleBot):
+def offer_to_add_info(tg_id: int, tg_username: str, bot: TeleBot):
     nmd_logger.info("Send offer to set nmd username")
     bot.send_message(
         chat_id=tg_id,
@@ -57,21 +57,21 @@ def add_or_update_registration_list(bot: TeleBot, add: bool = True):
 
 
 def register(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"User {cb_query.from_user.username} wants to be registered")
     user_id, chat_id, message_id = get_ids(cb_query)
-    username = cb_query.from_user.username
+    username = get_username(cb_query)
+    nmd_logger.info(f"User {username} wants to be registered")
     if tournament_manager.tournament.db.is_player_registered(user_id):
-        nmd_logger.warning(f"User {cb_query.from_user.username} already registered")
+        nmd_logger.warning(f"User {username} already registered")
         bot.answer_callback_query(cb_query.id, text="Вы уже зарегистрированы")
         return
 
     rating = ratings_db.get_rating(user_id)
     if not rating:
-        nmd_logger.info(f"No rating for user {cb_query.from_user.username}, create new")
+        nmd_logger.info(f"No rating for user {username}, create new")
         new_rating = Rating.default(user_id)
         new_rating.tg_username.value = username
         ratings_db.add_user_rating(new_rating)
-        offer_to_add_info(user_id, bot)
+        offer_to_add_info(user_id, username, bot)
         rating = new_rating
 
     player = Player(user_id, rating.rating.value)
@@ -80,14 +80,12 @@ def register(cb_query: CallbackQuery, bot: TeleBot):
         add_or_update_registration_list(bot)
         bot.answer_callback_query(cb_query.id, text="Вы зарегистрированы")
     except TournamentStartedError:
-        nmd_logger.warning(
-            f"User {cb_query.from_user.username} pressed 'register' but tournament started"
-        )
+        nmd_logger.warning(f"User {username} pressed 'register' but tournament started")
         bot.answer_callback_query(
             cb_query.id, text="Турнир уже начался, регистрация закрыта", show_alert=True
         )
     except PlayerNotFoundError:
-        nmd_logger.warning(f"Rating not found for player {cb_query.from_user.username}")
+        nmd_logger.warning(f"Rating not found for player {username}")
         bot.answer_callback_query(
             cb_query.id,
             text="Мы не смогли создать вам рейтинг. Попробуйте снова или обратитесь к администратору",

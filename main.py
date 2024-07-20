@@ -13,7 +13,7 @@ from tg.utils import (
     empty_filter,
     get_permissions_denied_message,
     get_ids,
-    get_user_view,
+    get_username,
 )
 
 bot = TeleBot(
@@ -46,7 +46,7 @@ class NMDExceptionHandler(ExceptionHandler):
 
 
 def permission_denied_message(message: Union[Message, CallbackQuery]):
-    nmd_logger.info(f"Permission denied for user '{get_user_view(message)}'")
+    nmd_logger.info(f"Permission denied for user '{get_username(message)}'")
     user_id, chat_id, _ = get_ids(message)
     denied_text = get_permissions_denied_message(user_id)
     if isinstance(message, Message):

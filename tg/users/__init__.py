@@ -10,7 +10,7 @@ from db.tournament_structures import RegistrationRow
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError, TournamentStartedError
 from tg.tournament.register import add_or_update_registration_list
-from tg.utils import get_ids, Button, empty_filter, get_like_emoji
+from tg.utils import get_ids, Button, empty_filter, get_like_emoji, get_username
 from tournament.tournament_manager import tournament_manager
 
 
@@ -19,7 +19,8 @@ class UsersState(StatesGroup):
 
 
 def users_main_menu(message: Union[Message, CallbackQuery], bot: TeleBot):
-    nmd_logger.info(f"Main menu for users to {message.from_user.username}")
+    username = get_username(message)
+    nmd_logger.info(f"Main menu for users to {username}")
     user_id, chat_id, message_id = get_ids(message)
     keyboard = None
     rating = ratings_db.get_rating(user_id)
@@ -51,9 +52,8 @@ def users_main_menu(message: Union[Message, CallbackQuery], bot: TeleBot):
 
 
 def update_nmd_username(message: Message, bot: TeleBot):
-    nmd_logger.info(
-        f"User {message.from_user.username} wants to update username to {message.text}"
-    )
+    username = get_username(message)
+    nmd_logger.info(f"User {username} wants to update username to {message.text}")
     user_id, chat_id, message_id = get_ids(message)
     new_nmd_username = message.text
     if admins_db.is_admin(user_id):
@@ -73,7 +73,7 @@ def update_nmd_username(message: Message, bot: TeleBot):
         )
         add_or_update_registration_list(bot, False)
     except (TournamentNotStartedError, TournamentStartedError) as e:
-        nmd_logger.info(f"User {message.from_user.username} got exception {e}")
+        nmd_logger.info(f"User {username} got exception {e}")
         pass
 
 

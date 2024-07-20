@@ -8,11 +8,12 @@ from config.config import getconf, reset_config
 from db.admins import admins_db
 from db.ratings import ratings_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import empty_filter, Button, get_ids
+from tg.utils import empty_filter, Button, get_ids, get_username
 
 
 def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Dev main menu for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Dev main menu for {username}")
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Загрузить логи", "dev/upload_logs").inline())
     keyboard.add(Button("Обновить файл конфигураций", "dev/update_config").inline())

@@ -11,7 +11,7 @@ from telebot.types import (
 
 from db.admins import Admin, admins_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids, home
+from tg.utils import Button, empty_filter, get_ids, home, get_username
 
 
 class AddAdminStates(StatesGroup):
@@ -20,7 +20,8 @@ class AddAdminStates(StatesGroup):
 
 
 def add_admins(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Add admin for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Add admin for {username}")
     user_id, chat_id, message_id = get_ids(cb_query)
 
     request_user_btn = KeyboardButtonRequestUsers(

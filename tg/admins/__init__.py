@@ -7,11 +7,12 @@ from telebot.types import (
 from db.admins import admins_db
 from logger.NMDLogger import nmd_logger
 from tg.admins import add_admin, del_admin
-from tg.utils import empty_filter, Button, get_ids
+from tg.utils import empty_filter, Button, get_ids, get_username
 
 
 def admins_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Admins main menu for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Admins main menu for {username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.delete_state(user_id)
 

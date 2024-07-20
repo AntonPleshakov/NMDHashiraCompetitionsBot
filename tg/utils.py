@@ -189,9 +189,11 @@ def get_ids(message: Union[Message, CallbackQuery]) -> Tuple[int, int, int]:
     return user_id, chat_id, message_id
 
 
-def get_user_view(message: Union[Message, CallbackQuery]) -> str:
+def get_username(message: Union[Message, CallbackQuery]) -> str:
     user = message.from_user
-    return f"{user.first_name} {user.last_name}({user.username})"
+    if user.username:
+        return user.username
+    return user.first_name
 
 
 def get_player_rating_view(player: Union[RegistrationRow, Rating]) -> str:
@@ -234,7 +236,8 @@ def main_menu_keyboard():
 
 
 def home(message: Union[Message, CallbackQuery], bot: TeleBot):
-    nmd_logger.info(f"Home for {message.from_user.username}")
+    username = get_username(message)
+    nmd_logger.info(f"Home for {username}")
     keyboard = main_menu_keyboard()
     text = "Выберите раздел управления"
     user_id, chat_id, message_id = get_ids(message)

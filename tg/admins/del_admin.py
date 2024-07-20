@@ -4,7 +4,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.admins import admins_db
 from logger.NMDLogger import nmd_logger
-from tg.utils import Button, empty_filter, get_ids, home
+from tg.utils import Button, empty_filter, get_ids, home, get_username
 
 
 class DelAdminStates(StatesGroup):
@@ -13,7 +13,8 @@ class DelAdminStates(StatesGroup):
 
 
 def del_admin_options(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Del admin options for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Del admin options for {username}")
     current_admins = admins_db.get_admins()[1:]  # filter main admin
     keyboard = InlineKeyboardMarkup(row_width=1)
     for admin in current_admins:

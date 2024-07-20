@@ -16,6 +16,7 @@ from tg.utils import (
     get_like_emoji,
     home,
     tournament_timer,
+    get_username,
 )
 from tournament.tournament_manager import tournament_manager, TournamentManager
 
@@ -41,7 +42,8 @@ def tournament_start_keyboard() -> InlineKeyboardMarkup:
 
 
 def new_tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Offer to start new tournament for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Offer to start new tournament for {username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     settings = TournamentSettings.default_settings()
     if bot.current_states.get_data(chat_id, user_id):

@@ -5,7 +5,7 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 from db.tournament_structures import Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError
-from tg.utils import Button, empty_filter, get_ids, home
+from tg.utils import Button, empty_filter, get_ids, home, get_username
 from tournament.tournament_manager import tournament_manager
 
 
@@ -15,7 +15,8 @@ class UpdateMatchStates(StatesGroup):
 
 
 def chose_match_to_update(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Chose match to update for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Chose match to update for {username}")
     try:
         matches = tournament_manager.tournament.db.get_results()
         keyboard = InlineKeyboardMarkup(row_width=1)

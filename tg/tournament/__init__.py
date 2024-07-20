@@ -18,11 +18,13 @@ from tg.utils import (
     get_like_emoji,
     tournament_timer,
     get_dislike_emoji,
+    get_username,
 )
 
 
 def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"Tournament main menu for {cb_query.from_user.username}")
+    username = get_username(cb_query)
+    nmd_logger.info(f"Tournament main menu for {username}")
     user_id, chat_id, message_id = get_ids(cb_query)
     bot.delete_state(user_id)
 
@@ -54,7 +56,8 @@ def tournament_main_menu(cb_query: CallbackQuery, bot: TeleBot):
 
 
 def stop_timer(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info(f"{cb_query.from_user.username} stopped the tournament timer")
+    username = get_username(cb_query)
+    nmd_logger.info(f"{username} stopped the tournament timer")
     tournament_timer.cancel()
     bot.answer_callback_query(cb_query.id, "Таймер остановлен")
 
