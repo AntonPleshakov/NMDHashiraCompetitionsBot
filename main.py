@@ -1,7 +1,7 @@
 from typing import Union
 
 import telebot.apihelper
-from telebot import TeleBot
+from telebot import TeleBot, ExceptionHandler
 from telebot.handler_backends import BaseMiddleware
 from telebot.types import CallbackQuery, Message
 
@@ -39,6 +39,12 @@ class AlwaysAnswerCallbackQueryMiddleware(BaseMiddleware):
             pass
 
 
+class NMDExceptionHandler(ExceptionHandler):
+    def handle(self, exception):
+        nmd_logger.error(f"Polling exception: {str(exception)}")
+        return True
+
+
 def permission_denied_message(message: Union[Message, CallbackQuery]):
     nmd_logger.info(f"Permission denied for user '{get_user_view(message)}'")
     user_id, chat_id, _ = get_ids(message)
@@ -65,4 +71,5 @@ if __name__ == "__main__":
         is_admin=False,
     )
     bot.setup_middleware(AlwaysAnswerCallbackQueryMiddleware())
+    bot.exception_handler = NMDExceptionHandler()
     bot.infinity_polling()
