@@ -5,8 +5,8 @@ from pygsheets import Worksheet
 
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
-from db.tournament import TournamentDB, RegistrationRow
 from db.ratings import Rating
+from db.tournament import TournamentDB, RegistrationRow
 from db.tournament_structures import Match, Result
 from .conftest import (
     TEST_DATA_PLAYERS,
@@ -87,22 +87,6 @@ def test_registration(tournament: TournamentDB, player: Rating):
     registered_players = tournament.get_registered_players()
     assert len(registered_players) > 0
     assert registered_players[0] == player_registration  # List must be sorted by rating
-
-
-@pytest.mark.parametrize("player", TEST_DATA_PLAYERS)
-@pytest.mark.gdrive_access
-def test_update_player_info(tournament: TournamentDB, player: Rating):
-    player_registration = ratingToRegistration(player)
-    registered_players = tournament.get_registered_players()
-    assert (
-        registered_players[-1] == player_registration
-    )  # Each next user must be the last by rating
-
-    player_registration.rating.value = int(registered_players[0].rating) + 1
-    tournament.update_player_info(player_registration)
-    registered_players = tournament.get_registered_players()
-    # With the new rating the user must be the first
-    assert registered_players[0] == player_registration
 
 
 @pytest.mark.gdrive_access

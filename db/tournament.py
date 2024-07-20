@@ -7,7 +7,6 @@ from pytz import timezone
 from config.config import getconf
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import (
-    PlayerNotFoundError,
     TournamentNotStartedError,
     TournamentNotFinishedError,
 )
@@ -113,22 +112,6 @@ class TournamentDB:
     def is_player_registered(self, player_tg_id: int) -> bool:
         return player_tg_id in self._registered_players
 
-    def update_player_info(self, player: RegistrationRow):
-        nmd_logger.info(f"DB: update player info to: {', '.join(player.to_row())}")
-        players = self.get_registered_players()
-        player_indexes = [
-            i for i, v in enumerate(players) if v.tg_username == player.tg_username
-        ]
-        if not player_indexes:
-            nmd_logger.warning("DB: Player not found")
-            raise PlayerNotFoundError
-        row = player_indexes[0] + 2  # starting from 1 plus header
-        start_range = (row, 1)
-        self._registration_page.update_values(
-            [player.to_row()], start_range=start_range
-        )
-        self._registration_page.sort_table(player.rating.index)
-
     def start_new_tour(self, pairs: List[Match]):
         nmd_logger.info("DB: start new tour")
         tour_number = len(self._tours) + 1
@@ -146,10 +129,9 @@ class TournamentDB:
         if not self._tours:
             raise TournamentNotStartedError
         tour = self._tours[-1]
-        match = tour.get_all_values()[pair_index]
-        match[Match()._result.index] = result
-        start_range = (pair_index + 2, 1)
-        tour.update_values([match], start_range=start_range)
+        values = tour.get_all_values()
+        values[pair_index][Match()._result.index] = result
+        tour.update_values(values)
 
     def get_results(self, tour_idx: int = -1) -> List[Match]:
         if not self._tours:
