@@ -54,6 +54,7 @@ def add_or_update_registration_list(bot: TeleBot, add: bool = True):
             text=get_registration_list_message(),
         )
         settings.registration_list_message_id.value = message.id
+        tournament_manager.tournament.db.settings = settings
 
 
 def register(cb_query: CallbackQuery, bot: TeleBot):
