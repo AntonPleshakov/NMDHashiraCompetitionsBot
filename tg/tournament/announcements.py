@@ -60,8 +60,6 @@ def announce_tournament_end(tournament_db: TournamentDB, bot: TeleBot):
     tournament_url = tournament_db.get_url()
     winners = tournament_db.get_final_results()[:3]
     winners_links = [get_user_link(p.tg_id.value, p.tg_username.value) for p in winners]
-    if settings.registration_list_message_id.value:
-        bot.delete_message(chat_id, settings.registration_list_message_id.value)
     bot.send_message(
         chat_id,
         get_tournament_end_message(winners_links, tournament_url),
