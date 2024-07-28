@@ -56,7 +56,6 @@ def announce_tournament_end(tournament_db: TournamentDB, bot: TeleBot):
     nmd_logger.info("End tournament announcement")
     chat_id = settings_db.settings.chat_id.value
     message_thread_id = settings_db.settings.tournament_thread_id.value
-    settings = tournament_db.settings
     tournament_url = tournament_db.get_url()
     winners = tournament_db.get_final_results()[:3]
     winners_links = [get_user_link(p.tg_id.value, p.tg_username.value) for p in winners]
@@ -71,9 +70,6 @@ def announce_tournament_end_without_players(tournament_db: TournamentDB, bot: Te
     nmd_logger.info("End tournament announcement")
     chat_id = settings_db.settings.chat_id.value
     message_thread_id = settings_db.settings.tournament_thread_id.value
-    settings = tournament_db.settings
-    if settings.registration_list_message_id.value:
-        bot.delete_message(chat_id, settings.registration_list_message_id.value)
     bot.send_message(
         chat_id,
         get_tournament_end_without_players_message(),
