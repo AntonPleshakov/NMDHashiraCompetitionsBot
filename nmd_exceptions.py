@@ -40,3 +40,15 @@ class TournamentNotFinishedError(Exception):
 
 class NewPlayerError(Exception):
     pass
+
+
+class PairingCantFindByePlayer(Exception):
+    pass
+
+
+class PairingCantFindFreeOpponent(Exception):
+    pass
+
+
+class PairingNoPlayers(Exception):
+    pass

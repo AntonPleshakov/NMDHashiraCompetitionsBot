@@ -13,6 +13,7 @@ class Player:
         self.tg_id: int = tg_id
         self.rating: int = rating
         self.opponents: Set[int] = set()
+        self.had_bye: bool = False
         self.mm: int = floor(rating / 100)
         self.sos: float = 0
         self.sodos: float = 0

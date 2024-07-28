@@ -60,9 +60,6 @@ class Tournament:
             nmd_logger.info("Update coefficients with results of last round")
             pairing_copy.update_coefficients(self.db.get_results())
         pairs = pairing_copy.gen_pairs()
-        if not pairs or not pairs[0].second.value:
-            nmd_logger.info("Not enough players to continue. Tour won't be started")
-            return pairs
         self._pairing = deepcopy(pairing_copy)
         nightmares = self.db.settings.nightmare_matches.value
         dangerous = self.db.settings.dangerous_matches.value

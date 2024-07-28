@@ -114,9 +114,10 @@ class TournamentManager:
             )
             raise TournamentNotStartedError
         if self._tournament.db.get_tours_number() < self._settings.rounds_number.value:
-            pairs = self._tournament.new_round()
-            if not pairs or not pairs[0].second.value:
-                nmd_logger.info("Not enough players to continue. Finish tournament")
+            try:
+                pairs = self._tournament.new_round()
+            except Exception as e:
+                nmd_logger.info(f"Exception in pairing. Finish tournament. {e}")
                 self._finish_tournament(False)
                 return
             announce_new_tour(pairs, self._tournament.db, bot)

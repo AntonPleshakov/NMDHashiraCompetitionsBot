@@ -47,7 +47,11 @@ def calc_new_ratings(
             match_results[right][left] = match.result.reversed()
 
     for player in players:
+        if player.tg_id not in ratings:
+            continue
         for opponent in player.opponents:
+            if opponent not in ratings:
+                continue
             player_rating = ratings[player.tg_id]
             opponent_rating = ratings[opponent]
             res = match_results[player.tg_id][opponent]
