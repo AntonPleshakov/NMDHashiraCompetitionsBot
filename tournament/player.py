@@ -1,7 +1,7 @@
 from math import floor
-from typing import Set
+from typing import Set, Dict
 
-from db.tournament_structures import RegistrationRow, Result
+from db.tournament_structures import RegistrationRow, Result, Match
 
 
 class Player:
@@ -13,6 +13,7 @@ class Player:
         self.tg_id: int = tg_id
         self.rating: int = rating
         self.opponents: Set[int] = set()
+        self.results: Dict[int, Match.MatchResult] = {}
         self.had_bye: bool = False
         self.mm: int = floor(rating / 100)
         self.sos: float = 0

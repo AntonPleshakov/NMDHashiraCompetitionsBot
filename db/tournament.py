@@ -88,6 +88,10 @@ class TournamentDB:
             tour_number += 1
             tour_title = getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(tour_number)
 
+        results_title = getconf("TOURNAMENT_RESULTS_PAGE_NAME")
+        if self._manager.is_worksheet_exist(results_title):
+            self._results_page = self._manager.get_worksheet(results_title)
+
     def get_url(self):
         return self._manager.get_url()
 

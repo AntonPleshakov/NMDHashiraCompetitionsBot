@@ -22,9 +22,11 @@ class McMahonPairing:
         for p in players:
             self._players[p.tg_id.value] = Player.from_registration(p)
             self._registrations[p.tg_id.value] = p
-        for pairs in previous_matches:
+        for pairs in previous_matches[:-1]:
             self._populate_opponents(pairs)
             self.update_coefficients(pairs)
+        if len(previous_matches) > 0:
+            self._populate_opponents(previous_matches[-1])
 
     def _populate_opponents(self, matches: List[Match]):
         nmd_logger.info(f"Populate opponents for {len(matches)} matches")
@@ -35,7 +37,9 @@ class McMahonPairing:
                 continue
             second_player = self._players[match.second_id.value]
             first_player.opponents.add(match.second_id.value)
+            first_player.results[match.second_id.value] = match.result
             second_player.opponents.add(match.first_id.value)
+            second_player.results[match.first_id.value] = match.result.reversed()
 
     def add_player(self, player: RegistrationRow):
         self._players[player.tg_id.value] = Player.from_registration(player)
@@ -48,6 +52,16 @@ class McMahonPairing:
 
     def get_user(self, player: Player):
         return self._registrations[player.tg_id]
+
+    def _update_sos_sodos(self):
+        for player in self._players.values():
+            player.sos = 0
+            player.sodos = 0
+            for opponent_id in player.opponents:
+                opponent = self._players[opponent_id]
+                player.sos += opponent.mm
+                if player.results[opponent_id] == Match.MatchResult.FirstWon:
+                    player.sodos += opponent.mm
 
     def update_coefficients(self, tour_result: List[Match]):
         nmd_logger.info(f"Update coefficients for {len(tour_result)} matches")
@@ -67,19 +81,14 @@ class McMahonPairing:
                 second.mm += 1
 
         # calculate SOS and SODOS
-        for match in tour_result:
-            if not match.second.value:
-                continue
-            first = self._players[match.first_id.value]
-            second = self._players[match.second_id.value]
+        self._update_sos_sodos()
 
-            first.sos += second.mm
-            second.sos += first.mm
-
-            if match.result == first_won:
-                first.sodos += second.mm
-            elif match.result == second_won:
-                second.sodos += first.mm
+        nmd_logger.debug("name | mm | sos | sodos")
+        for player in self._players.values():
+            player_row = self.get_user(player)
+            nmd_logger.debug(
+                f"{player_row.tg_username} | {player.mm} | {player.sos} | {player.sodos}"
+            )
 
     def _get_bye_player(self, players):
         bye_player = None
