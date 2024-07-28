@@ -168,7 +168,7 @@ class Tournament:
         tournament_table = []
         for i, player in enumerate(players):
             user = self._pairing.get_user(player)
-            result = player.to_result(i, user)
+            result = player.to_result(i + 1, user)
             new_rating = new_ratings[player.tg_id].rating.value
             result.rating.value = f"{player.rating} -> {new_rating}"
             tournament_table.append(result)
