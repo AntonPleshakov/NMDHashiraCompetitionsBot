@@ -17,7 +17,7 @@ class McMahonPairing:
         for p in players:
             self._players[p.tg_id.value] = Player.from_registration(p)
             self._registrations[p.tg_id.value] = p
-        for i, pairs in enumerate(previous_matches):
+        for pairs in previous_matches:
             self._populate_opponents(pairs)
             self.update_coefficients(pairs)
 

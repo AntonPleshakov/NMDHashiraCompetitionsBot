@@ -105,8 +105,9 @@ def get_next_tour_message(
         first = get_user_link(match.first_id.value, match.first.value)
         if not match.second.value:
             pairs_list.append(f"{first} - техническая победа")
+            continue
         second = get_user_link(match.second_id.value, match.second.value)
-        pairs_list.append(f"{first} vs {second}")
+        pairs_list.append(f"{first} vs {second}: {match.map.value}")
     pairs_str = "\n        ".join(pairs_list)
     print(pairs_list)
     return dedent(
