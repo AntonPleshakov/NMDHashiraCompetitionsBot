@@ -85,7 +85,7 @@ class TournamentManager:
                 )
             else:
                 nmd_logger.error("Bot was unavailable longer than a tour duration")
-                pass
+                self.next_tour()
 
     @property
     def tournament(self):
