@@ -25,7 +25,9 @@ class WorksheetManager:
         return new_values
 
     def fetch(self):
-        nmd_logger.info("GAPI: fetch ws")
+        nmd_logger.info(
+            f"GAPI: '{self._ws.spreadsheet.title}' fetch ws '{self._ws.title}'"
+        )
         self._cache = self._ws.get_all_values(
             include_tailing_empty_rows=False, include_tailing_empty=False
         )
@@ -37,7 +39,7 @@ class WorksheetManager:
 
     def bold_cells(self, end_range: tuple, to_bold: bool = True):
         nmd_logger.info(
-            f"GAPI: {"bold" if to_bold else "unbold"} cells until {end_range}"
+            f"GAPI: ({self._ws.spreadsheet.title}/{self._ws.title}) {"bold" if to_bold else "unbold"} cells until {end_range}"
         )
         start_range = (1, 1)
         self._ws.apply_format(
@@ -45,7 +47,9 @@ class WorksheetManager:
         )
 
     def set_header(self, header: Matrix):
-        nmd_logger.info(f"GAPI: set header: {header}")
+        nmd_logger.info(
+            f"GAPI: ({self._ws.spreadsheet.title}/{self._ws.title}) set header: {header}"
+        )
         values = self.get_all_values()
         if self._header_range[0] > 0:
             end_range = tuple(x + 1 for x in self._header_range)
@@ -62,7 +66,9 @@ class WorksheetManager:
         return self.cache()[self._header_range[0] :]
 
     def add_row(self, row: List[str]):
-        nmd_logger.info(f"GAPI: add row: {row}")
+        nmd_logger.info(
+            f"GAPI: ({self._ws.spreadsheet.title}/{self._ws.title}) add row: {row}"
+        )
         row_index = len(self.cache())
         row = self._validate_row(row)
         self._ws.insert_rows(row=row_index, values=row)
@@ -75,7 +81,7 @@ class WorksheetManager:
         sort_order: str = "DESCENDING",
     ):
         nmd_logger.info(
-            f"GAPI: sort table by {column_index} column in {sort_order} order"
+            f"GAPI: ({self._ws.spreadsheet.title}/{self._ws.title}) sort table by {column_index} column in {sort_order} order"
         )
         start_range = (self._header_range[0] + 1, 1)
         cache = self.cache()
@@ -89,7 +95,7 @@ class WorksheetManager:
         start_range: Optional[tuple] = None,
     ):
         nmd_logger.info(
-            f"GAPI: update values with start range {start_range} to {values}"
+            f"GAPI: ({self._ws.spreadsheet.title}/{self._ws.title}) update values with start range {start_range} to {values}"
         )
         if not start_range:
             start_range = (self._header_range[0] + 1, 1)

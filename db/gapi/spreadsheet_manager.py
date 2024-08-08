@@ -31,13 +31,13 @@ class SpreadsheetManager:
         return any(ws.title == worksheet_title for ws in worksheets)
 
     def add_worksheet(self, worksheet_title: str) -> WorksheetManager:
-        nmd_logger.info(f"GAPI: add ws {worksheet_title}")
+        nmd_logger.info(f"GAPI: '{self._ss.title}' add ws '{worksheet_title}'")
         ws = self._ss.add_worksheet(worksheet_title, index=0)
         self._cache[worksheet_title] = ws
         return WorksheetManager(ws)
 
     def delete_worksheet(self, worksheet_title: str):
-        nmd_logger.info(f"GAPI: delete ws {worksheet_title}")
+        nmd_logger.info(f"GAPI: '{self._ss.title}' delete ws '{worksheet_title}'")
         ws = self._ss.worksheet_by_title(worksheet_title)
         self._ss.del_worksheet(ws)
         self._cache.pop(worksheet_title)
@@ -45,7 +45,9 @@ class SpreadsheetManager:
     def rename_worksheet(
         self, new_name: str, old_name: str = DEFAULT_WORKSHEET_NAME
     ) -> WorksheetManager:
-        nmd_logger.info(f"GAPI: rename ws {old_name} -> {new_name}")
+        nmd_logger.info(
+            f"GAPI: '{self._ss.title}' rename ws '{old_name}' -> '{new_name}'"
+        )
         ws = self._get_cached_ws(old_name)
         ws.title = new_name
         self._cache.pop(old_name)
