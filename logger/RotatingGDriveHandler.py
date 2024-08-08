@@ -11,11 +11,9 @@ class RotatingGDriveHandler(RotatingFileHandler):
         max_bytes: int = 0,
         backup_count: int = 0,
     ):
-        super().__init__(filename, maxBytes=max_bytes, backupCount=backup_count)
-
-    def emit(self, record):
-        record.msg = record.msg.encode("utf8")
-        super().emit(record)
+        super().__init__(
+            filename, maxBytes=max_bytes, backupCount=backup_count, encoding="utf8"
+        )
 
     def doRollover(self):
         super().doRollover()

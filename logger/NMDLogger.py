@@ -18,8 +18,8 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(logging.Formatter(fmt, date_fmt))
 
 nmd_logger = logging.getLogger("NMDHashiraBot")
-nmd_logger.addHandler(gdrive_handler)
 nmd_logger.addHandler(stream_handler)
+nmd_logger.addHandler(gdrive_handler)
 nmd_logger.setLevel(logging.DEBUG)
 
 bot_logger = logging.getLogger("TeleBot")
