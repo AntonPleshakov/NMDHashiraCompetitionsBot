@@ -1,6 +1,7 @@
-from datetime import date, datetime
+from datetime import date
 from typing import List, Optional
 
+from common.nmd_datetime import nmd_parse_datetime, nmd_now
 from config.config import getconf
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import UsernameAlreadyExistsError, NewPlayerError
@@ -37,8 +38,8 @@ class Rating(Parameters):
     def get_weeks(self):
         if not self.last_date.value:
             raise NewPlayerError
-        last_date = datetime.strptime(self.last_date.value, self.DATE_FORMAT).date()
-        date_diff = date.today() - last_date
+        last_date = nmd_parse_datetime(self.last_date.value, self.DATE_FORMAT).date()
+        date_diff = nmd_now() - last_date
         return date_diff.days // 7
 
 

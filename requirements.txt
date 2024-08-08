@@ -2,4 +2,3 @@ pytest==7.4.2
 PyDrive2==1.18.0
 pygsheets==2.0.6
 pyTelegramBotAPI==4.20.0
-pytz~=2024.1

@@ -1,9 +1,7 @@
 from datetime import timedelta, datetime
 from typing import Optional
 
-from pytz import timezone
-
-from config.config import getconf
+from common.nmd_datetime import nmd_now
 from db.global_settings import settings_db
 from db.tournament import TournamentDB
 from db.tournament_structures import TournamentSettings
@@ -34,7 +32,7 @@ class TournamentManager:
             nmd_logger.info("No tournaments exists")
             return
 
-        now = datetime.now(timezone(getconf("TIMEZONE")))
+        now = nmd_now()
         if latest_tournament_db.is_finished():
             nmd_logger.info("No tournaments in progress")
             settings = settings_db.settings
@@ -140,7 +138,7 @@ class TournamentManager:
         self._tournament = None
         settings = settings_db.settings
         if settings.auto_tournament_enabled.value:
-            now = datetime.now(timezone(getconf("TIMEZONE")))
+            now = nmd_now()
             next_tournament_day = now + timedelta(
                 days=settings.tournaments_days_period.value
             )

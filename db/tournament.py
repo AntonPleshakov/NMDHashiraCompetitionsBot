@@ -1,9 +1,8 @@
 import os
-from datetime import date, datetime
+from datetime import date
 from typing import List, Optional, Set
 
-from pytz import timezone
-
+from common.nmd_datetime import nmd_now
 from config.config import getconf
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import (
@@ -44,7 +43,7 @@ class TournamentDB:
         settings_page = manager.rename_worksheet(
             getconf("TOURNAMENT_SETTINGS_PAGE_NAME")
         )
-        settings.tournament_start_date = datetime.now(timezone(getconf("TIMEZONE")))
+        settings.tournament_start_date = nmd_now()
         settings_page.update_values(settings.to_matrix())
         registration_page = manager.add_worksheet(
             getconf("TOURNAMENT_REGISTER_PAGE_NAME")

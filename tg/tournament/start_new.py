@@ -1,12 +1,9 @@
-from datetime import datetime
-
-from pytz import timezone
 from telebot import TeleBot
 from telebot.handler_backends import StatesGroup, State
 from telebot.types import InlineKeyboardMarkup, CallbackQuery, Message
 
 import tg.common.settings
-from config.config import getconf
+from common.nmd_datetime import nmd_now, nmd_parse_datetime
 from db.tournament_structures import TournamentSettings
 from logger.NMDLogger import nmd_logger
 from tg import common
@@ -86,7 +83,7 @@ def delayed_start(cb_query: CallbackQuery, bot: TeleBot):
         chat_id=chat_id,
         message_id=message_id,
         text=f"Введите дату старта в формате '{DATETIME_FORMAT}' по Московскому времени\n"
-        f"Например: {datetime.now(timezone(getconf("TIMEZONE"))).strftime(DATETIME_FORMAT)}",
+        f"Например: {nmd_now().strftime(DATETIME_FORMAT)}",
         reply_markup=keyboard,
     )
     bot.add_data(user_id, message_id=message_id)
@@ -96,8 +93,8 @@ def delayed_start_confirmed(message: Message, bot: TeleBot):
     nmd_logger.info(f"Delayed start confirmed in {message.text}")
     user_id, chat_id, message_id = get_ids(message)
     try:
-        start_date = datetime.strptime(message.text, DATETIME_FORMAT)
-        now = datetime.now(timezone(getconf("TIMEZONE")))
+        start_date = nmd_parse_datetime(message.text, DATETIME_FORMAT, True)
+        now = nmd_now()
         start_date = start_date.replace(year=now.year)
         time_to_start = start_date - now
         with bot.retrieve_data(user_id) as data:

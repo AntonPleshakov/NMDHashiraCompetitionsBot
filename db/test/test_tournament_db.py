@@ -1,8 +1,7 @@
-from datetime import datetime
-
 import pytest
 from pygsheets import Worksheet
 
+from common.nmd_datetime import nmd_now
 from config.config import getconf
 from db.gapi.gsheets_manager import GSheetsManager
 from db.ratings import Rating
@@ -66,7 +65,7 @@ def tournament():
 
 @pytest.mark.gdrive_access
 def test_new_tournament(tournament: TournamentDB):
-    date = datetime.today().strftime("%d.%m.%Y")
+    date = nmd_now().strftime("%d.%m.%Y")
     assert (
         tournament._manager._ss.title == getconf("TOURNAMENT_GTABLE_NAME") + " " + date
     )
