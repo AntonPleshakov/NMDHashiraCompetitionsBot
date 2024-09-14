@@ -10,5 +10,9 @@ def getconf(option: str) -> str:
     return _config.get(_MODE, option)
 
 
+def getconf_int(option: str) -> int:
+    return _config.getint(_MODE, option)
+
+
 def reset_config(filepath: str):
     _config.read(filepath, encoding="utf-8")
