@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Optional, List
+from typing import List
 
 from common.nmd_datetime import nmd_parse_datetime
 from db.global_settings import settings_db
@@ -74,25 +74,15 @@ class Match(Parameters):
     def result_str(self) -> str:
         return self._result.value
 
-    @result_str.setter
-    def result_str(self, new_result: str):
-        self._result.value = new_result
-        self._result_enum = Match.STR_TO_MATCH_RESULT[new_result]
-
     @classmethod
-    def new_match(cls, player: RegistrationRow, opponent: Optional[RegistrationRow]):
-        player_name = player.tg_username.value
-        if player.nmd_username.value:
-            player_name = player_name + f"({player.nmd_username.value})"
-        opponent_name = ""
-        if opponent:
-            opponent_name = opponent.tg_username.value
-            if opponent.nmd_username.value:
-                opponent_name = opponent_name + f"({opponent.nmd_username.value})"
-        opponent_id = opponent.tg_id.value if opponent else 0
-        match = cls.from_row(
-            [player_name, player.tg_id.value, "", opponent_name, opponent_id]
-        )
+    def new_match(
+        cls,
+        player_name: str,
+        player_id: int,
+        opponent_name: str = "",
+        opponent_id: int = 0,
+    ):
+        match = cls.from_row([player_name, player_id, "", opponent_name, opponent_id])
         match.result = cls.MatchResult.NotPlayed
         return match
 

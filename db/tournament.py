@@ -1,6 +1,6 @@
 import os
 from datetime import date
-from typing import List, Optional, Set
+from typing import List, Optional, Dict
 
 from common.nmd_datetime import nmd_now
 from config.config import getconf
@@ -28,7 +28,7 @@ class TournamentDB:
         )
         self._tours: List[WorksheetManager] = []
         self._results_page: Optional[WorksheetManager] = None
-        self._registered_players: Set[int] = set()
+        self._registered_players: Dict[int, RegistrationRow] = {}
         self._restore_tournament()
 
     @classmethod
@@ -77,7 +77,7 @@ class TournamentDB:
 
     def _restore_tournament(self):
         for player in self.get_registered_players():
-            self._registered_players.add(player.tg_id.value)
+            self._registered_players[player.tg_id.value] = player
 
         tour_number = 1
         tour_title = getconf("TOURNAMENT_TOUR_PAGE_NAME") + " " + str(tour_number)
@@ -105,12 +105,15 @@ class TournamentDB:
         else:
             self._registration_page.add_row(player.to_row())
         self._registration_page.sort_table(player.rating.index)
-        self._registered_players.add(player.tg_id.value)
+        self._registered_players[player.tg_id.value] = player
 
     def get_registered_players(self) -> List[RegistrationRow]:
         matrix = self._registration_page.get_all_values()
         players = [RegistrationRow.from_row(row) for row in matrix]
         return players
+
+    def get_registered_player(self, tg_id: int) -> RegistrationRow:
+        return self._registered_players[tg_id]
 
     def is_player_registered(self, player_tg_id: int) -> bool:
         return player_tg_id in self._registered_players
@@ -183,4 +186,4 @@ class TournamentDB:
         if self._results_page:
             self._results_page.fetch()
         for player in self.get_registered_players():
-            self._registered_players.add(player.tg_id.value)
+            self._registered_players[player.tg_id.value] = player

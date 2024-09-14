@@ -75,7 +75,7 @@ def register(cb_query: CallbackQuery, bot: TeleBot):
         offer_to_add_info(user_id, username, bot)
         rating = new_rating
 
-    player = Player(user_id, rating.rating.value)
+    player = Player.from_rating(rating)
     try:
         tournament_manager.tournament.add_player(player)
         add_or_update_registration_list(bot)

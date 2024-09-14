@@ -46,9 +46,5 @@ class PairingCantFindByePlayer(Exception):
     pass
 
 
-class PairingCantFindFreeOpponent(Exception):
-    pass
-
-
 class PairingNoPlayers(Exception):
     pass

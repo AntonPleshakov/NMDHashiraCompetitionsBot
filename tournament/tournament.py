@@ -1,4 +1,3 @@
-from copy import deepcopy
 from enum import Enum
 from typing import List
 
@@ -17,8 +16,7 @@ from nmd_exceptions import (
     TournamentNotStartedError,
 )
 from tg.utils import get_player_rating_view
-from .deviation_math import recalc_deviation_by_time, calc_new_deviation
-from .elo import calc_new_ratings
+from tournament.ratings_math import update_player_with_rating
 from .mcmahon_pairing import McMahonPairing
 from .player import Player
 
@@ -40,38 +38,41 @@ class Tournament:
         )
         nmd_logger.info(f"Current state is {self._state.name}")
 
-        players_list = self.db.get_registered_players()
+        registrations = self.db.get_registered_players()
+        players: List[Player] = []
+        for reg_row in registrations:
+            rating = ratings_db.get_rating(reg_row.tg_id.value)
+            players.append(Player.from_rating(rating))
         previous_tours = []
         for i in range(self.db.get_tours_number()):
             previous_tours.append(self.db.get_results(i))
-        self._pairing: McMahonPairing = McMahonPairing(players_list, previous_tours)
+        self._pairing: McMahonPairing = McMahonPairing(players, previous_tours)
 
     @property
     def state(self) -> TournamentState:
         return self._state
+
+    def _set_map_difficulty(self, pairs: List[Match]):
+        nightmares = self.db.settings.nightmare_matches.value
+        dangerous = self.db.settings.dangerous_matches.value
+        dangerous_idx = nightmares + dangerous
+        for p in pairs[0:nightmares]:
+            p.map.set_value("Nightmare")
+        for p in pairs[nightmares:dangerous_idx]:
+            p.map.set_value("Dangerous")
+        for p in pairs[dangerous_idx:]:
+            p.map.set_value("Hard")
 
     def new_round(self) -> List[Match]:
         nmd_logger.info("New round start")
         if self._state == TournamentState.FINISHED:
             nmd_logger.error("Tournament state is Finished, exception")
             raise TournamentFinishedError
-        pairing_copy = deepcopy(self._pairing)
         if self._state == TournamentState.IN_PROGRESS:
             nmd_logger.info("Update coefficients with results of last round")
-            pairing_copy.update_coefficients(self.db.get_results())
-        pairs = pairing_copy.gen_pairs()
-        self._pairing = deepcopy(pairing_copy)
-        nightmares = self.db.settings.nightmare_matches.value
-        dangerous = self.db.settings.dangerous_matches.value
-        for p in pairs:
-            if nightmares:
-                p.map.set_value("Nightmare")
-                nightmares -= 1
-            elif dangerous:
-                p.map.set_value("Dangerous")
-                dangerous -= 1
-            else:
-                p.map.set_value("Hard")
+            self._pairing.update_coefficients(self.db.get_results())
+        pairs = self._pairing.gen_pairs()
+        self._set_map_difficulty(pairs)
 
         self.db.start_new_tour(pairs)
         self._state = TournamentState.IN_PROGRESS
@@ -89,15 +90,15 @@ class Tournament:
         nmd_logger.info(f"Player rating {get_player_rating_view(rating)}")
         registration_row = RegistrationRow.from_rating(rating)
         self.db.register_player(registration_row)
-        self._pairing.add_player(registration_row)
+        self._pairing.add_player(player)
 
-    def update_player_info(self, player: RegistrationRow):
+    def update_player_info(self, player: Rating):
         nmd_logger.info(f"Update player info {get_player_rating_view(player)}")
         if self._state != TournamentState.REGISTRATION:
             nmd_logger.error("Can't update player info not in registration, exception")
             raise TournamentStartedError
-        self.db.register_player(player)
-        self._pairing.add_player(player)
+        self.db.register_player(RegistrationRow.from_rating(player))
+        self._pairing.add_player(Player.from_rating(player))
 
     def add_result(
         self,
@@ -123,12 +124,14 @@ class Tournament:
         if not match.second.value:
             nmd_logger.info("Match of one player, raise exception")
             raise TechWinCannotBeChanged
+
         # swap result in case of players swapped
         new_result = Match.MatchResult.SecondWon
         if match.first_id.value == user_id and won:
             new_result = Match.MatchResult.FirstWon
         elif match.second_id.value == user_id and not won:
             new_result = Match.MatchResult.FirstWon
+
         old_result: Match.MatchResult = Match.STR_TO_MATCH_RESULT[match.result_str]
         if old_result != Match.MatchResult.NotPlayed:
             if old_result == new_result:
@@ -141,34 +144,12 @@ class Tournament:
                 raise MatchResultTryingToBeChanged
         self.db.register_result(match_index, Match.MATCH_RESULT_TO_STR[new_result])
 
-    def finish_tournament(self, should_update_coefficients):
-        nmd_logger.info("Finish tournament")
-        self._state = TournamentState.FINISHED
-        if should_update_coefficients:
-            try:
-                self._pairing.update_coefficients(self.db.get_results())
-            except TournamentNotStartedError:
-                self.db.finish_tournament([])
-                raise
-        players = self._pairing.get_players()
+    @staticmethod
+    def _update_ratings_db(players: List[Player]):
         ratings = ratings_db.get_ratings()
-        for player in ratings:
-            new_deviation = recalc_deviation_by_time(player)
-            player.deviation.value = new_deviation
         ratings_id_to_index = {r.tg_id.value: i for i, r in enumerate(ratings)}
 
-        tours = []
-        for i in range(self.db.get_tours_number()):
-            tours.append(self.db.get_results(i))
-        new_ratings = calc_new_ratings(players, tours)
-
-        tournament_table = []
-        for i, player in enumerate(players):
-            user = self._pairing.get_user(player)
-            result = player.to_result(i + 1, user)
-            new_rating = new_ratings[player.tg_id].rating.value
-            result.rating.value = f"{player.rating} -> {new_rating}"
-            tournament_table.append(result)
+        for player in players:
             rating: Rating
             index: int
             if player.tg_id in ratings_id_to_index:
@@ -181,11 +162,33 @@ class Tournament:
                 ratings.append(rating)
                 index = len(ratings) - 1
                 ratings_id_to_index[player.tg_id] = index
-            rating.rating.value = new_rating
+            rating.rating.value = player.rating
             rating.update_date()
-            new_deviation = calc_new_deviation(player, rating, new_ratings)
-            rating.deviation.value = new_deviation
+            rating.deviation.value = player.deviation
             ratings[index] = rating
 
-        self.db.finish_tournament(tournament_table)
         ratings_db.update_all_user_ratings(ratings)
+
+    def finish_tournament(self, should_update_coefficients):
+        nmd_logger.info("Finish tournament")
+        self._state = TournamentState.FINISHED
+        if should_update_coefficients:
+            try:
+                self._pairing.update_coefficients(self.db.get_results())
+            except TournamentNotStartedError:
+                self.db.finish_tournament([])
+                raise
+        players = self._pairing.get_players()
+
+        result_list = []
+        for i, player in enumerate(players):
+            old_rating = player.rating
+            update_player_with_rating(player)
+
+            registration = self.db.get_registered_player(player.tg_id)
+            result = player.to_result(i + 1, registration)
+            result.rating.value = f"{old_rating} -> {player.rating}"
+            result_list.append(result)
+
+        self._update_ratings_db(players)
+        self.db.finish_tournament(result_list)

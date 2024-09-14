@@ -223,6 +223,10 @@ def empty_filter(_):
     return True
 
 
+def get_wait_emoji() -> List[ReactionType]:
+    return [ReactionTypeEmoji("✍")]
+
+
 def get_like_emoji() -> List[ReactionType]:
     return [ReactionTypeEmoji("👍")]
 

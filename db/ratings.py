@@ -27,8 +27,8 @@ class Rating(Parameters):
     def default(cls, tg_id: int):
         rating = cls()
         rating.tg_id.value = tg_id
-        rating.rating.value = 100
-        rating.deviation.value = getconf("DEFAULT_K")
+        rating.rating.value = getconf("20K_RATING")
+        rating.deviation.value = getconf("DEFAULT_DEVIATION")
         rating.last_date.value = ""
         return rating
 
