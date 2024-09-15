@@ -113,6 +113,7 @@ class TournamentSettings(Parameters):
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )
+        self.last_tour_message_id: IntParam = IntParam("Last tour message id")
         self._tournament_start_date = StrParam("Время начала турнира")
 
     @staticmethod

@@ -1,3 +1,4 @@
+import datetime
 import os
 import threading
 import time
@@ -15,8 +16,10 @@ from telebot.types import (
     InlineKeyboardMarkup,
 )
 
+from common.nmd_datetime import nmd_now
 from db.admins import admins_db
 from db.ratings import Rating, ratings_db
+from db.tournament import TournamentDB
 from db.tournament_structures import Match, TournamentSettings, RegistrationRow
 from logger.NMDLogger import nmd_logger
 
@@ -54,6 +57,36 @@ def get_right_suffix(value: int, word_without_suffix: str) -> str:
         return word_without_suffix + "ов"
 
 
+def _create_schedule(settings: TournamentSettings) -> str:
+    DATETIME_FORMAT = "%d.%m %H:%M"
+    registration_hours = settings.registration_duration_hours.value
+    tour_hours = settings.round_duration_hours.value
+    tours = settings.rounds_number.value
+    curr_time = nmd_now() + datetime.timedelta(hours=registration_hours)
+
+    schedule_rows = []
+    for i in range(1, tours + 1):
+        schedule_rows.append(f"{curr_time.strftime(DATETIME_FORMAT)} - {i} Тур")
+        curr_time += datetime.timedelta(hours=tour_hours)
+
+    schedule_rows.append(f"{curr_time.strftime(DATETIME_FORMAT)} - Подведение итогов")
+
+    return "\n        ".join(schedule_rows)  # spaces for correct work of dedent
+
+
+def _get_admins_usernames() -> str:
+    admins = admins_db.get_admins()
+    admins_links = []
+    for admin in admins:
+        admins_links.append(f"{get_user_link(admin.user_id, admin.username)}")
+    return " ".join(admins_links)
+
+
+def _get_author_link() -> str:
+    author = admins_db.get_admins()[0]
+    return get_user_link(author.user_id, author.username)
+
+
 def get_tournament_welcome_message(
     settings: TournamentSettings, tournament_url: str
 ) -> str:
@@ -62,44 +95,33 @@ def get_tournament_welcome_message(
     tours = settings.rounds_number.value
     return dedent(
         f"""\
-        <b>Здравствуйте! Здравствуйте! Здравствуйте!</b>
-        Приветствую, трибуты!
-
-        Мы рады приветствовать вас на нашем турнире, где вы сможете показать свои навыки и стратегию в битвах.
+        <b>Приветствую всех на очередном турнире</b>
+        Регламент:
         Соревнование проводится по системе Мак-Магона в {tours} {get_right_suffix(tours, "тур")}
         По результатам турнира рейтинг всех игроков будет пересчитан по формуле Эло с учетом динамического отклонения.
-        Вы можете обратиться к администраторам для уточнения деталей по формулам.
-        Время регистрации ограничено – у вас есть всего {registration_hours} {get_right_suffix(registration_hours, "час")}, чтобы заявить о своем участии. ⏳
-
-        Каждый тур будет длиться {tour_hours} {get_right_suffix(tour_hours, "час")}.
-        Вам предстоит самостоятельно договариваться о времени битвы и создавать карту в соответствии с турнирной таблицей, которую я буду публиковать в этом чате.
+        Вы можете обратиться к автору ({_get_author_link()}) для уточнения деталей по формулам.
+        Время на регистрацию - {registration_hours} {get_right_suffix(registration_hours, "час")}.
+        Длительность каждого тура - {tour_hours} {get_right_suffix(tour_hours, "час")}.
+        
+        Расписание:
+        {_create_schedule(settings)}
+        
+        Вам предстоит самостоятельно договариваться о битве и создавать карту в соответствии с турнирной таблицей.
         Все битвы проходят до первой победы.
 
-        📥 Зарегистрироваться на турнир можно, нажав на кнопку под этим сообщением.
-
-        Напишите мне лично, если хотите добавить или обновить свой игровой никнейм.
+        Напишите мне лично (боту), если хотите добавить или обновить свой игровой никнейм.
 
         Результаты битв можно будет зарегистрировать под сообщением соответствующего тура.
-        Зарегистрировать результат достаточно только одному из участников, но мы вас не ограничиваем.
-        Вам следует зарегистрировать победу, если ваш соперник не смог участвовать
-        Вся информация о турнире, включая список зарегистрировавшихся участников, турнирные таблицы и результаты, будет доступна по этой ссылке: <a href="{tournament_url}">тык</a>
+        Вам следует зарегистрировать победу, если ваш соперник не смог участвовать.
+        Вся информация о турнире доступна по <a href="{tournament_url}">ссылке</a>
 
-        Если в процессе подготовки к битве или во время турнира у вас возникнут проблемы или вопросы, прошу вас сообщить об этом администраторам.
-        Помните, что это первые тестовые запуски, поэтому возможны некоторые трудности.
-
-        Счастливых вам голодных игр.
-        И пусть удача всегда будет с вами.
+        По всем вопросам обращайтесь к администраторам:
+        {_get_admins_usernames()}
         """
     )
 
 
-def get_next_tour_message(
-    settings: TournamentSettings,
-    pairs: List[Match],
-    tours_number: int,
-    tournament_url: str,
-) -> str:
-    tour_hours = settings.round_duration_hours.value
+def get_next_tour_message(pairs: List[Match], tours_number: int) -> str:
     pairs_list = []
     for match in pairs:
         first = get_user_link(match.first_id.value, match.first.value)
@@ -107,43 +129,48 @@ def get_next_tour_message(
             pairs_list.append(f"{first} - техническая победа")
             continue
         second = get_user_link(match.second_id.value, match.second.value)
-        pairs_list.append(f"{first} vs {second}: {match.map.value}")
-    pairs_str = "\n        ".join(pairs_list)
+        pairs_list.append(f"{first} {match.result_str} {second}: {match.map.value}")
+    pairs_str = "\n        ".join(pairs_list)  # spaces for correct work of dedent
     print(pairs_list)
     return dedent(
         f"""\
-        Внимание, трибуты!
+        <b>{tours_number} тур</b>
 
-        Настало время для {tours_number} тура нашего захватывающего турнира.
-        Пришло время доказать свою силу и мастерство на арене!
-
-        Напоминаю:
-        У вас есть {tour_hours} {get_right_suffix(tour_hours, "час")} на проведение битвы.
-        Вся информация о турнире доступна по этой ссылке: <a href="{tournament_url}">тык</a>
-        
-        Договоритесь с соперником о времени встречи и создайте карту в соответствии со следующей турнирной таблицей:
-
+        Пары:
         {pairs_str}
 
         После завершения битвы зарегистрируйте результат, нажав на кнопку под этим сообщением.
-        Пусть каждый ход приближает вас к победе и славе!
-
-        Помните, что все возникающие вопросы и проблемы должны быть незамедлительно доведены до сведения администраторов.
-        Этот турнир – испытание для всех нас, но мы уверены, что вы справитесь.
-
-        И пусть удача всегда будет с вами.
         """
     )
 
 
-def get_tournament_end_message(winners: List[str], tournament_url: str) -> str:
+def get_tournament_end_message(tournament_db: TournamentDB) -> str:
+    tournament_url = tournament_db.get_url()
+    results = tournament_db.get_final_results()
+
+    winners_links = [
+        get_user_link(p.tg_id.value, p.tg_username.value) for p in results[:3]
+    ]
     places = ["🥇 Первое", "🥈 Второе", "🥉 Третье"]
     winners_list = []
-    for i, winner in enumerate(winners):
+    for i, winner in enumerate(winners_links):
         if i > len(places):
             break
         winners_list.append(places[i] + " место: " + winner)
-    winners_str = "\n        ".join(winners_list)
+    winners_str = "\n        ".join(winners_list)  # spaces for correct work of dedent
+
+    new_ratings_list = []
+    for i, result in enumerate(results):
+        username = result.nmd_username.value
+        if not username:
+            username = result.tg_username.value
+        new_ratings_list.append(
+            f"{i + 1}: {get_user_link(result.tg_id.value, username)} {result.rating}"
+        )
+    new_ratings_str = "\n        ".join(
+        new_ratings_list
+    )  # spaces for correct work of dedent
+
     return dedent(
         f"""\
         Трибуты!
@@ -155,8 +182,10 @@ def get_tournament_end_message(winners: List[str], tournament_url: str) -> str:
         {winners_str}
 
         Вы показали высший класс в этом турнире, и ваши достижения навсегда останутся в истории наших битв.
-        Вся информация о результатах турнира доступна по этой ссылке: <a href="{tournament_url}">тык</a>
-        Рейтинги всех участников были зарегистрированы и пересчитаны. Вы можете посмотреть их здесь: <a href="{ratings_db.get_url()}">тык</a>
+        Вся информация о результатах турнира доступна по этой <a href="{tournament_url}">ссылке</a>
+        Рейтинги всех участников были зарегистрированы и пересчитаны.
+        {new_ratings_str}
+        Рейтинг лист доступен по <a href="{ratings_db.get_url()}">ссылке</a>
 
         Мы благодарим всех участников за их усердие и боевой дух.
         Если у вас есть какие-либо вопросы или предложения, не стесняйтесь обращаться к администраторам.

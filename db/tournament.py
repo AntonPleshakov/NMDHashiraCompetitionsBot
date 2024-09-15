@@ -130,6 +130,11 @@ class TournamentDB:
         tour_page.update_values(matrix)
         self._tours.append(tour_page)
 
+    def get_last_tour_pairs(self) -> List[Match]:
+        values = self._tours[-1].get_all_values()
+        pairs = [Match.from_row(row) for row in values]
+        return pairs
+
     def register_result(self, pair_index: int, result: str):
         nmd_logger.info(f"DB: register result. Pair {pair_index}, result {result}")
         if not self._tours:

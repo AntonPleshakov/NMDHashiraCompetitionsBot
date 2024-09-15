@@ -108,8 +108,9 @@ class McMahonPairing:
         while len(players) > 0:
             player = players.pop(0)
             opponent = None
+            opponents_ids = set(op.tg_id for op in player.opponents)
             for second_player in players:
-                if second_player.tg_id not in player.opponents:
+                if second_player.tg_id not in opponents_ids:
                     opponent = second_player
                     players.remove(second_player)
                     break
