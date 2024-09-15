@@ -38,7 +38,7 @@ class Rating(Parameters):
     def get_weeks(self):
         if not self.last_date.value:
             raise NewPlayerError
-        last_date = nmd_parse_datetime(self.last_date.value, self.DATE_FORMAT).date()
+        last_date = nmd_parse_datetime(self.last_date.value, self.DATE_FORMAT)
         date_diff = nmd_now() - last_date
         return date_diff.days // 7
 
