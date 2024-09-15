@@ -79,7 +79,7 @@ class Tournament:
         return pairs
 
     def add_player(self, player: Player):
-        nmd_logger.info(f"Try to register new player, id:{player.tg_id}")
+        nmd_logger.info(f"Try to register new player: {player.username}")
         if self._state != TournamentState.REGISTRATION:
             nmd_logger.error("Tournament state is not in registration, exception")
             raise TournamentStartedError
@@ -153,18 +153,20 @@ class Tournament:
             rating: Rating
             index: int
             if player.tg_id in ratings_id_to_index:
-                nmd_logger.info(f"Player {player.tg_id} exist in ratings db")
+                nmd_logger.info(f"Player {player.username} exist in ratings db")
                 index = ratings_id_to_index[player.tg_id]
                 rating = ratings[index]
             else:
-                nmd_logger.warning(f"Player {player.tg_id} doesn't exist in ratings db")
+                nmd_logger.warning(
+                    f"Player {player.username} doesn't exist in ratings db"
+                )
                 rating = Rating.default(player.tg_id)
                 ratings.append(rating)
                 index = len(ratings) - 1
                 ratings_id_to_index[player.tg_id] = index
             rating.rating.value = player.rating
-            rating.update_date()
             rating.deviation.value = player.deviation
+            rating.update_date()
             ratings[index] = rating
 
         ratings_db.update_all_user_ratings(ratings)
