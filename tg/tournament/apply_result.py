@@ -36,6 +36,7 @@ def apply_result_offer(cb_query: CallbackQuery, bot: TeleBot):
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Выиграл", "tournament/won").inline())
     keyboard.add(Button("Проиграл", "tournament/lose").inline())
+    keyboard.add(Button("Отмена", "tournament/cancel").inline())
     bot.send_message(
         chat_id,
         "Сообщите ваш результат\nP.S. неявка, сдача и т.д. оцениваются как поражение",
@@ -48,6 +49,10 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
     username = get_username(cb_query)
     nmd_logger.info(f"User {username} applied result: {cb_query.data}")
     user_id, chat_id, message_id = get_ids(cb_query)
+    bot.delete_message(chat_id, message_id)
+    if cb_query.data == "tournament/cancel":
+        return
+
     try:
         tournament_manager.tournament.add_result(
             user_id, "tournament/won" == cb_query.data
@@ -83,7 +88,6 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
             text="К сожалению мы не смогли найти вас среди участников. Возможна ошибка, свяжитесь с администратором",
             show_alert=True,
         )
-    bot.delete_message(chat_id, message_id)
 
 
 def register_handlers(bot: TeleBot):
@@ -97,7 +101,7 @@ def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         apply_result,
         func=empty_filter,
-        button="tournament/(won|lose)",
+        button="tournament/(won|lose|cancel)",
         is_private=False,
         pass_bot=True,
     )

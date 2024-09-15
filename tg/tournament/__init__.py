@@ -10,7 +10,7 @@ from telebot.types import (
 from db.admins import admins_db
 from db.global_settings import settings_db
 from logger.NMDLogger import nmd_logger
-from tg.tournament import start_new, update_match_result, new_tour, register
+from tg.tournament import start_new, update_match_result, apply_result, register
 from tg.utils import (
     Button,
     empty_filter,
@@ -103,7 +103,7 @@ def register_handlers(bot: TeleBot):
         pass_bot=True,
     )
 
-    new_tour.register_handlers(bot)
+    apply_result.register_handlers(bot)
     register.register_handlers(bot)
     start_new.register_handlers(bot)
     update_match_result.register_handlers(bot)
