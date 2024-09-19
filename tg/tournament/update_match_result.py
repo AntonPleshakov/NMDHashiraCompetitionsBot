@@ -5,11 +5,13 @@ from telebot.types import CallbackQuery, InlineKeyboardMarkup
 from db.tournament_structures import Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError
+from tg.tournament.announcements import update_tour_message
 from tg.utils import Button, empty_filter, get_ids, home, get_username
 from tournament.tournament_manager import tournament_manager
 
 
 class UpdateMatchStates(StatesGroup):
+    tour_to_update = State()
     match_to_update = State()
     new_result = State()
 
@@ -61,7 +63,7 @@ def chose_result_to_update_match(cb_query: CallbackQuery, bot: TeleBot):
         if new_result == match.result.value:
             continue
         text = f"{match.first.value} {new_result} {match.second.value}"
-        keyboard.add(Button(text, new_result).inline())
+        keyboard.add(Button(text, f"{new_result}").inline())
     keyboard.add(Button("Назад в Турнир", "tournament").inline())
     bot.edit_message_text(
         text="Выберите новый результат",
@@ -77,8 +79,17 @@ def update_result(cb_query: CallbackQuery, bot: TeleBot):
     user_id, chat_id, _ = get_ids(cb_query)
     with bot.retrieve_data(user_id) as data:
         match_index = data["match_index"]
-    new_result = cb_query.data
-    tournament_manager.tournament.db.register_result(match_index, new_result)
+    if cb_query.data not in Match.STR_TO_MATCH_RESULT:
+        nmd_logger.error(f"Error: new result is unsupported: {cb_query.data}")
+    new_result = Match.STR_TO_MATCH_RESULT[cb_query.data]
+
+    tournament = tournament_manager.tournament
+    match = tournament.db.get_results()[match_index]
+
+    tournament.add_result(
+        match.first_id.value, new_result == Match.MatchResult.FirstWon, True
+    )
+    update_tour_message(tournament.db, bot)
     bot.answer_callback_query(cb_query.id, text="Результат успешно изменен")
     bot.delete_state(user_id)
     home(cb_query, bot)
@@ -104,7 +115,7 @@ def register_handlers(bot: TeleBot):
         update_result,
         func=empty_filter,
         state=UpdateMatchStates.new_result,
-        button=r"\w+",
+        button=r"(1|0):(0|1)",
         is_private=True,
         pass_bot=True,
     )

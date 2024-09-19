@@ -8,13 +8,13 @@ from nmd_exceptions import (
     MatchWithPlayersNotFound,
     TechWinCannotBeChanged,
 )
+from tg.tournament.announcements import update_tour_message
 from tg.utils import (
     Button,
     empty_filter,
     get_ids,
     report_to_admins,
     get_username,
-    get_next_tour_message,
 )
 from tournament.tournament_manager import tournament_manager
 
@@ -60,22 +60,7 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
         )
         bot.answer_callback_query(cb_query.id, "Ваш результат зарегистрирован")
 
-        db = tournament_manager.tournament.db
-        settings = db.settings
-        last_tour_message_id = settings.last_tour_message_id
-        if last_tour_message_id != 0:
-            tours_number = db.get_tours_number()
-            pairs = db.get_last_tour_pairs()
-            keyboard = InlineKeyboardMarkup(row_width=1)
-            keyboard.add(
-                Button("Объявить результат", "tournament/apply_result").inline()
-            )
-            bot.edit_message_text(
-                chat_id=chat_id,
-                message_id=last_tour_message_id,
-                text=get_next_tour_message(pairs, tours_number),
-                reply_markup=keyboard,
-            )
+        update_tour_message(tournament_manager.tournament.db, bot)
     except MatchResultTryingToBeChanged:
         nmd_logger.warning(
             f"MatchResultTryingToBeChanged exception for user {username}"

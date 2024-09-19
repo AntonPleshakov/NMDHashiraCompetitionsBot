@@ -47,7 +47,28 @@ def announce_new_tour(pairs: List[Match], tournament_db: TournamentDB, bot: Tele
         message_thread_id=message_thread_id,
     )
     bot.pin_chat_message(chat_id, message.id)
-    tournament_db.settings.last_tour_message_id = message.id
+    settings = tournament_db.settings
+    settings.last_tour_message_id.value = message.id
+    tournament_db.settings = settings
+
+
+def update_tour_message(tournament_db: TournamentDB, bot: TeleBot):
+    settings = tournament_db.settings
+    last_tour_message_id = settings.last_tour_message_id.value
+    if last_tour_message_id == 0:
+        return
+
+    tours_number = tournament_db.get_tours_number()
+    pairs = tournament_db.get_last_tour_pairs()
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(Button("Объявить результат", "tournament/apply_result").inline())
+    chat_id = settings_db.settings.chat_id.value
+    bot.edit_message_text(
+        chat_id=chat_id,
+        message_id=last_tour_message_id,
+        text=get_next_tour_message(pairs, tours_number),
+        reply_markup=keyboard,
+    )
 
 
 def announce_tournament_end(tournament_db: TournamentDB, bot: TeleBot):

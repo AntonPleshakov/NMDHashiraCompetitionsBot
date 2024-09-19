@@ -9,6 +9,7 @@ from db.admins import admins_db
 from db.ratings import ratings_db
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import TournamentNotStartedError
+from tg.tournament import announcements
 from tg.tournament.register import add_or_update_registration_list
 from tg.utils import empty_filter, Button, get_ids, get_username
 from tournament.tournament_manager import tournament_manager
@@ -27,12 +28,6 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
         Button(
             "Обновить сообщение с зарегистрированными игроками",
             "dev/update_reg_message",
-        ).inline()
-    )
-    keyboard.add(
-        Button(
-            "Обновить сообщение о начале турнира",
-            "dev/update_start_message",
         ).inline()
     )
     keyboard.add(
@@ -98,15 +93,9 @@ def update_reg_message(cb_query: CallbackQuery, bot: TeleBot):
     bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
 
 
-def update_start_message(cb_query: CallbackQuery, bot: TeleBot):
-    nmd_logger.info("Update start message")
-    # TODO
-    bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
-
-
 def update_tour_message(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Update tour message")
-    # TODO
+    announcements.update_tour_message(tournament_manager.tournament.db, bot)
     bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
 
 
@@ -157,13 +146,6 @@ def register_handlers(bot: TeleBot):
         update_reg_message,
         func=empty_filter,
         button="dev/update_reg_message",
-        is_private=True,
-        pass_bot=True,
-    )
-    bot.register_callback_query_handler(
-        update_start_message,
-        func=empty_filter,
-        button="dev/update_start_message",
         is_private=True,
         pass_bot=True,
     )
