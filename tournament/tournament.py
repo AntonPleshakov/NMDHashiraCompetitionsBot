@@ -38,15 +38,8 @@ class Tournament:
         )
         nmd_logger.info(f"Current state is {self._state.name}")
 
-        registrations = self.db.get_registered_players()
-        players: List[Player] = []
-        for reg_row in registrations:
-            rating = ratings_db.get_rating(reg_row.tg_id.value)
-            players.append(Player.from_rating(rating))
-        previous_tours = []
-        for i in range(self.db.get_tours_number()):
-            previous_tours.append(self.db.get_results(i))
-        self._pairing: McMahonPairing = McMahonPairing(players, previous_tours)
+        self._pairing: McMahonPairing
+        self.restore_pairing()
 
     @property
     def state(self) -> TournamentState:
@@ -62,6 +55,17 @@ class Tournament:
             p.map.set_value("Dangerous")
         for p in pairs[dangerous_idx:]:
             p.map.set_value("Hard")
+
+    def restore_pairing(self):
+        registrations = self.db.get_registered_players()
+        players: List[Player] = []
+        for reg_row in registrations:
+            rating = ratings_db.get_rating(reg_row.tg_id.value)
+            players.append(Player.from_rating(rating))
+        previous_tours = []
+        for i in range(self.db.get_tours_number()):
+            previous_tours.append(self.db.get_results(i))
+        self._pairing = McMahonPairing(players, previous_tours)
 
     def new_round(self) -> List[Match]:
         nmd_logger.info("New round start")

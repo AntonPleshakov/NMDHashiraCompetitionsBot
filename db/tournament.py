@@ -139,7 +139,13 @@ class TournamentDB:
         nmd_logger.info(f"DB: register result. Pair {pair_index}, result {result}")
         if not self._tours:
             raise TournamentNotStartedError
-        tour = self._tours[-1]
+        self.update_result(-1, pair_index, result)
+
+    def update_result(self, tour: int, pair_index: int, result: str):
+        nmd_logger.info(
+            f"DB: update result. Tour {tour}, pair {pair_index}, result {result}"
+        )
+        tour = self._tours[tour]
         values = tour.get_all_values()
         values[pair_index][Match()._result.index] = result
         tour.update_values(values)
