@@ -22,6 +22,7 @@ from db.ratings import Rating, ratings_db
 from db.tournament import TournamentDB
 from db.tournament_structures import Match, TournamentSettings, RegistrationRow
 from logger.NMDLogger import nmd_logger
+from tournament.player import Player
 
 
 def get_user_link(user_id: int, name: str) -> str:
@@ -121,6 +122,43 @@ def get_tournament_welcome_message(
     )
 
 
+def get_players_table(players: List[Player]) -> str:
+    players_rows = []
+    max_columns = [0] * 3
+    for i in range(len(players) + 1):
+        player = players[i - 1] if i != 0 else None
+        row = f"{i}: {player.username}" if i != 0 else "Ник"
+        max_columns[0] = max(max_columns[0], len(row))
+        max_columns[1] = max(max_columns[1], len(str(player.mm) if i != 0 else "MM"))
+        max_columns[2] = max(max_columns[2], len(str(player.sos) if i != 0 else "SOS"))
+        players_rows.append(row)
+    for i, row in enumerate(players_rows):
+        row_len = len(row)
+        row += " " * (max_columns[0] - row_len)
+        player = players[i - 1] if i > 0 else None
+        mm = str(player.mm) if i != 0 else "MM"
+        row += "| " + mm + " " * (max_columns[1] - len(mm))
+        sos = str(player.sos) if i != 0 else "SOS"
+        row += (
+            "| "
+            + sos
+            + " " * (max_columns[2] - len(sos))
+            + f"| {player.sodos if i != 0 else "SODOS"}"
+        )
+        players_rows[i] = row
+    players_rows.insert(1, "-" * len(players_rows[0]))
+
+    players_str = "\n        ".join(players_rows)  # spaces for correct work of dedent
+    print(players_str)
+    return dedent(
+        f"""\
+        <b>Турнирная таблица:</b>
+
+        <pre>{players_str}</pre>
+        """
+    )
+
+
 def get_next_tour_message(pairs: List[Match], tours_number: int) -> str:
     pairs_list = []
     for match in pairs:
@@ -165,7 +203,7 @@ def get_tournament_end_message(tournament_db: TournamentDB) -> str:
         if not username:
             username = result.tg_username.value
         new_ratings_list.append(
-            f"{i + 1}: {get_user_link(result.tg_id.value, username)} {result.rating}"
+            f"{i + 1}: {get_user_link(result.tg_id.value, username)} \t | {result.rating}"
         )
     new_ratings_str = "\n        ".join(
         new_ratings_list

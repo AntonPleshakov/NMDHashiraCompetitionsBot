@@ -118,7 +118,8 @@ class TournamentManager:
                 nmd_logger.info(f"Exception in pairing. Finish tournament. {e}")
                 self._finish_tournament(False)
                 return
-            announce_new_tour(pairs, self._tournament.db, bot)
+            players = self._tournament.get_players()
+            announce_new_tour(players, pairs, self._tournament.db, bot)
             round_duration = self._settings.round_duration_seconds
             tournament_timer.update_timer(
                 round_duration, TournamentManager.next_tour, [self]
@@ -132,7 +133,9 @@ class TournamentManager:
         nmd_logger.info("Finish tournament")
         try:
             self.tournament.finish_tournament(should_update_coefficients)
-            announce_tournament_end(self.tournament.db, bot)
+            announce_tournament_end(
+                self.tournament.get_players(), self.tournament.db, bot
+            )
         except TournamentNotStartedError:
             announce_tournament_end_without_players(self.tournament.db, bot)
         self._tournament = None

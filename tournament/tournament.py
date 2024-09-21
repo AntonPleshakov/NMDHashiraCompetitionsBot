@@ -38,7 +38,7 @@ class Tournament:
         )
         nmd_logger.info(f"Current state is {self._state.name}")
 
-        self._pairing: McMahonPairing
+        self._pairing: McMahonPairing = None
         self.restore_pairing()
 
     @property
@@ -66,6 +66,9 @@ class Tournament:
         for i in range(self.db.get_tours_number()):
             previous_tours.append(self.db.get_results(i))
         self._pairing = McMahonPairing(players, previous_tours)
+
+    def get_players(self) -> List[Player]:
+        return self._pairing.get_players()
 
     def new_round(self) -> List[Match]:
         nmd_logger.info("New round start")

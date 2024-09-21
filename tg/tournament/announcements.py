@@ -13,7 +13,9 @@ from tg.utils import (
     Button,
     get_next_tour_message,
     get_tournament_end_without_players_message,
+    get_players_table,
 )
+from tournament.player import Player
 
 
 def start_new_tournament(
@@ -33,10 +35,19 @@ def start_new_tournament(
     bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
 
 
-def announce_new_tour(pairs: List[Match], tournament_db: TournamentDB, bot: TeleBot):
+def announce_new_tour(
+    players: List[Player], pairs: List[Match], tournament_db: TournamentDB, bot: TeleBot
+):
     nmd_logger.info("New tour announcement")
     chat_id = settings_db.settings.chat_id.value
     message_thread_id = settings_db.settings.tournament_thread_id.value
+
+    bot.send_message(
+        chat_id,
+        get_players_table(players),
+        message_thread_id=message_thread_id,
+    )
+
     tours_number = tournament_db.get_tours_number()
     keyboard = InlineKeyboardMarkup(row_width=1)
     keyboard.add(Button("Объявить результат", "tournament/apply_result").inline())
@@ -71,10 +82,19 @@ def update_tour_message(tournament_db: TournamentDB, bot: TeleBot):
     )
 
 
-def announce_tournament_end(tournament_db: TournamentDB, bot: TeleBot):
+def announce_tournament_end(
+    players: List[Player], tournament_db: TournamentDB, bot: TeleBot
+):
     nmd_logger.info("End tournament announcement")
     chat_id = settings_db.settings.chat_id.value
     message_thread_id = settings_db.settings.tournament_thread_id.value
+
+    bot.send_message(
+        chat_id,
+        get_players_table(players),
+        message_thread_id=message_thread_id,
+    )
+
     bot.send_message(
         chat_id,
         get_tournament_end_message(tournament_db),
