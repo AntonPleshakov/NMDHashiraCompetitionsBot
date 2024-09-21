@@ -29,8 +29,10 @@ class GlobalSettings(Parameters):
             "Длительность регистрации в часах"
         )
         self.round_duration_hours: IntParam = IntParam("Длительность раунда в часах")
+        self.unrivaled_matches: IntParam = IntParam("Количество Unrivaled матчей")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
+        self.bo2_matches: IntParam = IntParam("Количество Bo2 матчей")
         self.chat_id: IntParam = IntParam("Tournament chat id")
         self.tournament_thread_id: IntParam = IntParam("Tournament thread id")
 

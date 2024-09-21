@@ -48,6 +48,7 @@ class Match(Parameters):
         self.second: StrParam = StrParam("Второй игрок")
         self.second_id: IntParam = IntParam("ТГ ID")
         self.map: StrParam = StrParam("Карта")
+        self.rounds: IntParam = IntParam("Раунды")
 
     def to_string(self):
         return f"{self.first.value} {self._result.value} {self.second.value}"
@@ -108,8 +109,10 @@ class TournamentSettings(Parameters):
             "Длительность регистрации в часах"
         )
         self.round_duration_hours: IntParam = IntParam("Длительность раунда в часах")
+        self.unrivaled_matches: IntParam = IntParam("Количество Unrivaled матчей")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
+        self.bo2_matches: IntParam = IntParam("Количество Bo2 матчей")
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )

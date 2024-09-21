@@ -60,9 +60,10 @@ class Parameters:
     @classmethod
     def from_matrix(cls, matrix: Matrix):
         parameters = cls()
-        for attr, row in zip(parameters.params(), matrix):
+        view_to_name = {param.view: name for name, param in parameters.params().items()}
+        for row in matrix:
             if len(row) == 2:
-                parameters.set_value(attr, row[1])
+                parameters.set_value(view_to_name[row[0]], row[1])
         return parameters
 
     def to_row(self) -> List[str]:

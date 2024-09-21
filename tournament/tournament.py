@@ -46,15 +46,25 @@ class Tournament:
         return self._state
 
     def _set_map_difficulty(self, pairs: List[Match]):
-        nightmares = self.db.settings.nightmare_matches.value
+        unrivaled = self.db.settings.unrivaled_matches.value
+        nightmare = self.db.settings.nightmare_matches.value
         dangerous = self.db.settings.dangerous_matches.value
-        dangerous_idx = nightmares + dangerous
-        for p in pairs[0:nightmares]:
+        nightmare_idx = unrivaled + nightmare
+        dangerous_idx = nightmare_idx + dangerous
+        for p in pairs[0:unrivaled]:
+            p.map.set_value("Unrivaled")
+        for p in pairs[unrivaled:nightmare_idx]:
             p.map.set_value("Nightmare")
-        for p in pairs[nightmares:dangerous_idx]:
+        for p in pairs[nightmare_idx:dangerous_idx]:
             p.map.set_value("Dangerous")
         for p in pairs[dangerous_idx:]:
             p.map.set_value("Hard")
+
+        bo2_matches = self.db.settings.bo2_matches.value
+        for p in pairs[0:bo2_matches]:
+            p.rounds.value = 3
+        for p in pairs[bo2_matches:]:
+            p.rounds.value = 1
 
     def restore_pairing(self):
         registrations = self.db.get_registered_players()
