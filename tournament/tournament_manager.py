@@ -48,8 +48,8 @@ class TournamentManager:
                 seconds_to_next_date = diff_to_next_date.total_seconds()
                 tournament_timer.update_timer(
                     seconds_to_next_date,
-                    start_new_tournament,
-                    [bot, TournamentSettings.default_settings()],
+                    TournamentManager.start_tournament,
+                    [self, TournamentSettings.default_settings()],
                 ).start()
                 nmd_logger.info(
                     f"Next tournament will start in {seconds_to_next_date} seconds (in {next_date})"
@@ -153,8 +153,8 @@ class TournamentManager:
             next_tournament_duration = next_tournament_day - now
             tournament_timer.update_timer(
                 next_tournament_duration.total_seconds(),
-                start_new_tournament,
-                [bot, TournamentSettings.default_settings()],
+                TournamentManager.start_tournament,
+                [self, TournamentSettings.default_settings()],
             ).start()
             nmd_logger.info(
                 f"Next tournament will start in {next_tournament_duration} seconds"

@@ -109,6 +109,9 @@ class TournamentSettings(Parameters):
             "Длительность регистрации в часах"
         )
         self.round_duration_hours: IntParam = IntParam("Длительность раунда в часах")
+        self.round_duration_minutes: IntParam = IntParam(
+            "Длительность раунда в минутах"
+        )
         self.unrivaled_matches: IntParam = IntParam("Количество Unrivaled матчей")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
@@ -125,7 +128,9 @@ class TournamentSettings(Parameters):
 
     @property
     def round_duration_seconds(self) -> float:
-        return timedelta(hours=self.round_duration_hours.value).total_seconds()
+        hours = self.round_duration_hours.value
+        minutes = self.round_duration_minutes.value
+        return timedelta(hours=hours, minutes=minutes).total_seconds()
 
     @property
     def registration_duration_seconds(self) -> float:
@@ -143,11 +148,16 @@ class TournamentSettings(Parameters):
 
     @property
     def tournament_finish_datetime(self) -> datetime:
-        tournament_duration = (
+        tournament_duration_hours = (
             self.rounds_number.value * self.round_duration_hours.value
             + self.registration_duration_hours.value
         )
-        return self.tournament_start_date + timedelta(hours=tournament_duration)
+        tournament_duration_minutes = (
+            self.round_duration_minutes.value * self.rounds_number.value
+        )
+        return self.tournament_start_date + timedelta(
+            hours=tournament_duration_hours, minutes=tournament_duration_minutes
+        )
 
     @classmethod
     def default_settings(cls):
