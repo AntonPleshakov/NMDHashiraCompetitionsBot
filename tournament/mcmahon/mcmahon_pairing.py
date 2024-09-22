@@ -1,12 +1,12 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from db.tournament_structures import Match
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import (
     PairingCantFindByePlayer,
-    PairingNoPlayers,
 )
-from .player import Player
+from tournament.mcmahon.mwmatching import maxWeightMatching
+from tournament.player import Player
 
 
 class McMahonPairing:
@@ -32,9 +32,9 @@ class McMahonPairing:
                 first_player.had_bye = True
                 continue
             second_player = self._players[match.second_id.value]
-            first_player.opponents.add(second_player)
+            first_player.add_opponent(second_player)
             first_player.results[match.second_id.value] = match.result
-            second_player.opponents.add(first_player)
+            second_player.add_opponent(first_player)
             second_player.results[match.first_id.value] = match.result.reversed()
 
     def add_player(self, player: Player):
@@ -95,37 +95,43 @@ class McMahonPairing:
                 raise PairingCantFindByePlayer
         return bye_player
 
+    @staticmethod
+    def _gen_weighted_players_edges(
+        players: List[Player],
+    ) -> List[Tuple[int, int, int]]:
+        edges = []
+        for i, p in enumerate(players):
+            for j, op in enumerate(players):
+                if i >= j:
+                    continue
+                if op.tg_id not in p.opponents_ids:
+                    edges.append((i, j, -abs(p.mm - op.mm)))
+        return edges
+
     def gen_pairs(self) -> List[Match]:
         nmd_logger.info("Gen pairs")
-        players = self.get_players()
-        bye_player = self._get_bye_player(players)
 
-        if len(players) == 0:
-            nmd_logger.warning("No players")
-            raise PairingNoPlayers
+        players = list(self._players.values())
+        edges = self._gen_weighted_players_edges(players)
+        matching = maxWeightMatching(edges)
 
         result = []
-        while len(players) > 0:
-            player = players.pop(0)
-            opponent = None
-            opponents_ids = set(op.tg_id for op in player.opponents)
-            for second_player in players:
-                if second_player.tg_id not in opponents_ids:
-                    opponent = second_player
-                    players.remove(second_player)
-                    break
-            if opponent is None:
-                nmd_logger.warning(f"Can't find free opponent for {player.username}")
-                result.append(Match.new_match(player.username, player.tg_id))
+        created_pairs = set()
+        for i, j in enumerate(matching):
+            if i in created_pairs:
                 continue
-            nmd_logger.info(f"Add pair {player.username} vs {opponent.username}")
-            new_match = Match.new_match(
-                player.username, player.tg_id, opponent.username, opponent.tg_id
-            )
+            created_pairs.add(i)
+            p = players[i]
+            new_match = Match.new_match(p.username, p.tg_id)
+            if j != -1:
+                created_pairs.add(j)
+                op = players[j]
+                new_match.second.value = op.username
+                new_match.second_id.value = op.tg_id
+                nmd_logger.info(f"Add pair {p.username} vs {op.username}")
+            else:
+                nmd_logger.info(f"Add match without op for {p.username}")
             result.append(new_match)
-
-        if bye_player is not None:
-            result.append(Match.new_match(bye_player.username, bye_player.tg_id))
 
         self._populate_opponents(result)
         return result

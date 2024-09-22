@@ -1,5 +1,5 @@
 from math import floor
-from typing import Set, Dict
+from typing import Set, Dict, List
 
 from db.ratings import Rating
 from db.tournament_structures import RegistrationRow, Result, Match
@@ -21,7 +21,8 @@ class Player:
         self.deviation: int = deviation
         self.weeks_to_last_tournament: int = weeks_to_last_tournament
 
-        self.opponents: Set[Player] = set()
+        self.opponents: List[Player] = []
+        self.opponents_ids: Set[int] = set()
         self.results: Dict[int, Match.MatchResult] = {}
         self.had_bye: bool = False
         self.mm: int = floor(rating / 100)
@@ -65,3 +66,7 @@ class Player:
             ]
         )
         return res
+
+    def add_opponent(self, player):
+        self.opponents_ids.add(player.tg_id)
+        self.opponents.append(player)

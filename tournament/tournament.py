@@ -16,8 +16,8 @@ from nmd_exceptions import (
     TournamentNotStartedError,
 )
 from tg.utils import get_player_rating_view
+from tournament.mcmahon.mcmahon_pairing import McMahonPairing
 from tournament.ratings_math import update_player_with_rating
-from .mcmahon_pairing import McMahonPairing
 from .player import Player
 
 
