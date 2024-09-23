@@ -1,11 +1,11 @@
 from telebot import TeleBot
-from telebot.types import CallbackQuery
+from telebot.types import CallbackQuery, InlineKeyboardMarkup
 
 from db.global_settings import settings_db
 from db.ratings import ratings_db, Rating
 from logger.NMDLogger import nmd_logger
 from nmd_exceptions import PlayerNotFoundError, TournamentStartedError
-from tg.utils import empty_filter, get_ids, get_username, get_user_link
+from tg.utils import empty_filter, get_ids, get_username, get_user_link, Button
 from tournament.player import Player
 from tournament.tournament_manager import tournament_manager
 
@@ -39,12 +39,15 @@ def add_or_update_registration_list(bot: TeleBot, add: bool = True):
     message_thread_id = settings_db.settings.tournament_thread_id.value
     settings = tournament_manager.tournament.db.settings
 
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(Button("Отменить регистрацию", "tournament/unregister").inline())
     if settings.registration_list_message_id.value:
         nmd_logger.info("Update registration list message")
         bot.edit_message_text(
             message_id=settings.registration_list_message_id.value,
             chat_id=chat_id,
             text=get_registration_list_message(),
+            reply_markup=keyboard,
         )
     elif add:
         nmd_logger.info("Create registration list message")
@@ -52,6 +55,7 @@ def add_or_update_registration_list(bot: TeleBot, add: bool = True):
             chat_id=chat_id,
             message_thread_id=message_thread_id,
             text=get_registration_list_message(),
+            reply_markup=keyboard,
         )
         settings.registration_list_message_id.value = message.id
         tournament_manager.tournament.db.settings = settings
@@ -94,11 +98,30 @@ def register(cb_query: CallbackQuery, bot: TeleBot):
         )
 
 
+def unregister(cb_query: CallbackQuery, bot: TeleBot):
+    username = get_username(cb_query)
+    nmd_logger.info(f"User {username} wants to unregister")
+
+    try:
+        tournament_manager.tournament.remove_player(cb_query.from_user.id)
+        add_or_update_registration_list(bot)
+        bot.answer_callback_query(cb_query.id, text="Регистрация отменена")
+    except TournamentStartedError:
+        bot.answer_callback_query(cb_query.id, text="Турнир уже начался")
+
+
 def register_handlers(bot: TeleBot):
     bot.register_callback_query_handler(
         register,
         func=empty_filter,
         button="tournament/register",
+        is_private=False,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        unregister,
+        func=empty_filter,
+        button="tournament/unregister",
         is_private=False,
         pass_bot=True,
     )

@@ -109,6 +109,14 @@ class Tournament:
         self.db.register_player(registration_row)
         self._pairing.add_player(player)
 
+    def remove_player(self, player_id: int):
+        nmd_logger.info(f"Try to remove a player. id: {player_id}")
+        if self._state != TournamentState.REGISTRATION:
+            nmd_logger.error("Tournament state is not in registration, exception")
+            raise TournamentStartedError
+        self.db.unregister_player(player_id)
+        self._pairing.remove_player(player_id)
+
     def update_player_info(self, player: Rating):
         nmd_logger.info(f"Update player info {get_player_rating_view(player)}")
         if self._state != TournamentState.REGISTRATION:

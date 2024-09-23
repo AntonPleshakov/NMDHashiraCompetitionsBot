@@ -40,6 +40,9 @@ class McMahonPairing:
     def add_player(self, player: Player):
         self._players[player.tg_id] = player
 
+    def remove_player(self, player_id: int):
+        self._players.pop(player_id, None)
+
     def get_players(self) -> List[Player]:
         players = list(self._players.values())
         players.sort(key=lambda x: (x.mm, x.sos, x.sodos, x.rating), reverse=True)

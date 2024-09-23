@@ -107,6 +107,18 @@ class TournamentDB:
         self._registration_page.sort_table(player.rating.index)
         self._registered_players[player.tg_id.value] = player
 
+    def unregister_player(self, player_id: int):
+        nmd_logger.info(f"DB: unreg player. id: {player_id}")
+        if player_id not in self._registered_players:
+            nmd_logger.info(f"Player isn't registered")
+            return
+        values = self._registration_page.get_all_values()
+        id_index = RegistrationRow().tg_id.index
+        values = [v for v in values if v[id_index] != str(player_id)]
+        self._registration_page.update_values(values)
+        self._registration_page.sort_table(RegistrationRow().rating.index)
+        self._registered_players.pop(player_id)
+
     def get_registered_players(self) -> List[RegistrationRow]:
         matrix = self._registration_page.get_all_values()
         players = [RegistrationRow.from_row(row) for row in matrix]
