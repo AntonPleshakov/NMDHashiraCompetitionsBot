@@ -115,7 +115,7 @@ class TournamentSettings(Parameters):
         self.unrivaled_matches: IntParam = IntParam("Количество Unrivaled матчей")
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
-        self.bo2_matches: IntParam = IntParam("Количество Bo2 матчей")
+        self.bo3_matches: IntParam = IntParam("Количество Bo3 матчей")
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )

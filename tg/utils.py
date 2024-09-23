@@ -1,5 +1,4 @@
 import datetime
-import math
 import os
 import threading
 import time
@@ -168,7 +167,7 @@ def get_next_tour_message(pairs: List[Match], tours_number: int) -> str:
             pairs_list.append(f"{first} - техническая победа")
             continue
         second = get_user_link(match.second_id.value, match.second.value)
-        rounds = f"Bo{math.floor(match.rounds.value/2)+1}"
+        rounds = f"Bo{match.rounds.value}"
         pairs_list.append(
             f"{first} {match.result_str} {second}: {match.map.value} ({rounds})"
         )

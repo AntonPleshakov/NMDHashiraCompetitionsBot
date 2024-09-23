@@ -60,10 +60,10 @@ class Tournament:
         for p in pairs[dangerous_idx:]:
             p.map.set_value("Hard")
 
-        bo2_matches = self.db.settings.bo2_matches.value
-        for p in pairs[0:bo2_matches]:
+        bo3_matches = self.db.settings.bo3_matches.value
+        for p in pairs[0:bo3_matches]:
             p.rounds.value = 3
-        for p in pairs[bo2_matches:]:
+        for p in pairs[bo3_matches:]:
             p.rounds.value = 1
 
     def restore_pairing(self):
