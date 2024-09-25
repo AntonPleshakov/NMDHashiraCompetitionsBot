@@ -90,7 +90,6 @@ class McMahonPairing:
                     continue
                 nmd_logger.info(f"Bye player is {player.username}")
                 bye_player = player
-                player.had_bye = True
                 players.remove(player)
                 break
             if bye_player is None:
@@ -114,7 +113,8 @@ class McMahonPairing:
     def gen_pairs(self) -> List[Match]:
         nmd_logger.info("Gen pairs")
 
-        players = list(self._players.values())
+        players = list(self.get_players())
+        bye_player = self._get_bye_player(players)
         edges = self._gen_weighted_players_edges(players)
         matching = maxWeightMatching(edges)
 
@@ -135,6 +135,9 @@ class McMahonPairing:
             else:
                 nmd_logger.info(f"Add match without op for {p.username}")
             result.append(new_match)
+
+        if bye_player is not None:
+            result.append(Match.new_match(bye_player.username, bye_player.tg_id))
 
         self._populate_opponents(result)
         return result
