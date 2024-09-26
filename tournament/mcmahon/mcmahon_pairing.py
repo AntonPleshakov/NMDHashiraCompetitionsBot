@@ -33,8 +33,16 @@ class McMahonPairing:
                 continue
             second_player = self._players[match.second_id.value]
             first_player.add_opponent(second_player)
-            first_player.results[match.second_id.value] = match.result
             second_player.add_opponent(first_player)
+
+    def add_results(self, matches: List[Match]):
+        nmd_logger.info(f"Add results for {len(matches)} matches")
+        for match in matches:
+            if not match.second.value:
+                continue
+            first_player = self._players[match.first_id.value]
+            second_player = self._players[match.second_id.value]
+            first_player.results[match.second_id.value] = match.result
             second_player.results[match.first_id.value] = match.result.reversed()
 
     def add_player(self, player: Player):
@@ -59,6 +67,7 @@ class McMahonPairing:
 
     def update_coefficients(self, tour_result: List[Match]):
         nmd_logger.info(f"Update coefficients for {len(tour_result)} matches")
+        self.add_results(tour_result)
         first_won = Match.MatchResult.FirstWon
         second_won = Match.MatchResult.SecondWon
         # calculate mm score first
