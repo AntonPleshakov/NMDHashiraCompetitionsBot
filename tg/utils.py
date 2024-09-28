@@ -17,7 +17,6 @@ from telebot.types import (
     InlineKeyboardMarkup,
 )
 
-from common.nmd_datetime import nmd_now
 from db.admins import admins_db
 from db.ratings import Rating, ratings_db
 from db.tournament import TournamentDB
@@ -81,7 +80,9 @@ def _create_schedule(settings: TournamentSettings) -> str:
     tour_hours = settings.round_duration_hours.value
     tour_minutes = settings.round_duration_minutes.value
     tours = settings.rounds_number.value
-    curr_time = nmd_now() + datetime.timedelta(hours=registration_hours)
+    curr_time = settings.tournament_start_date + datetime.timedelta(
+        hours=registration_hours
+    )
 
     schedule_rows = []
     for i in range(1, tours + 1):
