@@ -1,4 +1,5 @@
 import datetime
+import math
 import os
 import threading
 import time
@@ -49,26 +50,43 @@ def report_to_admins(bot: TeleBot, message: str):
         bot.send_message(chat_id=admin.user_id.value, text=message)
 
 
-def get_right_suffix(value: int, word_without_suffix: str) -> str:
+def _get_right_suffix(value: int, singular: str, few: str, many: str) -> str:
     if value % 10 == 1 and value % 100 != 11:
-        return word_without_suffix
+        return singular
     elif 2 <= value % 10 <= 4 and not 12 <= value % 100 <= 14:
-        return word_without_suffix + "а"
+        return few
     else:
-        return word_without_suffix + "ов"
+        return many
+
+
+def _get_days_suffix(value: int) -> str:
+    return _get_right_suffix(value, "день", "дня", "дней")
+
+
+def _get_hour_suffix(value: int) -> str:
+    return _get_right_suffix(value, "час", "часа", "часов")
+
+
+def _get_minute_suffix(value: int) -> str:
+    return _get_right_suffix(value, "минута", "минуты", "минут")
+
+
+def _get_tour_suffix(value: int) -> str:
+    return _get_right_suffix(value, "тур", "тура", "туров")
 
 
 def _create_schedule(settings: TournamentSettings) -> str:
     DATETIME_FORMAT = "%d.%m %H:%M"
     registration_hours = settings.registration_duration_hours.value
     tour_hours = settings.round_duration_hours.value
+    tour_minutes = settings.round_duration_minutes.value
     tours = settings.rounds_number.value
     curr_time = nmd_now() + datetime.timedelta(hours=registration_hours)
 
     schedule_rows = []
     for i in range(1, tours + 1):
         schedule_rows.append(f"{curr_time.strftime(DATETIME_FORMAT)} - {i} Тур")
-        curr_time += datetime.timedelta(hours=tour_hours)
+        curr_time += datetime.timedelta(hours=tour_hours, minutes=tour_minutes)
 
     schedule_rows.append(f"{curr_time.strftime(DATETIME_FORMAT)} - Подведение итогов")
 
@@ -88,21 +106,44 @@ def _get_author_link() -> str:
     return get_user_link(author.user_id, author.username)
 
 
+def _get_str_duration(hours: int, minutes: int) -> str:
+    times: List[str] = []
+    days: int = math.floor(hours / 24)
+    hours = hours % 24
+    if days > 0:
+        times.append(f"{days} {_get_days_suffix(days)}")
+    if hours > 0:
+        times.append(f"{hours} {_get_hour_suffix(hours)}")
+    if minutes > 0:
+        times.append(f"{minutes} {_get_minute_suffix(minutes)}")
+    return " ".join(times)
+
+
+def _get_tour_duration(settings: TournamentSettings) -> str:
+    tour_hours = settings.round_duration_hours.value
+    tour_minutes = settings.round_duration_minutes.value
+    return _get_str_duration(tour_hours, tour_minutes)
+
+
+def _get_registration_duration(settings: TournamentSettings) -> str:
+    reg_hours = settings.registration_duration_hours.value
+    return _get_str_duration(reg_hours, 0)
+
+
 def get_tournament_welcome_message(
     settings: TournamentSettings, tournament_url: str
 ) -> str:
     registration_hours = settings.registration_duration_hours.value
-    tour_hours = settings.round_duration_hours.value
     tours = settings.rounds_number.value
     return dedent(
         f"""\
         <b>Приветствую всех на очередном турнире</b>
         Регламент:
-        Соревнование проводится по системе Мак-Магона в {tours} {get_right_suffix(tours, "тур")}
+        Соревнование проводится по системе Мак-Магона в {tours} {_get_tour_suffix(tours)}
         По результатам турнира рейтинг всех игроков будет пересчитан по формуле Эло с учетом динамического отклонения.
         Вы можете обратиться к автору ({_get_author_link()}) для уточнения деталей по формулам.
-        Время на регистрацию - {registration_hours} {get_right_suffix(registration_hours, "час")}.
-        Длительность каждого тура - {tour_hours} {get_right_suffix(tour_hours, "час")}.
+        Время на регистрацию - {_get_registration_duration(settings)}.
+        Длительность каждого тура - {_get_tour_duration(settings)}.
         
         Расписание:
         {_create_schedule(settings)}
