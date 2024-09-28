@@ -62,7 +62,7 @@ class Parameters:
         parameters = cls()
         view_to_name = {param.view: name for name, param in parameters.params().items()}
         for row in matrix:
-            if len(row) == 2:
+            if len(row) == 2 and row[0] in view_to_name:
                 parameters.set_value(view_to_name[row[0]], row[1])
         return parameters
 

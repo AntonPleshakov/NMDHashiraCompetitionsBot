@@ -33,6 +33,26 @@ def start_new_tournament(
         reply_markup=keyboard,
     )
     bot.pin_chat_message(chat_id=chat_id, message_id=message.id)
+    settings = tournament_db.settings
+    settings.welcome_message_id = message.id
+    tournament_db.settings = settings
+
+
+def update_new_tournament_message(tournament_db: TournamentDB, bot: TeleBot):
+    settings = tournament_db.settings
+    new_tournament_message_id = settings.new_tournament_message_id.value
+    if new_tournament_message_id == 0:
+        return
+
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(Button("Зарегистрироваться", "tournament/register").inline())
+    chat_id = settings_db.settings.chat_id.value
+    bot.edit_message_text(
+        chat_id=chat_id,
+        message_id=new_tournament_message_id,
+        text=get_tournament_welcome_message(settings, tournament_db.get_url()),
+        reply_markup=keyboard,
+    )
 
 
 def announce_new_tour(

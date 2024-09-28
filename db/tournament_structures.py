@@ -116,15 +116,25 @@ class TournamentSettings(Parameters):
         self.nightmare_matches: IntParam = IntParam("Количество Nightmare матчей")
         self.dangerous_matches: IntParam = IntParam("Количество Dangerous матчей")
         self.bo3_matches: IntParam = IntParam("Количество Bo3 матчей")
+        self.new_tournament_message_id: IntParam = IntParam(
+            "ID сообщения о начале турнира"
+        )
         self.registration_list_message_id: IntParam = IntParam(
             "ID сообщения зарегистрированных игроков"
         )
-        self.last_tour_message_id: IntParam = IntParam("Last tour message id")
+        self.last_tour_message_id: IntParam = IntParam(
+            "ID последнего сообщения о начале тура"
+        )
         self._tournament_start_date = StrParam("Время начала турнира")
 
     @staticmethod
     def private_parameters() -> List[str]:
-        return ["registration_list_message_id", "_tournament_start_date"]
+        return [
+            "new_tournament_message_id",
+            "registration_list_message_id",
+            "last_tour_message_id",
+            "_tournament_start_date",
+        ]
 
     @property
     def round_duration_seconds(self) -> float:

@@ -26,6 +26,11 @@ def dev_main_menu(cb_query: CallbackQuery, bot: TeleBot):
     keyboard.add(Button("Обновить турнирные таблицы", "dev/fetch_tournament").inline())
     keyboard.add(
         Button(
+            "Обновить сообщение о начале турнира", "dev/update_new_tournament_message"
+        ).inline()
+    )
+    keyboard.add(
+        Button(
             "Обновить сообщение с зарегистрированными игроками",
             "dev/update_reg_message",
         ).inline()
@@ -87,6 +92,12 @@ def fetch_tournament(cb_query: CallbackQuery, bot: TeleBot):
         bot.answer_callback_query(cb_query.id, "Нет турнирной таблицы")
 
 
+def update_new_tournament_message(cb_query: CallbackQuery, bot: TeleBot):
+    nmd_logger.info("Update new tournament message")
+    announcements.update_new_tournament_message(tournament_manager.tournament.db, bot)
+    bot.answer_callback_query(cb_query.id, "Сообщение обновлено")
+
+
 def update_reg_message(cb_query: CallbackQuery, bot: TeleBot):
     nmd_logger.info("Update reg message")
     add_or_update_registration_list(bot, False)
@@ -139,6 +150,13 @@ def register_handlers(bot: TeleBot):
         fetch_tournament,
         func=empty_filter,
         button="dev/fetch_tournament",
+        is_private=True,
+        pass_bot=True,
+    )
+    bot.register_callback_query_handler(
+        update_new_tournament_message,
+        func=empty_filter,
+        button="dev/update_new_tournament_message",
         is_private=True,
         pass_bot=True,
     )
