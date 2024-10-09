@@ -59,8 +59,6 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
             user_id, "tournament/won" == cb_query.data
         )
         bot.answer_callback_query(cb_query.id, "Ваш результат зарегистрирован")
-
-        update_tour_message(tournament_manager.tournament.db, bot)
     except MatchResultTryingToBeChanged:
         nmd_logger.warning(
             f"MatchResultTryingToBeChanged exception for user {username}"
@@ -91,6 +89,7 @@ def apply_result(cb_query: CallbackQuery, bot: TeleBot):
             text="К сожалению мы не смогли найти вас среди участников. Возможна ошибка, свяжитесь с администратором",
             show_alert=True,
         )
+    update_tour_message(tournament_manager.tournament.db, bot)
 
 
 def register_handlers(bot: TeleBot):
